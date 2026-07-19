@@ -1,6 +1,7 @@
 FROM python:3.11-bookworm
 
-# WeasyPrint system dependencies — استخدم bookworm (مو slim) عشان كل المكتبات متوفرة
+# WeasyPrint system dependencies + Arabic fonts
+# ملاحظة: fonts-noto-arabic غير متوفر في bookworm، نستخدم fonts-arabeyes أو fonts-kacst
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpango-1.0-0 \
@@ -11,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     shared-mime-info \
     fonts-noto-core \
     fonts-noto-extra \
-    fonts-noto-arabic \
+    fonts-kacst \
+    fonts-hosny-amiri \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
