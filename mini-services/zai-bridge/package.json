@@ -1,0 +1,7 @@
+{
+  "name": "zai-bridge",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": { "dev": "bun --hot index.js" },
+  "dependencies": {}
+}

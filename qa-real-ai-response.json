@@ -1,0 +1,174 @@
+{
+  "personal": {
+    "name": "أحمد محمد العلي",
+    "name_en": "Ahmed Mohammed Al-Ali",
+    "name_ar": "",
+    "title": "",
+    "title_en": "",
+    "title_ar": "",
+    "email": "ahmed.ali@example.com",
+    "phone": "+966 50 123 4567",
+    "location": "الرياض، المملكة العربية السعودية",
+    "linkedin": "https://linkedin.com/in/ahmedali",
+    "website": "https://ahmed.ali",
+    "github": "https://github.com/ahmedali/"
+  },
+  "summary": {
+    "en": "Senior Software Engineer with 8+ years building scalable cloud platforms.",
+    "ar": "مهندس برمجيات بخبرة 8 سنوات في تطوير المنصات السحابية."
+  },
+  "objective": {},
+  "experience": [
+    {
+      "title": "Senior Engineer",
+      "title_en": "Senior Engineer",
+      "title_ar": "",
+      "company": "Google",
+      "company_en": "Google",
+      "company_ar": "",
+      "location": "",
+      "start_date": "2021",
+      "end_date": "Present",
+      "current": true,
+      "description": "",
+      "bullets": [
+        "Led migration to microservices",
+        "Reduced latency by 40%",
+        "Mentored 5 engineers"
+      ],
+      "bullets_en": [
+        "Led migration to microservices",
+        "Reduced latency by 40%",
+        "Mentored 5 engineers"
+      ],
+      "bullets_ar": []
+    },
+    {
+      "title": "مهندس برمجيات",
+      "title_en": "Software Engineer",
+      "title_ar": "مهندس برمجيات",
+      "company": "شركة التقنية المتقدمة",
+      "company_en": "",
+      "company_ar": "شركة التقنية المتقدمة",
+      "location": "",
+      "start_date": "2018",
+      "end_date": "2021",
+      "current": false,
+      "description": "",
+      "bullets": [
+        "Built REST APIs in Python",
+        "Shipped 20+ features"
+      ],
+      "bullets_en": [
+        "Built REST APIs in Python",
+        "Shipped 20+ features"
+      ],
+      "bullets_ar": []
+    },
+    {
+      "title": "Software Engineer",
+      "title_en": "Software Engineer",
+      "title_ar": "",
+      "company": "Microsoft",
+      "company_en": "Microsoft",
+      "company_ar": "",
+      "location": "",
+      "start_date": "2015",
+      "end_date": "2018",
+      "current": false,
+      "description": "Achievements: Improved test coverage to 90%",
+      "bullets": [],
+      "bullets_en": [],
+      "bullets_ar": []
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Sc. Computer Science",
+      "degree_en": "B.Sc. Computer Science",
+      "degree_ar": "",
+      "institution": "MIT",
+      "institution_en": "MIT",
+      "institution_ar": "",
+      "location": "",
+      "start_date": "2011",
+      "end_date": "2015",
+      "year": "",
+      "gpa": "3.8/4.0",
+      "description": ""
+    },
+    {
+      "degree": "ماجستير علوم حاسب",
+      "degree_en": "",
+      "degree_ar": "ماجستير علوم حاسب",
+      "institution": "جامعة الملك سعود",
+      "institution_en": "",
+      "institution_ar": "جامعة الملك سعود",
+      "location": "",
+      "start_date": "2015",
+      "end_date": "2017",
+      "year": "",
+      "gpa": "",
+      "description": ""
+    }
+  ],
+  "skills": [],
+  "technical_skills": [
+    "Python",
+    "FastAPI",
+    "React",
+    "Docker",
+    "Kubernetes",
+    "AWS",
+    "PostgreSQL",
+    "Redis",
+    "GraphQL"
+  ],
+  "soft_skills": [],
+  "courses": [
+    "Deep Learning Specialization (Coursera)",
+    "Docker for Developers"
+  ],
+  "certifications": [
+    {
+      "name": "AWS Solutions Architect",
+      "issuer": "",
+      "date": "",
+      "url": ""
+    },
+    {
+      "name": "Google Cloud Professional",
+      "issuer": "",
+      "date": "",
+      "url": ""
+    }
+  ],
+  "languages": [
+    {
+      "name": "English",
+      "level": "Fluent"
+    },
+    {
+      "name": "العربية",
+      "level": "اللغة الأم"
+    },
+    {
+      "name": "Spanish",
+      "level": "Basic"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Real-time Chat App",
+      "description": "",
+      "url": "https://github.com/ahmedali/chat",
+      "technologies": []
+    }
+  ],
+  "volunteering": [],
+  "achievements": [],
+  "references": [],
+  "other": [],
+  "template_id": "ats_classic",
+  "lang": "en"
+}

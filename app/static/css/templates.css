@@ -1,0 +1,201 @@
+/* CVGen Pro — Template Styles
+   Shared between live preview, thumbnails, and WeasyPrint PDF.
+   Uses CSS custom properties (--cv-font-size, --cv-line-height, etc.)
+   so the editor's stepper controls can instantly update the design.
+*/
+
+/* ============ Design variable defaults ============ */
+:root {
+  --cv-font-size: 9pt;
+  --cv-line-height: 1.4;
+  --cv-section-spacing: 6pt;
+  --cv-column-distance: 16px;
+  --cv-margin: 10mm;
+}
+
+/* ============ Base ============ */
+* { box-sizing: border-box; }
+.cv-root {
+  font-family: "Tajawal", "Inter", "Segoe UI", "Amiri", "Cairo", system-ui, sans-serif;
+  color: #1f2937;
+  line-height: var(--cv-line-height);
+  font-size: var(--cv-font-size);
+  background: #fff;
+  padding: 0;
+}
+.cv-root h1, .cv-root h2, .cv-root h3 { margin: 0 0 calc(var(--cv-section-spacing) * 0.5); }
+.cv-root p { margin: 0 0 calc(var(--cv-section-spacing) * 0.5); }
+.cv-name { font-size: calc(var(--cv-font-size) * 2.4); font-weight: 700; letter-spacing: -0.3px; }
+.cv-title { font-size: calc(var(--cv-font-size) * 1.2); color: #6b7280; font-weight: 500; }
+.cv-contact { font-size: calc(var(--cv-font-size) * 0.95); color: #4b5563; margin-top: 3px; word-break: break-word; }
+.cv-h2 {
+  font-size: calc(var(--cv-font-size) * 1.05);
+  font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  border-bottom: 2px solid #e5e7eb; padding-bottom: 3px;
+  margin: calc(var(--cv-section-spacing) * 1.2) 0 calc(var(--cv-section-spacing) * 0.6);
+}
+.cv-h { font-size: calc(var(--cv-font-size) * 0.95); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: calc(var(--cv-section-spacing) * 0.8) 0 calc(var(--cv-section-spacing) * 0.5); }
+.cv-section { margin-bottom: var(--cv-section-spacing); }
+.cv-item { margin-bottom: calc(var(--cv-section-spacing) * 0.9); }
+.cv-item-title { font-weight: 700; font-size: var(--cv-font-size); }
+.cv-item-sub { font-size: calc(var(--cv-font-size) * 0.92); color: #6b7280; font-style: italic; margin-bottom: 2px; }
+.cv-bullets { margin: 3px 0 0; padding-left: 16px; }
+[data-lang="ar"] .cv-bullets, .cv-bullets[dir="rtl"] { padding-left: 0; padding-right: 16px; }
+.cv-bullets li { margin-bottom: 2px; font-size: var(--cv-font-size); }
+.cv-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+.cv-skill-chip { display: inline-block; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px 7px; font-size: calc(var(--cv-font-size) * 0.9); color: #374151; }
+.break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+
+/* ============ 1. ATS Classic ============ */
+.cv-ats-classic { text-align: left; }
+.cv-ats-classic .cv-header { text-align: center; margin-bottom: calc(var(--cv-section-spacing) * 0.8); padding-bottom: calc(var(--cv-section-spacing) * 0.6); border-bottom: 2px solid #111827; }
+.cv-ats-classic .cv-name { font-size: calc(var(--cv-font-size) * 2.6); }
+
+/* ============ 2. Minimal Black ============ */
+.cv-mb-grid { display: grid; grid-template-columns: 30% 70%; gap: 0; }
+.cv-mb-side { background: #000; color: #fff; padding: 18px 12px; }
+.cv-mb-side .cv-name { color: #fff; font-size: calc(var(--cv-font-size) * 1.8); }
+.cv-mb-side .cv-title { color: #d1d5db; }
+.cv-mb-contact { font-size: calc(var(--cv-font-size) * 0.85); margin: 8px 0; color: #e5e7eb; }
+.cv-mb-contact div { margin-bottom: 2px; word-break: break-word; }
+.cv-mb-side .cv-h { color: #9ca3af; border-bottom: 1px solid #374151; padding-bottom: 2px; }
+.cv-mb-list { list-style: none; padding: 0; margin: 0 0 10px; font-size: calc(var(--cv-font-size) * 0.88); }
+.cv-mb-list li { padding: 2px 0; border-bottom: 1px dotted #374151; }
+.cv-mb-main { padding: 18px 16px; }
+.cv-timeline { position: relative; padding-left: 12px; border-left: 2px solid #000; }
+.cv-tl-item { display: grid; grid-template-columns: 72px 1fr; gap: var(--cv-column-distance); margin-bottom: calc(var(--cv-section-spacing) * 0.9); }
+.cv-tl-date { font-size: calc(var(--cv-font-size) * 0.85); color: #6b7280; font-weight: 600; padding-top: 2px; }
+
+/* ============ 3. Modern Sidebar ============ */
+.cv-ms-grid { display: grid; grid-template-columns: 35% 65%; }
+.cv-ms-side { background: linear-gradient(180deg, #0f766e, #134e4a); color: #fff; padding: 20px 14px; }
+.cv-ms-photo { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: calc(var(--cv-font-size) * 2); font-weight: 700; margin: 0 auto 10px; }
+.cv-ms-name { text-align: center; font-size: calc(var(--cv-font-size) * 1.7); }
+.cv-ms-title { text-align: center; font-size: calc(var(--cv-font-size) * 1.0); color: #a7f3d0; margin-bottom: 12px; }
+.cv-ms-contact { font-size: calc(var(--cv-font-size) * 0.85); margin-bottom: 12px; }
+.cv-ms-citem { display: flex; flex-direction: column; margin-bottom: 6px; }
+.cv-ms-clabel { font-size: calc(var(--cv-font-size) * 0.7); text-transform: uppercase; letter-spacing: 1px; color: #6ee7b7; }
+.cv-ms-h { font-size: calc(var(--cv-font-size) * 0.85); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 2px; margin: 10px 0 5px; color: #d1fae5; }
+.cv-ms-skills { display: flex; flex-wrap: wrap; gap: 3px; }
+.cv-ms-skills span { background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 6px; font-size: calc(var(--cv-font-size) * 0.85); }
+.cv-ms-main { padding: 20px 16px; }
+.cv-ms-h2 { font-size: calc(var(--cv-font-size) * 1.1); color: #0f766e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #ccfbf1; padding-bottom: 3px; margin-bottom: 6px; }
+
+/* ============ 4. Corporate Slate ============ */
+.cv-cs-header { background: #1e3a5f; color: #fff; padding: 16px 20px; text-align: center; }
+.cv-cs-header .cv-name { color: #fff; font-size: calc(var(--cv-font-size) * 2.2); }
+.cv-cs-header .cv-title { color: #cbd5e1; }
+.cv-cs-grid { display: grid; grid-template-columns: 28% 72%; }
+.cv-cs-side { background: #f1f5f9; padding: 14px 12px; }
+.cv-cs-h { font-size: calc(var(--cv-font-size) * 0.85); text-transform: uppercase; color: #1e3a5f; letter-spacing: 1px; border-bottom: 2px solid #cbd5e1; padding-bottom: 2px; margin: 10px 0 5px; }
+.cv-cs-citem { font-size: calc(var(--cv-font-size) * 0.85); margin-bottom: 3px; color: #334155; word-break: break-word; }
+.cv-cs-list { list-style: none; padding: 0; margin: 0; font-size: calc(var(--cv-font-size) * 0.88); }
+.cv-cs-list li { padding: 2px 0; border-bottom: 1px dotted #cbd5e1; }
+.cv-cs-main { padding: 14px 16px; }
+.cv-cs-main .cv-h2 { color: #1e3a5f; }
+
+/* ============ 5. Botanical Beige ============ */
+.cv-botanical-beige { background: #faf7f0; color: #3f3a2f; }
+.cv-bb-header { display: flex; align-items: center; gap: 14px; margin-bottom: calc(var(--cv-section-spacing) * 0.9); padding-bottom: calc(var(--cv-section-spacing) * 0.7); border-bottom: 2px solid #7d8471; }
+.cv-bb-circle { width: 56px; height: 56px; border-radius: 50%; background: #7d8471; color: #fff; display: flex; align-items: center; justify-content: center; font-size: calc(var(--cv-font-size) * 1.8); font-weight: 700; flex-shrink: 0; }
+.cv-bb-headtext .cv-name { color: #3f3a2f; font-size: calc(var(--cv-font-size) * 2.0); }
+.cv-bb-headtext .cv-title { color: #7d8471; }
+.cv-bb-h2 { font-size: calc(var(--cv-font-size) * 1.0); color: #7d8471; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #c7c0ad; padding-bottom: 2px; margin: 10px 0 5px; }
+.cv-botanical-beige .cv-skill-chip { background: #efe9d8; border-color: #c7c0ad; color: #3f3a2f; }
+
+/* ============ 6. Lavender Minimal ============ */
+.cv-lavender-minimal { color: #2e2438; }
+.cv-lv-header { text-align: center; margin-bottom: calc(var(--cv-section-spacing) * 0.9); padding-bottom: calc(var(--cv-section-spacing) * 0.6); border-bottom: 2px solid #7c6bad; }
+.cv-lv-header .cv-name { color: #4c3d6b; font-size: calc(var(--cv-font-size) * 2.2); }
+.cv-lv-header .cv-title { color: #7c6bad; }
+.cv-lv-h2 { font-size: calc(var(--cv-font-size) * 1.0); color: #7c6bad; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #d8cfe6; padding-bottom: 2px; margin: 10px 0 5px; }
+.cv-lavender-minimal .cv-skill-chip { background: #efeaf6; border-color: #d8cfe6; color: #4c3d6b; }
+
+/* ============ 7/8/9. Bilingual 50/50 grids ============ */
+.cv-bilingual-teal-gold, .cv-bilingual-navy, .cv-bilingual-peach { }
+.cv-btg-grid, .cv-bn-grid, .cv-bp-grid { display: grid; grid-template-columns: 50% 50%; gap: var(--cv-column-distance); }
+.cv-btg-en, .cv-bn-en, .cv-bp-en { padding: 14px; direction: ltr; text-align: left; }
+.cv-btg-ar, .cv-bn-ar, .cv-bp-ar { padding: 14px; direction: rtl; text-align: right; }
+
+/* Teal-Gold */
+.cv-btg-en { border-right: 3px solid #0d9488; background: #fff; }
+.cv-btg-ar { background: #fffbf0; border-left: 1px solid #e6d7a3; }
+.cv-btg-en .cv-h2 { color: #0d9488; border-color: #99f6e4; }
+.cv-btg-ar .cv-h2 { color: #b8860b; border-color: #e6d7a3; }
+.cv-btg-en .cv-name { color: #0d9488; }
+.cv-btg-ar .cv-name { color: #b8860b; }
+
+/* Navy */
+.cv-bn-en { background: #fff; border-left: 1px solid #cbd5e1; }
+.cv-bn-ar { background: #f0f4f8; border-right: 2px solid #1e3a5f; }
+.cv-bn-ar .cv-h2, .cv-bn-en .cv-h2 { color: #1e3a5f; border-color: #cbd5e1; }
+.cv-bilingual-navy .cv-name { color: #1e3a5f; }
+.cv-bilingual-navy .cv-bullets li::marker { content: "◆ "; color: #1e3a5f; }
+
+/* Peach */
+.cv-bp-en { background: #fff5ef; border-right: 2px solid #e07856; }
+.cv-bp-ar { background: #fff0e6; border-left: 1px solid #f4b89a; }
+.cv-bp-en .cv-h2, .cv-bp-ar .cv-h2 { color: #c2571f; background: #ffe0d0; padding: 3px 7px; border-bottom: none; border-radius: 4px; display: inline-block; }
+.cv-bilingual-peach .cv-name { color: #c2571f; }
+.cv-bilingual-peach .cv-section { background: rgba(255,255,255,0.5); padding: 6px; border-radius: 6px; margin-bottom: 6px; }
+.cv-bilingual-peach .cv-skill-chip { background: #ffe0d0; border-color: #f4b89a; color: #9a3f12; }
+
+/* ============ 10. International Bilingual (stacked) ============ */
+.cv-international-bilingual { }
+.cv-ib-header { text-align: center; margin-bottom: calc(var(--cv-section-spacing) * 0.9); padding-bottom: calc(var(--cv-section-spacing) * 0.6); border-bottom: 2px solid #334155; }
+.cv-ib-name-en { font-size: calc(var(--cv-font-size) * 2.0); color: #334155; font-weight: 700; }
+.cv-ib-name-ar { font-size: calc(var(--cv-font-size) * 2.0); color: #334155; font-weight: 700; margin-top: 2px; }
+.cv-ib-titles { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin: 3px 0; }
+.cv-ib-t-en, .cv-ib-t-ar { font-size: calc(var(--cv-font-size) * 1.1); color: #6b7280; font-style: italic; }
+.cv-ib-section { margin-bottom: var(--cv-section-spacing); break-inside: avoid; }
+.cv-ib-label { display: flex; justify-content: space-between; border-bottom: 2px solid #334155; padding-bottom: 2px; margin-bottom: 5px; }
+.cv-ib-label span { font-size: calc(var(--cv-font-size) * 1.0); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #334155; }
+.cv-ib-cols { display: grid; grid-template-columns: 50% 50%; gap: var(--cv-column-distance); }
+.cv-ib-en { padding-right: 6px; border-right: 1px dotted #cbd5e1; direction: ltr; text-align: left; }
+.cv-ib-ar { padding-right: 6px; direction: rtl; text-align: right; }
+
+/* ============ A4 Page simulation (preview only) ============ */
+.a4-page {
+  /* A4 = 210mm × 297mm. At 96 DPI: 794 × 1123 px. Preserved mathematically. */
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  margin: 0 auto 16px;
+  position: relative;
+  overflow: hidden;
+}
+.a4-page .cv-root {
+  padding: calc(var(--cv-margin)) calc(var(--cv-margin));
+  min-height: 1123px;
+}
+
+/* Page 1 boundary indicator — red pill at exact A4 bottom */
+.page1-boundary {
+  position: absolute;
+  left: 0; right: 0;
+  height: 0;
+  border-top: 2px dashed #dc2626;
+  pointer-events: none;
+  z-index: 5;
+}
+.page1-badge {
+  position: absolute;
+  right: 8px;
+  top: -12px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(220,38,38,0.4);
+  direction: rtl;
+}
+
+@media print {
+  .a4-page { box-shadow: none; margin: 0; width: 100%; min-height: auto; }
+  .a4-page .cv-root { padding: 0; min-height: auto; }
+  .page1-boundary, .page1-badge { display: none; }
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "template": "ats_classic",
+    "diff_pct": 3.9,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "minimal_black",
+    "diff_pct": 13.26,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "modern_sidebar",
+    "diff_pct": 15.09,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "corporate_slate",
+    "diff_pct": 11.95,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "botanical_beige",
+    "diff_pct": 6.99,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "lavender_minimal",
+    "diff_pct": 4.34,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "bilingual_teal_gold",
+    "diff_pct": 6.45,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "bilingual_navy",
+    "diff_pct": 6.01,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "bilingual_peach",
+    "diff_pct": 12.58,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  },
+  {
+    "template": "international_bilingual",
+    "diff_pct": 6.54,
+    "browser_size": [
+      1200,
+      1600
+    ],
+    "pdf_size": [
+      1200,
+      1600
+    ]
+  }
+]

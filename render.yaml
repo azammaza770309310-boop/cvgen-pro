@@ -1,0 +1,33 @@
+# Render deployment configuration for CVGen Pro
+# Deploys as a Docker web service (needed for WeasyPrint system dependencies).
+services:
+  - type: web
+    name: cvgen-pro
+    runtime: docker
+    plan: free
+    rootDir: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: DEFAULT_AI_PROVIDER
+        value: gemini
+      - key: BACKUP_AI_PROVIDER
+        value: openrouter
