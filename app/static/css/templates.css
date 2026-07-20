@@ -1,167 +1,162 @@
-/* OFFICIAL MASTER TEMPLATE CSS — pixel-accurate to original PDF
+/* OFFICIAL MASTER TEMPLATE CSS — based on provided specification.
 
-Measurements from original PDF (Mohammed_Hussain_Al-Malki):
-  Page: 595.3 × 841.9 pts (A4, 210×297mm)
-  Margins: 25.5pt (9mm)
-  Name: 18pt Bold #111111
-  Contact: 9.4pt, gray bar #f0f0f0
-  Headings: 11.5pt Bold #111111 + divider
-  Body: 8.9pt Regular #000000
-  Line height: ~10.7pt (1.2× font)
-  Bullets: "–" en-dash, indent 10.5pt
+Variables from the spec:
+  --page-width: 210mm, --page-height: 297mm
+  --margin: 15mm sides, 20mm top/bottom
+  --column-gap: 8mm
+  --font-size-name: 24pt, --font-size-section-title: 12pt, --font-size-body: 9pt
+  --color: black on white, divider #ccc
 */
 
 :root {
-  --cv-font-size: 8.9pt;
-  --cv-line-height: 1.2;
-  --cv-section-spacing: 8pt;
-  --cv-column-distance: 15pt;
-  --cv-margin: 9mm;
+  --cv-font-size: 9pt;
+  --cv-line-height: 1.4;
+  --cv-section-spacing: 6mm;
+  --cv-column-distance: 8mm;
+  --cv-margin: 15mm;
+  --cv-margin-top: 20mm;
 }
 
-* { box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 .cv-root {
-  font-family: "Cairo", "Tajawal", "Inter", "Segoe UI", sans-serif;
+  font-family: "Inter", "Cairo", "Tajawal", "Segoe UI", sans-serif;
   color: #000;
   background: #fff;
   line-height: var(--cv-line-height);
   font-size: var(--cv-font-size);
 }
 
-/* ============ Official Bilingual Master (OBM) ============ */
-.obm-master {
-  padding: 0;
-}
-
-/* --- Header: Name EN (left) + Name AR (right) ---
-   direction=ltr to keep English ALWAYS on left, Arabic ALWAYS on right. */
+/* ============ Header (centered) ============ */
 .obm-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 6pt;
-  border-bottom: 1.5pt solid #111;
-  margin-bottom: 0;
-  direction: ltr; /* Force LTR so EN is left, AR is right */
+  text-align: center;
+  padding-bottom: 8mm;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 6mm;
+  direction: ltr; /* keep EN left, AR right */
 }
 .obm-name-en {
-  font-size: 18pt;
-  font-weight: 700;
-  color: #111;
-  letter-spacing: 0.3pt;
+  font-size: 24pt;
+  font-weight: bold;
+  color: #000;
+  line-height: 1.2;
 }
 .obm-name-ar {
-  font-size: 18pt;
-  font-weight: 700;
-  color: #111;
+  font-size: 24pt;
+  font-weight: bold;
+  color: #000;
   font-family: "Cairo", "Tajawal", sans-serif;
+  line-height: 1.2;
 }
-
-/* --- Contact Bar (gray background, centered, full width) --- */
 .obm-contact-bar {
-  background: #f0f0f0;
-  padding: 4pt 10pt;
-  font-size: 9.4pt;
-  color: #1b1b1b;
-  margin-bottom: 8pt;
-  text-align: center;
-}
-
-/* --- Section Heading: EN (left) + AR (right) + divider --- */
-/* --- Section Heading: EN (left) + AR (right) + divider ---
-   direction=ltr to keep English heading on left, Arabic on right. */
-.obm-section-heading {
+  font-size: 10pt;
+  color: #555;
+  margin-top: 2mm;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  border-bottom: 0.75pt solid #111;
-  padding-bottom: 1.5pt;
-  margin-top: 6pt;
-  margin-bottom: 3pt;
-  direction: ltr; /* Force LTR so EN heading is left, AR heading is right */
-}
-.obm-h-en {
-  font-size: 11.5pt;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5pt;
-  color: #111;
-}
-.obm-h-ar {
-  font-size: 11.5pt;
-  font-weight: 700;
-  color: #111;
-  font-family: "Cairo", "Tajawal", sans-serif;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4mm;
 }
 
-/* --- Section Body: Two columns (EN left + AR right) ---
-   CRITICAL: direction=ltr on the grid so English is ALWAYS left, Arabic ALWAYS right.
-   Without this, the page's dir="rtl" flips the columns. */
-.obm-section-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* ============ Two Separate Columns ============ */
+.obm-columns {
+  display: flex;
   gap: var(--cv-column-distance);
-  direction: ltr; /* Force LTR layout so column order is fixed */
+  align-items: flex-start;
+  direction: ltr; /* CRITICAL: force LTR so English is always left */
 }
-.obm-col-en {
+.obm-column {
+  flex: 1;
+  min-width: 0;
+}
+.obm-english {
   text-align: left;
   direction: ltr;
 }
-.obm-col-ar {
+.obm-arabic {
   text-align: right;
   direction: rtl;
   font-family: "Cairo", "Tajawal", sans-serif;
 }
 
-/* --- Items (experience, education) --- */
-.obm-item {
-  margin-bottom: 3pt;
+/* ============ Sections ============ */
+.section {
+  margin-bottom: var(--cv-section-spacing);
 }
-.obm-item-header {
-  font-weight: 700;
-  font-size: 8.9pt;
+.section-title {
+  font-size: 12pt;
+  font-weight: bold;
   color: #000;
-  margin-bottom: 1pt;
+  margin-bottom: 2mm;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 1mm;
+}
+.section-content {
+  font-size: 9pt;
+  line-height: 1.4;
+  margin-top: 1mm;
 }
 
-/* --- Bullets (– en-dash) --- */
-.obm-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 1pt 0;
+/* ============ Items (Experience, Education) ============ */
+.item {
+  margin-bottom: 4mm;
 }
-.obm-bullets li {
-  font-size: 8.9pt;
-  color: #000;
-  position: relative;
-  margin-bottom: 0.5pt;
-  padding-left: 10.5pt;
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
 }
-.obm-bullets li::before {
-  content: "–";
-  position: absolute;
-  left: 0;
-  color: #000;
+.item-title {
+  font-size: 10pt;
+  font-weight: bold;
 }
-[dir="rtl"] .obm-bullets li {
+.item-subtitle {
+  font-size: 9pt;
+  color: #555;
+}
+.item-date {
+  font-size: 8pt;
+  color: #555;
+  white-space: nowrap;
+}
+.item-achievements {
+  margin-top: 1mm;
+  padding-left: 4mm;
+  list-style-type: disc;
+  font-size: 9pt;
+}
+.item-achievements li {
+  margin-bottom: 0.5mm;
+}
+
+/* ============ Lists (Courses, Skills) ============ */
+.list {
+  padding-left: 4mm;
+  list-style-type: disc;
+  font-size: 9pt;
+}
+.list li {
+  margin-bottom: 0.5mm;
+}
+
+/* Arabic column: reverse padding */
+.arabic .list,
+[dir="rtl"] .list {
+  padding-right: 4mm;
   padding-left: 0;
-  padding-right: 10.5pt;
 }
-[dir="rtl"] .obm-bullets li::before {
-  left: auto;
-  right: 0;
+.arabic .item-header,
+[dir="rtl"] .item-header {
+  flex-direction: row-reverse;
 }
-
-/* --- Paragraphs (summary) --- */
-.obm-col-en p, .obm-col-ar p {
-  margin: 0 0 2pt;
-  font-size: 8.9pt;
-  color: #000;
-  line-height: 1.2;
+.arabic .item-achievements,
+[dir="rtl"] .item-achievements {
+  padding-right: 4mm;
+  padding-left: 0;
 }
 
-/* ============ A4 Page simulation (preview only) ============ */
+/* ============ A4 Page (preview) ============ */
 .a4-page {
   width: 794px;
   min-height: 1123px;
@@ -172,11 +167,10 @@ Measurements from original PDF (Mohammed_Hussain_Al-Malki):
   overflow: visible;
 }
 .a4-page .cv-root {
-  padding: calc(var(--cv-margin)) calc(var(--cv-margin));
+  padding: 20mm 15mm;
   min-height: 1123px;
 }
 
-/* Page 1 boundary indicator */
 .page1-boundary {
   position: absolute;
   left: 0; right: 0;
@@ -197,7 +191,6 @@ Measurements from original PDF (Mohammed_Hussain_Al-Malki):
   padding: 4px 14px;
   border-radius: 999px;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(220,38,38,0.5);
   direction: rtl;
   z-index: 6;
 }
