@@ -47,8 +47,6 @@ class Settings(BaseSettings):
     deepseek_api_key: str = ""
     mistral_api_key: str = ""
     xai_api_key: str = ""
-    # ZAI internal gateway (no external key needed — uses the environment's SDK)
-    zai_enabled: bool = True
 
     # --- Default provider ---
     default_ai_provider: str = "gemini"
@@ -96,33 +94,11 @@ class Settings(BaseSettings):
             "deepseek": ("deepseek_api_key", ""),
             "mistral": ("mistral_api_key", ""),
             "xai": ("xai_api_key", ""),
-            "zai": ("zai_enabled", ""),
         }
         primary_attr, backup_attr = key_map.get(provider.lower(), ("", ""))
         keys: List[str] = []
         if primary_attr:
             val = getattr(self, primary_attr, "")
-            # ZAI uses a boolean flag
-            if primary_attr == "zai_enabled":
-                if val:
-                    keys = ["internal"]
-            elif val:
-                keys.append(str(val).strip())
-        if backup_attr:
-            backup = getattr(self, backup_attr, "")
-            if backup:
-                keys.extend([k.strip() for k in str(backup).split(",") if k.strip()])
-        # de-dup preserve order
-        seen = set()
-        out = []
-        for k in keys:
-            if k not in seen:
-                seen.add(k)
-                out.append(k)
-        return out
-
-    def is_provider_configured(self, provider: str) -> bool:
-        return len(self.get_provider_keys(provider)) > 0
 
 
 @lru_cache

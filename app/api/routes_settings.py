@@ -141,8 +141,8 @@ async def test_gemini_key(req: TestGeminiRequest):
     masked = key[:4] + "..." + key[-4:] if len(key) > 12 else "****"
 
     # Use the v1beta endpoint with a currently supported model
-    # Use gemini-1.5-pro model (as requested)
-    model = "gemini-1.5-pro"
+    # Use gemini-1.5-flash model (as requested)
+    model = "gemini-1.5-flash"
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
 
     # Minimal test prompt

@@ -15,7 +15,6 @@ from app.ai.gemini import GeminiProvider
 from app.ai.groq import GroqProvider
 from app.ai.openai import OpenAIProvider
 from app.ai.openrouter import OpenRouterProvider
-from app.ai.zai import ZAIProvider
 from app.core.config import settings
 from app.core.exceptions import (
     AIAllProvidersFailedError,
@@ -37,7 +36,6 @@ PROVIDER_CLASSES: dict[str, type[AIProvider]] = {
     "deepseek": DeepSeekProvider,
     "mistral": MistralProvider,
     "xai": XAIProvider,
-    "zai": ZAIProvider,
 }
 
 # Safe metadata for the frontend (never the key)
@@ -50,7 +48,6 @@ PROVIDER_META: dict[str, dict] = {
     "deepseek": {"name": "DeepSeek", "website": "https://deepseek.com", "description": "DeepSeek Chat"},
     "mistral": {"name": "Mistral AI", "website": "https://mistral.ai", "description": "Mistral Large"},
     "xai": {"name": "xAI Grok", "website": "https://x.ai", "description": "Grok 2"},
-    "zai": {"name": "ZAI Gateway", "website": "https://z.ai", "description": "Internal ZAI Cloud AI gateway"},
 }
 
 
@@ -90,10 +87,14 @@ class AIManager:
         """Get all keys for a provider: env vars + file store (UI-added)."""
         # Env keys
         env_keys = settings.get_provider_keys(provider)
+        if env_keys is None:
+            env_keys = []
         # File keys (added via website UI)
         try:
             from app.services.key_store import get_keys_for_provider
             file_keys = get_keys_for_provider(provider)
+            if file_keys is None:
+                file_keys = []
         except Exception:
             file_keys = []
         # Merge + deduplicate
