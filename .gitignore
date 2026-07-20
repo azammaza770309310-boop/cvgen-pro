@@ -11,3 +11,4 @@ data/*.db
 .idea/
 *.log
 qa-screenshots/
+data/api_keys.json

@@ -278,15 +278,15 @@
 
 <!-- ============ SETTINGS MODAL ============ -->
 <div class="modal-overlay" id="settingsModal" style="display:none">
-  <div class="modal settings-modal">
+  <div class="modal settings-modal" style="max-width:680px">
     <div class="modal-head">
-      <h2>إعدادات API</h2>
+      <h2>إعدادات مفاتيح API</h2>
       <button class="modal-close" id="closeSettings" aria-label="إغلاق الإعدادات">✕</button>
     </div>
     <div class="modal-body">
       <p class="help-text">
-        مفاتيح API تُعدّ على جانب الخادم عبر متغيرات البيئة ولن تُرسل أبداً إلى المتصفح.
-        أضف المفاتيح إلى ملف <code>.env</code> أو متغيرات بيئة Render، ثم أعد تشغيل الخادم.
+        أضف مفاتيح API من هنا مباشرةً — تُحفظ على الخادم ولن تُرسل أبداً إلى المتصفح.
+        يمكنك إضافة عدة مفاتيح لكل مزود، وإذا انتهت حصة مفتاح ينتقل تلقائياً للتالي.
       </p>
       <div id="providerList"></div>
     </div>

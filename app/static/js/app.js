@@ -249,21 +249,83 @@
         if (!p.configured) opt.disabled = true;
         sel.appendChild(opt);
       });
-      // Settings modal list
-      const list = $("#providerList");
-      list.innerHTML = "";
-      state.providers.forEach(p => {
-        const row = document.createElement("div");
-        row.className = "provider-row";
-        row.innerHTML = `
-          <div>
-            <div class="pr-name">${esc(p.name)} ${p.has_backup ? '<span style="color:var(--success);font-size:10px">● نسخ احتياطية</span>' : ""}</div>
-            <div class="pr-desc">${esc(p.description_ar || p.description)}</div>
-          </div>
-          <span class="status-dot ${p.configured ? "" : "off"}" title="${p.configured ? "مُعد" : "غير مُعد"}"></span>`;
-        list.appendChild(row);
-      });
+      // Settings modal — full key management UI
+      renderKeyManagementUI();
     } catch (e) { toast("فشل تحميل المزودين: " + e.message, "error"); }
+  }
+
+  function renderKeyManagementUI() {
+    const list = $("#providerList");
+    list.innerHTML = "";
+    state.providers.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "key-provider-card";
+      const keys = p.keys || [];
+      const keysHtml = keys.map((k, i) => `
+        <div class="kpc-key">
+          <span class="kpc-key-masked">${esc(k.masked)}</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="kpc-key-source ${k.source}">${k.source === "env" ? "بيئة" : "مضاف"}</span>
+            <button class="kpc-key-delete" data-provider="${p.id}" data-index="${k.file_index != null ? k.file_index : -1}" ${k.deletable ? "" : "disabled"} title="${k.deletable ? "حذف" : "مفتاح بيئة — لا يمكن حذفه من هنا"}">🗑</button>
+          </span>
+        </div>
+      `).join("");
+      const linkHtml = p.key_link ? `<a href="${esc(p.key_link)}" target="_blank" class="kpc-link">🔗 الحصول على مفتاح من ${esc(p.key_link_label)} ←</a>` : "";
+      card.innerHTML = `
+        <div class="kpc-header">
+          <div class="kpc-name">
+            <span class="status-dot ${p.configured ? "" : "off"}"></span>
+            ${esc(p.name)}
+            ${p.key_count > 0 ? `<span style="font-size:11px;color:var(--text-muted)">(${p.key_count} مفتاح)</span>` : ""}
+          </div>
+        </div>
+        <div class="kpc-desc">${esc(p.description)}</div>
+        ${linkHtml}
+        <div class="kpc-keys">${keysHtml || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0">لا توجد مفاتيح — أضف واحداً بالأسفل</div>'}</div>
+        <div class="kpc-add">
+          <input type="text" placeholder="الصق المفتاح هنا..." dir="ltr" id="keyInput-${p.id}">
+          <button data-add-provider="${p.id}">+ إضافة مفتاح</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+    // Wire up add buttons
+    $$("[data-add-provider]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const pid = btn.dataset.addProvider;
+        const input = $(`#keyInput-${pid}`);
+        const key = input.value.trim();
+        if (!key) { toast("أدخل المفتاح أولاً", "warn"); return; }
+        btn.disabled = true; btn.textContent = "جاري الإضافة...";
+        try {
+          const res = await api("/api/settings/keys", { method: "POST", body: { provider: pid, key } });
+          toast(res.message || "تم إضافة المفتاح", "success");
+          input.value = "";
+          await loadProviders(); // refresh
+        } catch (e) {
+          toast("فشل الإضافة: " + e.message, "error");
+        }
+        btn.disabled = false; btn.textContent = "+ إضافة مفتاح";
+      });
+    });
+    // Wire up delete buttons
+    $$(".kpc-key-delete:not(:disabled)").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const pid = btn.dataset.provider;
+        const idx = parseInt(btn.dataset.index);
+        if (idx < 0) return;
+        if (!confirm("هل أنت متأكد من حذف هذا المفتاح؟")) return;
+        btn.disabled = true;
+        try {
+          const res = await api(`/api/settings/keys/${pid}/${idx}`, { method: "DELETE" });
+          toast(res.message || "تم حذف المفتاح", "success");
+          await loadProviders(); // refresh
+        } catch (e) {
+          toast("فشل الحذف: " + e.message, "error");
+          btn.disabled = false;
+        }
+      });
+    });
   }
 
   // ---------------- Generate (Cloud AI only) ----------------

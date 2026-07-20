@@ -55,7 +55,12 @@ PROVIDER_META: dict[str, dict] = {
 
 
 class AIManager:
-    """Selects and runs the configured cloud AI provider with failover."""
+    """Selects and runs the configured cloud AI provider with failover.
+
+    Keys come from BOTH environment variables AND the file-based key store
+    (added via the website UI). The manager merges them at runtime and
+    rotates through all available keys when one fails (429/500/etc).
+    """
 
     def __init__(self):
         self._primary = settings.default_ai_provider.lower()
@@ -68,7 +73,8 @@ class AIManager:
     def list_providers(self) -> list[dict]:
         out = []
         for pid, meta in PROVIDER_META.items():
-            keys = settings.get_provider_keys(pid)
+            # Merge env keys + file keys
+            keys = self._get_all_keys(pid)
             out.append({
                 "id": pid,
                 "name": meta["name"],
@@ -80,8 +86,27 @@ class AIManager:
             })
         return out
 
+    def _get_all_keys(self, provider: str) -> list[str]:
+        """Get all keys for a provider: env vars + file store (UI-added)."""
+        # Env keys
+        env_keys = settings.get_provider_keys(provider)
+        # File keys (added via website UI)
+        try:
+            from app.services.key_store import get_keys_for_provider
+            file_keys = get_keys_for_provider(provider)
+        except Exception:
+            file_keys = []
+        # Merge + deduplicate
+        seen = set()
+        all_keys = []
+        for k in env_keys + file_keys:
+            if k and k not in seen:
+                seen.add(k)
+                all_keys.append(k)
+        return all_keys
+
     def is_configured(self, provider: str) -> bool:
-        return len(settings.get_provider_keys(provider)) > 0
+        return len(self._get_all_keys(provider)) > 0
 
     # ------------------------------------------------------------------
     # Provider instantiation
@@ -92,11 +117,11 @@ class AIManager:
         cls = PROVIDER_CLASSES.get(pid)
         if not cls:
             raise AIProviderNotConfiguredError(f"Unknown provider: {provider}")
-        keys = settings.get_provider_keys(pid)
+        keys = self._get_all_keys(pid)
         if not keys:
             raise AIProviderNotConfiguredError(
                 f"Provider '{pid}' has no API key configured. "
-                f"Set the corresponding environment variable on the server."
+                f"Add a key via the Settings page or set the environment variable."
             )
         return cls(keys)
 
