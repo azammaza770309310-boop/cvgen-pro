@@ -248,7 +248,11 @@ def render_minimal_black(resume: ResumeData) -> str:
     if all_skills:
         parts.append(f"<h3 class='cv-h'>{esc('المهارات' if is_ar else 'Skills')}</h3><ul class='cv-mb-list'>{ ''.join(f'<li>{esc(s)}</li>' for s in all_skills) }</ul>")
     if resume.languages:
-        parts.append(f"<h3 class='cv-h'>{esc('اللغات' if is_ar else 'Languages')}</h3><ul class='cv-mb-list'>{ ''.join(f'<li>{esc(l.name + (' ('+l.level+')') if l.level else '')}</li>' for l in resume.languages) }</ul>")
+        lang_items = []
+        for l in resume.languages:
+            display = l.name + (" (" + l.level + ")" if l.level else "")
+            lang_items.append("<li>" + esc(display) + "</li>")
+        parts.append(f"<h3 class='cv-h'>{esc('اللغات' if is_ar else 'Languages')}</h3><ul class='cv-mb-list'>{ ''.join(lang_items) }</ul>")
     if resume.courses:
         parts.append(f"<h3 class='cv-h'>{esc('الدورات' if is_ar else 'Courses')}</h3><ul class='cv-mb-list'>{ ''.join(f'<li>{esc(c)}</li>' for c in resume.courses) }</ul>")
     parts.append("</aside>")
