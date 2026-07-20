@@ -76,7 +76,7 @@ def get_all_keys(provider: str = "") -> Dict[str, List[str]]:
         # Get env keys for each known provider
         from app.ai.manager import PROVIDER_META
         for pid in PROVIDER_META:
-            env_keys = settings.get_provider_keys(pid)
+            env_keys = settings.get_provider_keys(pid) or []
             if env_keys:
                 result[pid] = list(env_keys)
         
@@ -113,7 +113,7 @@ def add_key(provider: str, key: str) -> bool:
             file_keys[provider] = []
         
         # Check if key already exists (in env or file)
-        env_keys = settings.get_provider_keys(provider)
+        env_keys = settings.get_provider_keys(provider) or []
         all_existing = set(env_keys + file_keys[provider])
         
         if key in all_existing:
