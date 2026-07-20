@@ -150,9 +150,17 @@
   <!-- Contextual editing bar (shows when text is selected) -->
   <div class="context-bar" id="contextBar" style="display:none">
     <span id="contextLabel">تحرير</span>
-    <input type="color" id="contextColorPicker" value="#000000" class="color-input" title="لون النص المحدد">
-    <button class="btn btn-sm btn-ghost" id="btnContextReset" title="إعادة اللون">↺ افتراضي</button>
-    <button class="btn btn-sm btn-ghost" id="btnContextClose">✕</button>
+    <div class="context-divider"></div>
+    <button class="ctx-btn" id="btnBold" title="عريض (Ctrl+B)"><b>B</b></button>
+    <button class="ctx-btn" id="btnItalic" title="مائل (Ctrl+I)"><i>I</i></button>
+    <div class="context-divider"></div>
+    <input type="color" id="contextColorPicker" value="#000000" class="color-input" title="لون النص">
+    <button class="ctx-btn" id="btnContextReset" title="إعادة اللون الافتراضي">↺</button>
+    <div class="context-divider"></div>
+    <button class="ctx-btn" id="btnUndo" title="تراجع (Ctrl+Z)">↶</button>
+    <button class="ctx-btn" id="btnRedo" title="إعادة (Ctrl+Y)">↷</button>
+    <div class="context-divider"></div>
+    <button class="ctx-btn" id="btnContextClose" title="إنهاء التحرير">✕</button>
   </div>
 
   <!-- Overflow warning -->

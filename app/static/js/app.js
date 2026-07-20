@@ -265,7 +265,7 @@
     } catch (e) { console.error("preview error", e); }
   }
 
-  // ----- INLINE EDITING: click any text to edit -----
+  // ----- INLINE EDITING: single click to edit -----
   function attachInlineEditors() {
     const content = $("#a4Content");
     if (!content) return;
@@ -274,28 +274,27 @@
     const editables = content.querySelectorAll(".obm-name-en, .obm-name-ar, .obm-contact-bar, .obm-h-en, .obm-h-ar, .obm-item-header, .obm-item, .obm-col-en p, .obm-col-ar p, .obm-bullets li");
     editables.forEach(el => {
       el.setAttribute("data-editable", "true");
+      // SINGLE CLICK → immediately editable, cursor at click position
       el.addEventListener("click", function(e) {
         e.stopPropagation();
-        selectElement(el);
-      });
-      // Make text directly editable on double-click
-      el.addEventListener("dblclick", function(e) {
-        e.stopPropagation();
+        // If already editing this element, let the browser handle cursor placement
+        if (el.getAttribute("contenteditable") === "true") return;
+        // Deselect any previously edited element
+        if (state.selectedElement && state.selectedElement !== el) {
+          state.selectedElement.blur();
+        }
         el.setAttribute("contenteditable", "true");
         el.focus();
-        // Select all text
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
+        // Place cursor at click position (the browser does this automatically
+        // when we focus after the click event, but we ensure it)
+        selectElement(el);
       });
       // Save on blur
       el.addEventListener("blur", function() {
         el.removeAttribute("contenteditable");
         saveEditFromElement(el);
       });
-      // Save on Enter (without shift)
+      // Enter (without shift) = save & blur; Escape = cancel
       el.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && !e.shiftKey && el.getAttribute("contenteditable")) {
           e.preventDefault();
@@ -305,9 +304,15 @@
           el.blur();
         }
       });
+      // Prevent formatting from breaking template (paste as plain text)
+      el.addEventListener("paste", function(e) {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+        document.execCommand("insertText", false, text);
+      });
     });
 
-    // Section selection (click on section heading or body)
+    // Section selection (click on section heading or body — not on editable text)
     const sections = content.querySelectorAll(".obm-section");
     sections.forEach(sec => {
       sec.addEventListener("click", function(e) {
@@ -317,9 +322,11 @@
       });
     });
 
-    // Deselect on click outside
-    content.addEventListener("click", function(e) {
-      if (e.target === content) deselectAll();
+    // Deselect on click outside (on background, not on editable)
+    content.addEventListener("mousedown", function(e) {
+      if (!e.target.closest("[data-editable]") && !e.target.closest(".obm-section")) {
+        deselectAll();
+      }
     });
   }
 
@@ -456,6 +463,8 @@
   $("#btnContextReset")?.addEventListener("click", function() {
     if (state.selectedElement) {
       state.selectedElement.style.color = "";
+      // Also clear inline color on child elements
+      state.selectedElement.querySelectorAll("*").forEach(el => { el.style.color = ""; });
     } else if (state.selectedSection) {
       state.selectedSection.querySelectorAll("*").forEach(el => {
         el.style.color = "";
@@ -464,7 +473,41 @@
     toast("تم إعادة اللون الافتراضي", "success");
   });
 
-  $("#btnContextClose")?.addEventListener("click", deselectAll);
+  $("#btnContextClose")?.addEventListener("click", function() {
+    if (state.selectedElement) {
+      state.selectedElement.blur();
+    }
+    deselectAll();
+  });
+
+  // ----- Formatting buttons (bold, italic, undo, redo) -----
+  $("#btnBold")?.addEventListener("mousedown", function(e) {
+    e.preventDefault(); // keep focus on editable
+    document.execCommand("bold", false, null);
+  });
+  $("#btnItalic")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("italic", false, null);
+  });
+  $("#btnUndo")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("undo", false, null);
+  });
+  $("#btnRedo")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("redo", false, null);
+  });
+
+  // Keyboard shortcuts for bold/italic
+  document.addEventListener("keydown", function(e) {
+    if (!state.selectedElement || state.selectedElement.getAttribute("contenteditable") !== "true") return;
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === "b" || e.key === "B") { e.preventDefault(); document.execCommand("bold"); }
+      if (e.key === "i" || e.key === "I") { e.preventDefault(); document.execCommand("italic"); }
+      if (e.key === "z") { e.preventDefault(); document.execCommand("undo"); }
+      if (e.key === "y" || e.key === "Y") { e.preventDefault(); document.execCommand("redo"); }
+    }
+  });
 
   // ----- Page count -----
   function updatePageCount() {
@@ -555,11 +598,19 @@
   }
 
   function captureInlineStyles() {
-    // Capture any inline color styles applied by the user
+    // Before export: blur any active editor and strip editing-only attributes
+    if (state.selectedElement) {
+      state.selectedElement.blur();
+    }
     const content = $("#a4Content");
     if (!content) return;
-    // For now, colors are visual-only in preview; to persist them in PDF,
-    // we'd need to store them in the data model. This is a future enhancement.
+    // Remove contenteditable and data-editable attributes (editor-only UI)
+    content.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+    content.querySelectorAll("[data-editable]").forEach(el => el.removeAttribute("data-editable"));
+    // Remove selection classes (editor-only UI)
+    content.querySelectorAll(".selected-item, .selected-section").forEach(el => {
+      el.classList.remove("selected-item", "selected-section");
+    });
   }
 
   function downloadBlob(blob, filename, type) {
