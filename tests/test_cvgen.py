@@ -353,7 +353,7 @@ def test_ai_manager_no_key_is_configured_by_default(monkeypatch):
     for p in original_list:
         if p["id"] != "zai":
             # Provider should not be configured via env by default
-            env_keys = app_settings.get_provider_keys(p["id"])
+            env_keys = app_settings.get_provider_keys(p["id"]) or []
             assert len(env_keys) == 0, f"{p['id']} should not have env keys by default"
 
 
