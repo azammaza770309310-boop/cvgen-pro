@@ -1,7 +1,4 @@
-/* OFFICIAL MASTER TEMPLATE CSS — exact from provided spec.
-
-Strict A4 geometry, LTR/RTL isolation, central divider.
-*/
+/* OFFICIAL MASTER TEMPLATE CSS — fixed header + PDF print rules */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -31,36 +28,46 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
   color: #333;
 }
 
-/* ===== Header ===== */
+/* ===== Header: names row + single contact bar ===== */
 .resume-header {
-  display: flex;
-  flex-direction: row;
-  direction: ltr;
-  padding: 12mm 10mm 6mm 10mm;
+  padding: 10mm 10mm 4mm 10mm;
   background-color: #f8f9fa;
   border-bottom: 2px solid #2c3e50;
+}
+.header-names {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
+  direction: ltr;
+  margin-bottom: 3mm;
 }
-.header-en {
-  text-align: left;
-  width: 48%;
-}
-.header-ar {
-  text-align: right;
-  width: 48%;
-  font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
-}
-.resume-header h1 {
+.header-name-en {
   font-size: 16pt;
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 2mm;
   text-transform: uppercase;
+  text-align: left;
 }
-.resume-header p {
+.header-name-ar {
+  font-size: 16pt;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: right;
+  font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
+}
+.contact-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8mm;
+  flex-wrap: wrap;
   font-size: 9pt;
-  line-height: 1.4;
   color: #555;
+}
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 /* ===== Columns (strict isolation) ===== */
@@ -69,7 +76,7 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
   flex-direction: row;
   direction: ltr;
   flex: 1;
-  padding: 8mm 10mm;
+  padding: 6mm 10mm;
   gap: 6mm;
 }
 .column {
@@ -78,9 +85,10 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
   flex-direction: column;
   gap: 4mm;
 }
-.col-en { text-align: left; }
+.col-en { text-align: left; direction: ltr; }
 .col-ar {
   text-align: right;
+  direction: rtl;
   font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
 }
 
@@ -88,7 +96,6 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
 .central-divider {
   width: 1px;
   background-color: #d1d5db;
-  margin: 0 2mm;
 }
 
 /* ===== Sections ===== */
@@ -108,10 +115,7 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
 }
 
 /* ===== Items ===== */
-.list-item {
-  margin-bottom: 3mm;
-  position: relative;
-}
+.list-item { margin-bottom: 3mm; }
 .item-header {
   display: flex;
   justify-content: space-between;
@@ -119,12 +123,7 @@ Strict A4 geometry, LTR/RTL isolation, central divider.
   margin-bottom: 1px;
 }
 .item-title { font-size: 10pt; font-weight: bold; }
-.item-subtitle {
-  font-style: italic;
-  color: #555;
-  margin-bottom: 1px;
-  font-size: 9pt;
-}
+.item-subtitle { font-style: italic; color: #555; margin-bottom: 1px; font-size: 9pt; }
 .item-date { font-size: 8pt; color: #555; }
 
 /* ===== Lists ===== */
@@ -133,10 +132,7 @@ ul.editable-list {
   margin-top: 1mm;
   list-style-type: disc;
 }
-ul.editable-list li {
-  margin-bottom: 1mm;
-  font-size: 9pt;
-}
+ul.editable-list li { margin-bottom: 1mm; font-size: 9pt; }
 
 /* ===== Editable ===== */
 .editable { outline: none; transition: background 0.2s; }
@@ -144,21 +140,6 @@ ul.editable-list li {
 .editable:focus {
   background-color: rgba(255, 235, 59, 0.4);
   box-shadow: 0 0 0 1px #ffc107;
-}
-
-/* ===== A4 Preview wrapper ===== */
-.a4-page-preview {
-  width: 794px;
-  min-height: 1123px;
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  margin: 0 auto 16px;
-  position: relative;
-  overflow: visible;
-}
-.a4-page-preview .a4-page {
-  box-shadow: none;
-  margin: 0;
 }
 
 /* ===== Page boundary ===== */
@@ -186,8 +167,34 @@ ul.editable-list li {
   z-index: 6;
 }
 
+/* ===== PRINT / PDF RULES — prevent column collapse ===== */
+@page {
+  size: A4;
+  margin: 0;
+}
+
 @media print {
-  .a4-page { box-shadow: none; }
+  .a4-page {
+    box-shadow: none;
+    overflow: visible;
+  }
+  .columns-container {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  .col-en {
+    direction: ltr !important;
+    width: 48% !important;
+    flex: none !important;
+  }
+  .col-ar {
+    direction: rtl !important;
+    width: 48% !important;
+    flex: none !important;
+  }
+  .central-divider { width: 1px !important; }
+  .section { page-break-inside: avoid; }
+  .list-item { page-break-inside: avoid; }
   .page1-boundary, .page1-badge { display: none; }
   .editable:hover, .editable:focus { background: none; box-shadow: none; }
 }

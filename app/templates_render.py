@@ -115,35 +115,27 @@ def _section(title: str, content_html: str) -> str:
 def render_official_bilingual_master(resume: ResumeData) -> str:
     parts = ['<div class="a4-page" id="resume-document">']
 
-    # ===== HEADER (50/50, EN left + AR right) =====
+    # ===== HEADER: names in one row + single contact bar =====
     name_en = resume.personal.name_en or resume.personal.name or ""
     name_ar = resume.personal.name_ar or resume.personal.name or ""
-    parts.append('<header class="resume-header section-container">')
-
-    # English header
-    parts.append('<div class="header-en" dir="ltr">')
+    parts.append('<header class="resume-header">')
+    # Row 1: EN name (left) + AR name (right)
+    parts.append('<div class="header-names">')
     if name_en:
-        parts.append(f'<h1 class="editable" data-field="name_en">{esc(name_en)}</h1>')
-    if resume.personal.email:
-        parts.append(f'<p class="editable" data-field="email">{esc(resume.personal.email)}</p>')
-    if resume.personal.phone:
-        parts.append(f'<p class="editable" data-field="phone">{esc(resume.personal.phone)}</p>')
-    if resume.personal.location:
-        parts.append(f'<p class="editable" data-field="location_en">{esc(resume.personal.location)}</p>')
-    parts.append('</div>')
-
-    # Arabic header
-    parts.append('<div class="header-ar" dir="rtl">')
+        parts.append(f'<h1 class="editable header-name-en" data-field="name_en" dir="ltr">{esc(name_en)}</h1>')
     if name_ar:
-        parts.append(f'<h1 class="editable" data-field="name_ar">{esc(name_ar)}</h1>')
-    if resume.personal.email:
-        parts.append(f'<p class="editable" data-field="email">{esc(resume.personal.email)}</p>')
-    if resume.personal.phone:
-        parts.append(f'<p class="editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</p>')
-    if resume.personal.location:
-        parts.append(f'<p class="editable" data-field="location_ar">{esc(resume.personal.location)}</p>')
+        parts.append(f'<h1 class="editable header-name-ar" data-field="name_ar" dir="rtl">{esc(name_ar)}</h1>')
     parts.append('</div>')
-
+    # Row 2: single contact bar with icons (no duplication)
+    contact_parts = []
+    if resume.personal.email:
+        contact_parts.append(f'<span class="contact-item">✉️ <span class="editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</span></span>')
+    if resume.personal.phone:
+        contact_parts.append(f'<span class="contact-item">📞 <span class="editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</span></span>')
+    if resume.personal.location:
+        contact_parts.append(f'<span class="contact-item">📍 <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
+    if contact_parts:
+        parts.append(f'<div class="contact-bar">{"  ".join(contact_parts)}</div>')
     parts.append('</header>')
 
     # ===== COLUMNS CONTAINER =====
@@ -167,10 +159,11 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("COURSES", _bullet_list(resume.courses)))
 
-    all_skills = resume.skills + resume.soft_skills
-    if all_skills:
-        parts.append(_section("SKILLS", _bullet_list(all_skills)))
+    # Skills: English column shows only English skills (skills list as-is)
+    if resume.skills:
+        parts.append(_section("SKILLS", _bullet_list(resume.skills)))
 
+    # Technical skills: English column only
     if resume.technical_skills:
         parts.append(_section("TECHNICAL SKILLS", _bullet_list(resume.technical_skills)))
 
@@ -205,8 +198,11 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("الدورات", _bullet_list(resume.courses)))
 
-    if all_skills:
-        parts.append(_section("المهارات", _bullet_list(all_skills)))
+    # Skills: Arabic column shows soft skills (Arabic-named) only
+    if resume.soft_skills:
+        parts.append(_section("المهارات", _bullet_list(resume.soft_skills)))
+    elif resume.skills:
+        parts.append(_section("المهارات", _bullet_list(resume.skills)))
 
     if resume.technical_skills:
         parts.append(_section("المهارات التقنية", _bullet_list(resume.technical_skills)))

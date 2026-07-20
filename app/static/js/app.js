@@ -296,15 +296,29 @@
   }
 
   function applyDesignVars() {
-    const page = $("#a4Page");
-    if (!page) return;
-    page.style.setProperty("--cv-font-size", state.controls.fontSize + "pt");
-    page.style.setProperty("--cv-line-height", state.controls.lineHeight);
-    page.style.setProperty("--cv-section-spacing", state.controls.sectionSpacing + "pt");
-    page.style.setProperty("--cv-column-distance", state.controls.columnDistance + "pt");
-    page.style.setProperty("--cv-margin", state.controls.margin + "mm");
+    // Apply CSS variables to the A4 page AND content elements
+    const targets = [$("#a4Page"), $("#a4Content"), $(".a4-page")];
+    targets.forEach(el => {
+      if (!el) return;
+      el.style.setProperty("--cv-font-size", state.controls.fontSize + "pt");
+      el.style.setProperty("--cv-line-height", state.controls.lineHeight);
+      el.style.setProperty("--cv-section-spacing", state.controls.sectionSpacing + "pt");
+      el.style.setProperty("--cv-column-distance", state.controls.columnDistance + "pt");
+      el.style.setProperty("--cv-margin", state.controls.margin + "mm");
+      // Also apply directly as inline styles for immediate effect
+      el.style.fontSize = state.controls.fontSize + "pt";
+      el.style.lineHeight = state.controls.lineHeight;
+    });
+    // Apply font family
     const content = $("#a4Content");
-    if (content) content.style.fontFamily = state.font + ", sans-serif";
+    if (content) {
+      content.style.fontFamily = state.font + ", sans-serif";
+      // Apply to all children
+      content.querySelectorAll(".a4-page, .col-en, .col-ar, .section, .list-item, p, li, h2, h1").forEach(el => {
+        el.style.fontSize = state.controls.fontSize + "pt";
+        el.style.lineHeight = state.controls.lineHeight;
+      });
+    }
   }
 
   // ---------------- Preview + Inline Editing ----------------
