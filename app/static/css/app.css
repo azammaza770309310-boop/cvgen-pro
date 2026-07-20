@@ -670,7 +670,8 @@ button { font-family: inherit; }
   border-radius: 6px; padding: 2px;
 }
 .stepper-mini .s-btn {
-  width: 22px; height: 22px;
+  font-size: 16px;
+  width: 32px; height: 32px;
   background: var(--bg-card-2); border: 1px solid var(--border-light);
   color: var(--text); border-radius: 4px; cursor: pointer;
   font-size: 13px; font-weight: 700;
@@ -771,12 +772,13 @@ button { font-family: inherit; }
   background: var(--bg-input);
   border: 1px solid var(--border-light);
   color: var(--text);
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  min-width: 28px;
+  min-width: 36px;
+  min-height: 36px;
   transition: all 0.1s;
 }
 .ctx-btn:hover { background: #333; border-color: var(--accent); }

@@ -27,15 +27,20 @@ def _load_css() -> str:
 
 
 def render_html_for_pdf(resume: ResumeData, template_id: str | None = None) -> str:
-    """Build the full HTML document (with embedded CSS) for a resume."""
+    """Build the full HTML document (with embedded CSS) for a resume.
+
+    CRITICAL: The <html> tag must ALWAYS be dir="ltr" for the official bilingual
+    template. The template uses direction:ltr on .obm-columns to keep English
+    on the left and Arabic on the right. If we set dir="rtl" on <html>, it
+    flips the entire layout and swaps the columns.
+    """
     tid = template_id or resume.template_id or "official_bilingual_master"
     body = render_template(tid, resume)
     css = _load_css()
-    is_ar = resume.lang == "ar"
-    is_bi = resume.lang == "bilingual" or "bilingual" in tid
-    direction = "rtl" if is_ar else "ltr"
+    # ALWAYS use dir="ltr" for the official bilingual template
+    # The Arabic column has its own dir="rtl" attribute internally
     html_doc = f"""<!DOCTYPE html>
-<html lang="{('ar' if is_ar else 'en')}" dir="{direction}">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <title>Resume</title>
