@@ -160,7 +160,7 @@ def get_key_sources(provider: str) -> List[dict]:
               {"index": 1, "masked": "sk-p...xyz", "source": "file"}]
     """
     result = []
-    env_keys = settings.get_provider_keys(provider)
+    env_keys = settings.get_provider_keys(provider) or []
     file_keys = _load_file_keys().get(provider, [])
     
     # Env keys first (can't be deleted from UI)
