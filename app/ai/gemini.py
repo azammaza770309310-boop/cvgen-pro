@@ -15,7 +15,7 @@ from app.ai.prompts import (
 )
 from app.core.exceptions import AIProviderError
 
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-1.5-pro"
 GEMINI_ENDPOINT = (
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
 )
