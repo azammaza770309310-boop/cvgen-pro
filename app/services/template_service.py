@@ -24,6 +24,7 @@ from app.templates_render import (
     render_bilingual_navy,
     render_bilingual_peach,
     render_international_bilingual,
+    render_bilingual_ats_classic,
 )
 
 
@@ -47,6 +48,18 @@ class TemplateDef:
 # ---------------------------------------------------------------------------
 
 REGISTRY: List[TemplateDef] = [
+    TemplateDef(
+        id="bilingual_ats_classic",
+        name="Bilingual ATS Classic",
+        name_ar="ثنائي اللغة — كلاسيكي ATS",
+        description="Simple black & white bilingual resume matching the original CV style.",
+        description_ar="قالب بسيط أسود/أبيض يطابق السير الذاتية الأصلية — عناوين ثنائية اللغة جنباً إلى جنب.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["en", "ar", "bilingual"],
+        accent="#000000",
+        render=render_bilingual_ats_classic,
+    ),
     TemplateDef(
         id="ats_classic",
         name="ATS Classic",

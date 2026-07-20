@@ -653,3 +653,169 @@ def render_international_bilingual(resume: ResumeData) -> str:
 
     parts.append("</div>")
     return "".join(parts)
+
+
+# ===========================================================================
+# 11. Bilingual ATS Classic — يطابق السير الذاتية الأصلية المرفقة
+# عمود واحد، أسود/أبيض، عناوين ثنائية اللغة، نص ثنائي
+# ===========================================================================
+
+def _bilingual_heading(en: str, ar: str) -> str:
+    """عنوان ثنائي اللغة: إنجليزي يسار + عربي يمين، مع خط فاصل أسفله."""
+    return (
+        f"<div class='cv-bac-heading'>"
+        f"<span class='cv-bac-h-en' dir='ltr'>{esc(en)}</span>"
+        f"<span class='cv-bac-h-ar' dir='rtl'>{esc(ar)}</span>"
+        f"</div>"
+    )
+
+
+def _bilingual_paragraph(en: str, ar: str) -> str:
+    """فقرة ثنائية اللغة: إنجليزي فوق + عربي تحت."""
+    out = ""
+    if en:
+        out += f"<p class='cv-bac-p-en' dir='ltr'>{esc(en)}</p>"
+    if ar:
+        out += f"<p class='cv-bac-p-ar' dir='rtl'>{esc(ar)}</p>"
+    return out
+
+
+def render_bilingual_ats_classic(resume: ResumeData) -> str:
+    """قالب يطابق السير الذاتية الأصلية — بسيط، أسود/أبيض، ثنائي اللغة."""
+    parts = ["<div class='cv-root cv-bilingual-ats-classic' data-lang='bilingual'>"]
+
+    # --- الهيدر: اسم إنجليزي يسار + اسم عربي يمين ---
+    name_en = resume.personal.name_en or resume.personal.name or ""
+    name_ar = resume.personal.name_ar or resume.personal.name or ""
+    parts.append("<div class='cv-bac-header'>")
+    if name_en:
+        parts.append(f"<div class='cv-bac-name-en' dir='ltr'>{esc(name_en)}</div>")
+    if name_ar:
+        parts.append(f"<div class='cv-bac-name-ar' dir='rtl'>{esc(name_ar)}</div>")
+    parts.append("</div>")
+
+    # --- شريط معلومات الاتصال (خلفية رمادية فاتحة) ---
+    contact_parts = []
+    if resume.personal.email:
+        contact_parts.append(f"<span dir='ltr'>{esc(resume.personal.email)}</span>")
+    if resume.personal.phone:
+        contact_parts.append(f"<span dir='ltr'>{esc(resume.personal.phone)}</span>")
+    if resume.personal.location:
+        contact_parts.append(esc(resume.personal.location))
+    if resume.personal.linkedin:
+        contact_parts.append(f"<span dir='ltr'>{esc(resume.personal.linkedin)}</span>")
+    if contact_parts:
+        parts.append(f"<div class='cv-bac-contact-bar'>{' · '.join(contact_parts)}</div>")
+
+    # --- الهدف الوظيفي / الملخص ---
+    sum_en = resume.summary_text("en")
+    sum_ar = resume.summary_text("ar")
+    if sum_en or sum_ar:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("CAREER OBJECTIVE", "الهدف الوظيفي"))
+        parts.append(_bilingual_paragraph(sum_en, sum_ar))
+        parts.append("</div>")
+
+    # --- التعليم ---
+    if resume.education:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("EDUCATION", "التعليم"))
+        for ed in resume.education:
+            parts.append("<div class='cv-bac-item'>")
+            deg_en = degree_for(ed, "en")
+            deg_ar = degree_for(ed, "ar")
+            inst_en = institution_for(ed, "en")
+            inst_ar = institution_for(ed, "ar")
+            # English line
+            if deg_en or inst_en:
+                line_en = deg_en
+                if inst_en:
+                    line_en = (line_en + " — " + inst_en) if line_en else inst_en
+                if ed.year:
+                    line_en += f" ({ed.year})"
+                parts.append(f"<div class='cv-bac-item-en' dir='ltr'>{esc(line_en)}</div>")
+            # Arabic line
+            if deg_ar or inst_ar:
+                line_ar = deg_ar
+                if inst_ar:
+                    line_ar = (line_ar + " — " + inst_ar) if line_ar else inst_ar
+                parts.append(f"<div class='cv-bac-item-ar' dir='rtl'>{esc(line_ar)}</div>")
+            parts.append("</div>")
+        parts.append("</div>")
+
+    # --- الخبرات ---
+    if resume.experience:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("EXPERIENCE", "الخبرات المهنية"))
+        for e in resume.experience:
+            parts.append("<div class='cv-bac-item'>")
+            # English: title — company (dates)
+            t_en = title_for(e, "en")
+            c_en = company_for(e, "en")
+            dr = date_range(e)
+            if t_en or c_en:
+                line = t_en
+                if c_en:
+                    line = (line + " — " + c_en) if line else c_en
+                if dr:
+                    line += f" ({dr})"
+                parts.append(f"<div class='cv-bac-item-en' dir='ltr'>{esc(line)}</div>")
+            # Arabic: title — company
+            t_ar = title_for(e, "ar")
+            c_ar = company_for(e, "ar")
+            if t_ar or c_ar:
+                line_ar = t_ar
+                if c_ar:
+                    line_ar = (line_ar + " — " + c_ar) if line_ar else c_ar
+                parts.append(f"<div class='cv-bac-item-ar' dir='rtl'>{esc(line_ar)}</div>")
+            # Bullets (English then Arabic)
+            b_en = bullets_for(e, "en")
+            b_ar = bullets_for(e, "ar")
+            if b_en:
+                items = "".join(f"<li dir='ltr'>{esc(b)}</li>" for b in b_en if b)
+                parts.append(f"<ul class='cv-bac-bullets'>{items}</ul>")
+            if b_ar:
+                items = "".join(f"<li dir='rtl'>{esc(b)}</li>" for b in b_ar if b)
+                parts.append(f"<ul class='cv-bac-bullets'>{items}</ul>")
+            parts.append("</div>")
+        parts.append("</div>")
+
+    # --- الدورات ---
+    if resume.courses:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("COURSES", "الدورات"))
+        for c in resume.courses:
+            parts.append(f"<div class='cv-bac-list-item'>• {esc(c)}</div>")
+        parts.append("</div>")
+
+    # --- المهارات ---
+    all_skills = resume.skills + resume.technical_skills + resume.soft_skills
+    if all_skills:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("SKILLS", "المهارات"))
+        # عرض في عمودين
+        items = "".join(f"<div class='cv-bac-skill'>{esc(s)}</div>" for s in all_skills)
+        parts.append(f"<div class='cv-bac-skills-grid'>{items}</div>")
+        parts.append("</div>")
+
+    # --- المهارات التقنية ---
+    if resume.technical_skills and resume.technical_skills != resume.skills:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("TECHNICAL SKILLS", "المهارات التقنية"))
+        items = "".join(f"<div class='cv-bac-skill'>{esc(s)}</div>" for s in resume.technical_skills)
+        parts.append(f"<div class='cv-bac-skills-grid'>{items}</div>")
+        parts.append("</div>")
+
+    # --- اللغات ---
+    if resume.languages:
+        parts.append("<div class='cv-bac-section'>")
+        parts.append(_bilingual_heading("LANGUAGES", "اللغات"))
+        for l in resume.languages:
+            label = l.name
+            if l.level:
+                label += f" ({l.level})"
+            parts.append(f"<div class='cv-bac-list-item'>• {esc(label)}</div>")
+        parts.append("</div>")
+
+    parts.append("</div>")
+    return "".join(parts)

@@ -199,3 +199,128 @@
   .a4-page .cv-root { padding: 0; min-height: auto; }
   .page1-boundary, .page1-badge { display: none; }
 }
+
+/* ============ 11. Bilingual ATS Classic (يطابق الأصل) ============ */
+.cv-bilingual-ats-classic {
+  font-family: "Inter", "Segoe UI", "Tajawal", sans-serif;
+  color: #000;
+  background: #fff;
+  line-height: 1.5;
+  font-size: 10pt;
+}
+.cv-bac-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 8px;
+}
+.cv-bac-name-en {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cv-bac-name-ar {
+  font-size: 16pt;
+  font-weight: 700;
+  color: #000;
+  font-family: "Tajawal", "Cairo", sans-serif;
+}
+.cv-bac-contact-bar {
+  background: #f0f0f0;
+  padding: 6px 10px;
+  font-size: 9pt;
+  color: #333;
+  margin-bottom: 10px;
+  border-radius: 2px;
+}
+.cv-bac-section {
+  margin-bottom: 10px;
+}
+.cv-bac-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid #000;
+  padding-bottom: 2px;
+  margin-bottom: 4px;
+}
+.cv-bac-h-en {
+  font-size: 11pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #000;
+}
+.cv-bac-h-ar {
+  font-size: 11pt;
+  font-weight: 700;
+  color: #000;
+  font-family: "Tajawal", "Cairo", sans-serif;
+}
+.cv-bac-p-en, .cv-bac-p-ar {
+  margin: 2px 0;
+  font-size: 10pt;
+  color: #000;
+}
+.cv-bac-item {
+  margin-bottom: 6px;
+}
+.cv-bac-item-en {
+  font-size: 10pt;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 1px;
+}
+.cv-bac-item-ar {
+  font-size: 10pt;
+  color: #333;
+  margin-bottom: 2px;
+}
+.cv-bac-bullets {
+  list-style: none;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin: 2px 0;
+}
+.cv-bac-bullets li {
+  font-size: 9.5pt;
+  color: #000;
+  position: relative;
+  margin-bottom: 1px;
+}
+.cv-bac-bullets li[dir="ltr"] {
+  padding-left: 12px;
+  padding-right: 0;
+}
+.cv-bac-bullets li[dir="ltr"]::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+}
+.cv-bac-bullets li[dir="rtl"] {
+  padding-right: 12px;
+  padding-left: 0;
+}
+.cv-bac-bullets li[dir="rtl"]::before {
+  content: "•";
+  position: absolute;
+  right: 0;
+}
+.cv-bac-list-item {
+  font-size: 10pt;
+  color: #000;
+  margin-bottom: 1px;
+}
+.cv-bac-skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
+}
+.cv-bac-skill {
+  font-size: 10pt;
+  color: #000;
+}
