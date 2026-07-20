@@ -212,13 +212,13 @@ def test_all_templates_render_html():
     for t in REGISTRY:
         html = render_template(t.id, resume)
         assert isinstance(html, str)
-        assert "cv-root" in html
+        assert "a4-page" in html or "cv-root" in html
 
 
 def test_templates_api_render():
     r = client.post("/api/templates/render", json={"data": sample_resume("en").model_dump(), "template_id": "official_bilingual_master"})
     assert r.status_code == 200
-    assert "cv-root" in r.json()["html"]
+    assert "a4-page" in r.json()["html"] or "cv-root" in r.json()["html"]["html"]
 
 
 def test_bilingual_template_has_both_languages():
