@@ -1,20 +1,28 @@
-/* CVGen Pro — Official Master Template CSS
-   Matches the original PDF exactly: black/white, two-column, bilingual.
-   The template is FIXED — only data slots are dynamic.
+/* OFFICIAL MASTER TEMPLATE CSS — pixel-accurate to original PDF
+
+Measurements from original PDF (Mohammed_Hussain_Al-Malki):
+  Page: 595.3 × 841.9 pts (A4, 210×297mm)
+  Margins: 25.5pt (9mm)
+  Name: 18pt Bold #111111
+  Contact: 9.4pt, gray bar #f0f0f0
+  Headings: 11.5pt Bold #111111 + divider
+  Body: 8.9pt Regular #000000
+  Line height: ~10.7pt (1.2× font)
+  Bullets: "–" en-dash, indent 10.5pt
 */
 
 :root {
-  --cv-font-size: 10pt;
-  --cv-line-height: 1.5;
+  --cv-font-size: 8.9pt;
+  --cv-line-height: 1.2;
   --cv-section-spacing: 8pt;
-  --cv-column-distance: 16px;
-  --cv-margin: 10mm;
+  --cv-column-distance: 15pt;
+  --cv-margin: 9mm;
 }
 
 * { box-sizing: border-box; }
 
 .cv-root {
-  font-family: "Inter", "Segoe UI", "Tajawal", "Cairo", sans-serif;
+  font-family: "Cairo", "Tajawal", "Inter", "Segoe UI", sans-serif;
   color: #000;
   background: #fff;
   line-height: var(--cv-line-height);
@@ -31,32 +39,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 6px;
-  border-bottom: 2px solid #000;
+  padding-bottom: 6pt;
+  border-bottom: 1.5pt solid #111;
   margin-bottom: 0;
 }
 .obm-name-en {
   font-size: 18pt;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #000;
+  color: #111;
+  letter-spacing: 0.3pt;
 }
 .obm-name-ar {
-  font-size: 16pt;
+  font-size: 18pt;
   font-weight: 700;
-  color: #000;
-  font-family: "Tajawal", "Cairo", sans-serif;
+  color: #111;
+  font-family: "Cairo", "Tajawal", sans-serif;
 }
 
-/* --- Contact Bar (gray background, full width) --- */
+/* --- Contact Bar (gray background, centered, full width) --- */
 .obm-contact-bar {
   background: #f0f0f0;
-  padding: 6px 10px;
-  font-size: 9pt;
-  color: #333;
-  margin-bottom: 10px;
-  border-radius: 2px;
+  padding: 4pt 10pt;
+  font-size: 9.4pt;
+  color: #1b1b1b;
+  margin-bottom: 8pt;
+  text-align: center;
 }
 
 /* --- Section Heading: EN (left) + AR (right) + divider --- */
@@ -64,23 +71,23 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1px solid #000;
-  padding-bottom: 2px;
-  margin-top: 8px;
-  margin-bottom: 4px;
+  border-bottom: 0.75pt solid #111;
+  padding-bottom: 1.5pt;
+  margin-top: 6pt;
+  margin-bottom: 3pt;
 }
 .obm-h-en {
-  font-size: 11pt;
+  font-size: 11.5pt;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #000;
+  letter-spacing: 0.5pt;
+  color: #111;
 }
 .obm-h-ar {
-  font-size: 11pt;
+  font-size: 11.5pt;
   font-weight: 700;
-  color: #000;
-  font-family: "Tajawal", "Cairo", sans-serif;
+  color: #111;
+  font-family: "Cairo", "Tajawal", sans-serif;
 }
 
 /* --- Section Body: Two columns (EN left + AR right) --- */
@@ -96,58 +103,54 @@
 .obm-col-ar {
   text-align: right;
   direction: rtl;
-  font-family: "Tajawal", "Cairo", sans-serif;
+  font-family: "Cairo", "Tajawal", sans-serif;
 }
 
 /* --- Items (experience, education) --- */
 .obm-item {
-  margin-bottom: 4px;
+  margin-bottom: 3pt;
 }
 .obm-item-header {
-  font-weight: 600;
-  font-size: 10pt;
+  font-weight: 700;
+  font-size: 8.9pt;
   color: #000;
-  margin-bottom: 1px;
+  margin-bottom: 1pt;
 }
 
-/* --- Bullets (– prefix) --- */
+/* --- Bullets (– en-dash) --- */
 .obm-bullets {
   list-style: none;
-  padding-left: 12px;
-  padding-right: 12px;
-  margin: 2px 0;
+  padding: 0;
+  margin: 1pt 0;
 }
 .obm-bullets li {
-  font-size: 9.5pt;
+  font-size: 8.9pt;
   color: #000;
   position: relative;
-  margin-bottom: 1px;
-  padding-left: 10px;
+  margin-bottom: 0.5pt;
+  padding-left: 10.5pt;
 }
 .obm-bullets li::before {
   content: "–";
   position: absolute;
   left: 0;
-}
-[dir="rtl"] .obm-bullets {
-  padding-left: 0;
-  padding-right: 12px;
+  color: #000;
 }
 [dir="rtl"] .obm-bullets li {
   padding-left: 0;
-  padding-right: 10px;
+  padding-right: 10.5pt;
 }
 [dir="rtl"] .obm-bullets li::before {
-  content: "–";
   left: auto;
   right: 0;
 }
 
-/* --- Paragraphs --- */
+/* --- Paragraphs (summary) --- */
 .obm-col-en p, .obm-col-ar p {
-  margin: 0 0 4px;
-  font-size: 10pt;
+  margin: 0 0 2pt;
+  font-size: 8.9pt;
   color: #000;
+  line-height: 1.2;
 }
 
 /* ============ A4 Page simulation (preview only) ============ */

@@ -1,26 +1,21 @@
-"""HTML renderer for the OFFICIAL MASTER TEMPLATE.
+"""OFFICIAL MASTER TEMPLATE RENDERER — pixel-accurate to the original PDF.
 
-This is the SINGLE source of truth for the resume's visual design.
-The template is FIXED — only the data is dynamic.
+Measurements extracted from the original PDF (Mohammed_Hussain_Al-Malki):
+  - Page: 595.3 × 841.9 pts (A4, 210×297mm)
+  - Margins: 25.5pt (9mm) all sides
+  - English column: x=25.5 to ~290 (left half)
+  - Arabic column: x=305 to ~568 (right half)
+  - Column gap: ~15pt
+  - Name: 18pt Bold #111111
+  - Contact: 9.4pt Regular, gray background bar
+  - Section headings: 11.5pt Bold #111111 with divider line
+  - Body: 8.9pt Regular #000000
+  - Item headers: 8.9pt Bold #000000
+  - Bullets: "–" en-dash, indent 10.5pt
+  - Line height: ~10.7pt
 
-Architecture:
-  User Raw CV → Cloud AI → Structured JSON → THIS RENDERER → Fixed Template + New Data
-
-Layout (matches original PDF exactly):
-  ┌─────────────────────────────────────────────┐
-  │  Name (EN, left)        Name (AR, right)    │  ← Header
-  ├─────────────────────────────────────────────┤
-  │  email · phone · location (gray bar)         │  ← Contact bar
-  ├─────────────────────────────────────────────┤
-  │  CAREER OBJECTIVE    │    الهدف الوظيفي      │  ← Section heading + divider
-  │  English summary     │    الملخص العربي      │  ← Two-column body
-  ├─────────────────────────────────────────────┤
-  │  EDUCATION           │    التعليم            │
-  │  English edu         │    التعليم العربي     │
-  ├─────────────────────────────────────────────┤
-  │  EXPERIENCE          │    الخبرات المهنية    │
-  │  English exp         │    الخبرات العربية    │
-  └─────────────────────────────────────────────┘
+The template is FIXED. Only data is dynamic.
+Cloud AI → structured data → this renderer → same template every time.
 """
 from __future__ import annotations
 
@@ -42,7 +37,7 @@ def _contact_ltr(value: str) -> str:
 
 
 def _section_heading(en: str, ar: str) -> str:
-    """Fixed bilingual section heading: English left + Arabic right + divider below."""
+    """Bilingual section heading: English left + Arabic right + horizontal divider."""
     return (
         f'<div class="obm-section-heading">'
         f'<span class="obm-h-en" dir="ltr">{esc(en)}</span>'
@@ -52,7 +47,7 @@ def _section_heading(en: str, ar: str) -> str:
 
 
 def _two_col_section(heading_en: str, heading_ar: str, en_html: str, ar_html: str) -> str:
-    """Fixed two-column section: heading row + two columns of content."""
+    """Two-column section: heading row + two columns of content."""
     if not en_html and not ar_html:
         return ""
     return (
@@ -66,7 +61,7 @@ def _two_col_section(heading_en: str, heading_ar: str, en_html: str, ar_html: st
 
 
 def _exp_item_html(exp, lang: str) -> str:
-    """Fixed experience item: title — company (dates) + bullets."""
+    """Experience item: title — company (dates) + bullets."""
     if lang == "en":
         title = exp.title_en or exp.title or ""
         company = exp.company_en or exp.company or ""
@@ -102,7 +97,7 @@ def _exp_item_html(exp, lang: str) -> str:
 
 
 def _edu_item_html(ed, lang: str) -> str:
-    """Fixed education item: degree — institution (year) | GPA."""
+    """Education item: degree — institution (year) | GPA."""
     if lang == "en":
         degree = ed.degree_en or ed.degree or ""
         institution = ed.institution_en or ed.institution or ""
@@ -127,7 +122,7 @@ def _edu_item_html(ed, lang: str) -> str:
 
 
 def _bullet_list_html(items: List[str]) -> str:
-    """Fixed bullet list with '–' prefix."""
+    """Bullet list with '–' en-dash prefix."""
     if not items:
         return ""
     lis = "".join(f"<li>{esc(item)}</li>" for item in items if item)
@@ -142,11 +137,10 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     """Render the official master template with dynamic data.
 
     The template structure is FIXED. Only the data slots are filled.
-    Cloud AI provides the data; this renderer provides the design.
     """
     parts = ['<div class="cv-root obm-master" data-lang="bilingual">']
 
-    # ===== HEADER: Name (EN left + AR right) =====
+    # ===== HEADER: Name (EN left + AR right) with divider =====
     name_en = resume.personal.name_en or resume.personal.name or ""
     name_ar = resume.personal.name_ar or resume.personal.name or ""
     parts.append('<div class="obm-header">')
@@ -156,7 +150,7 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
         parts.append(f'<div class="obm-name-ar" dir="rtl">{esc(name_ar)}</div>')
     parts.append("</div>")
 
-    # ===== CONTACT BAR (gray background, full width) =====
+    # ===== CONTACT BAR (gray background, centered) =====
     contact_parts = []
     if resume.personal.email:
         contact_parts.append(_contact_ltr(resume.personal.email))
@@ -171,7 +165,7 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if contact_parts:
         parts.append(f'<div class="obm-contact-bar">{" · ".join(contact_parts)}</div>')
 
-    # ===== SECTIONS (each is a two-column row) =====
+    # ===== SECTIONS (each: bilingual heading + two-column body) =====
 
     # --- CAREER OBJECTIVE / الهدف الوظيفي ---
     sum_en = resume.summary_text("en")
@@ -230,5 +224,5 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
         ar_html = _bullet_list_html(lang_items)
         parts.append(_two_col_section("LANGUAGES", "اللغات", en_html, ar_html))
 
-    parts.append("</div>")  # cv-root
+    parts.append("</div>")
     return "".join(parts)
