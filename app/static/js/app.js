@@ -346,8 +346,8 @@
     const content = $("#a4Content");
     if (!content) return;
 
-    // Mark all text elements as editable
-    const editables = content.querySelectorAll(".obm-name-en, .obm-name-ar, .obm-contact-bar, .obm-h-en, .obm-h-ar, .obm-item-header, .obm-item, .obm-col-en p, .obm-col-ar p, .obm-bullets li");
+    // Mark all .editable elements as editable (matches new template structure)
+    const editables = content.querySelectorAll(".editable");
     editables.forEach(el => {
       el.setAttribute("data-editable", "true");
       // SINGLE CLICK → immediately editable, cursor at click position
@@ -389,7 +389,7 @@
     });
 
     // Section selection (click on section heading or body — not on editable text)
-    const sections = content.querySelectorAll(".obm-section");
+    const sections = content.querySelectorAll(".section");
     sections.forEach(sec => {
       sec.addEventListener("click", function(e) {
         if (e.target.closest("[data-editable]")) return; // let text edit handle it
@@ -400,7 +400,7 @@
 
     // Deselect on click outside (on background, not on editable)
     content.addEventListener("mousedown", function(e) {
-      if (!e.target.closest("[data-editable]") && !e.target.closest(".obm-section")) {
+      if (!e.target.closest("[data-editable]") && !e.target.closest(".section")) {
         deselectAll();
       }
     });
@@ -422,7 +422,7 @@
     const color = rgbToHex(cs.color);
     $("#contextColorPicker").value = color;
     // Find parent section
-    const section = el.closest(".obm-section");
+    const section = el.closest(".section");
     if (section) {
       state.selectedSection = section;
       section.classList.add("selected-section");
@@ -434,10 +434,10 @@
     state.selectedSection = sec;
     sec.classList.add("selected-section");
     const contextBar = $("#contextBar");
-    const heading = sec.querySelector(".obm-h-en")?.textContent || "قسم";
+    const heading = sec.querySelector("h2")?.textContent || "قسم";
     $("#contextLabel").textContent = "قسم: " + heading;
     contextBar.style.display = "flex";
-    const cs = window.getComputedStyle(sec.querySelector(".obm-h-en") || sec);
+    const cs = window.getComputedStyle(sec.querySelector("h2") || sec);
     $("#contextColorPicker").value = rgbToHex(cs.color);
   }
 
@@ -454,13 +454,14 @@
   }
 
   function getElementLabel(el) {
-    if (el.classList.contains("obm-name-en")) return "الاسم (EN)";
-    if (el.classList.contains("obm-name-ar")) return "الاسم (AR)";
-    if (el.classList.contains("obm-contact-bar")) return "معلومات الاتصال";
-    if (el.classList.contains("obm-h-en")) return "عنوان القسم (EN)";
-    if (el.classList.contains("obm-h-ar")) return "عنوان القسم (AR)";
-    if (el.classList.contains("obm-item-header")) return "عنوان العنصر";
-    if (el.classList.contains("obm-item")) return "عنصر";
+    if (el.classList.contains("header-name-en")) return "الاسم (EN)";
+    if (el.classList.contains("header-name-ar")) return "الاسم (AR)";
+    if (el.closest(".contact-bar")) return "معلومات الاتصال";
+    if (el.tagName === "H2") return "عنوان القسم";
+    if (el.classList.contains("item-title")) return "عنوان العنصر";
+    if (el.classList.contains("item-subtitle")) return "العنوان الفرعي";
+    if (el.classList.contains("item-date")) return "التاريخ";
+    if (el.closest(".list-item")) return "عنصر";
     if (el.tagName === "P") return "فقرة";
     if (el.tagName === "LI") return "نقطة";
     return "نص";
@@ -468,37 +469,44 @@
 
   function saveEditFromElement(el) {
     const text = el.textContent.trim();
-    // Map element to data field
-    if (el.classList.contains("obm-name-en")) {
+    // Map element to data field using data-field attribute
+    const field = el.getAttribute("data-field");
+    if (field) {
+      // Direct field mapping via data-field attribute
+      if (field === "name_en") state.data.personal.name_en = text;
+      else if (field === "name_ar") state.data.personal.name_ar = text;
+      else if (field === "email") state.data.personal.email = text;
+      else if (field === "phone") state.data.personal.phone = text;
+      else if (field === "location" || field === "location_en" || field === "location_ar") state.data.personal.location = text;
+      else if (field === "summary_en") state.data.summary.en = text;
+      else if (field === "summary_ar") state.data.summary.ar = text;
+      toast("تم التحديث", "success");
+      return;
+    }
+    // Fallback: use class-based detection
+    if (el.classList.contains("header-name-en")) {
       state.data.personal.name_en = text;
-    } else if (el.classList.contains("obm-name-ar")) {
+    } else if (el.classList.contains("header-name-ar")) {
       state.data.personal.name_ar = text;
-    } else if (el.classList.contains("obm-contact-bar")) {
-      // Contact bar — parse email/phone/location
-      // For simplicity, store as-is (the render uses structured fields)
-      // We won't auto-parse here; user edits individual fields via data
-    } else if (el.classList.contains("obm-h-en") || el.classList.contains("obm-h-ar")) {
-      // Section headings — could update custom labels (not stored in data model)
-      // For now, just visual
     } else if (el.tagName === "LI") {
-      // Bullet item — find which list
-      const list = el.closest(".obm-bullets");
-      const section = el.closest(".obm-section");
-      const col = el.closest(".obm-col-en") ? "en" : "ar";
+      // Bullet item — find which list and section
+      const list = el.closest("ul.editable-list");
+      const section = el.closest(".section");
+      const col = el.closest(".col-en") ? "en" : "ar";
       if (section && list) {
         const items = Array.from(list.querySelectorAll("li"));
         const idx = items.indexOf(el);
-        // Determine section type
-        const heading = section.querySelector(".obm-h-en")?.textContent || "";
-        if (heading.includes("SKILLS") && !heading.includes("TECHNICAL")) {
-          if (idx < state.data.skills.length) state.data.skills[idx] = text;
-        } else if (heading.includes("TECHNICAL")) {
-          if (idx < state.data.technical_skills.length) state.data.technical_skills[idx] = text;
-        } else if (heading.includes("COURSES")) {
+        const heading = section.querySelector("h2")?.textContent || "";
+        if (heading.includes("SKILLS") || heading.includes("المهارات")) {
+          if (heading.includes("TECHNICAL") || heading.includes("التقنية")) {
+            if (idx < state.data.technical_skills.length) state.data.technical_skills[idx] = text;
+          } else {
+            if (idx < state.data.skills.length) state.data.skills[idx] = text;
+          }
+        } else if (heading.includes("COURSES") || heading.includes("الدورات")) {
           if (idx < state.data.courses.length) state.data.courses[idx] = text;
-        } else if (heading.includes("LANGUAGES")) {
+        } else if (heading.includes("LANGUAGES") || heading.includes("اللغات")) {
           if (idx < state.data.languages.length) {
-            // Keep level if present
             const old = state.data.languages[idx];
             state.data.languages[idx] = { name: text.replace(/\s*\(.*\)$/, ""), level: old?.level || "" };
           }
@@ -506,13 +514,10 @@
       }
     } else if (el.tagName === "P") {
       // Summary paragraph
-      const col = el.closest(".obm-col-en") ? "en" : "ar";
+      const col = el.closest(".col-en") ? "en" : "ar";
       if (col === "en") state.data.summary.en = text;
       else state.data.summary.ar = text;
-    } else if (el.classList.contains("obm-item-header")) {
-      // Experience/education header — complex, skip for now
     }
-    // Don't re-render (would lose focus); just update data
     toast("تم التحديث", "success");
   }
 
@@ -530,7 +535,7 @@
       state.selectedElement.style.color = color;
     } else if (state.selectedSection) {
       // Apply to all text in section
-      state.selectedSection.querySelectorAll(".obm-h-en, .obm-h-ar, .obm-item-header, .obm-item, p, li").forEach(el => {
+      state.selectedSection.querySelectorAll("h2, .item-title, .item-subtitle, .item-date, p, li").forEach(el => {
         el.style.color = color;
       });
     }
@@ -589,12 +594,12 @@
   $("#btnAddItem")?.addEventListener("click", function() {
     if (!state.selectedElement) { toast("حدد عنصراً أولاً", "warn"); return; }
     const el = state.selectedElement;
-    const section = el.closest(".obm-section");
+    const section = el.closest(".section");
     if (!section) return;
-    const heading = section.querySelector(".obm-h-en")?.textContent || "";
+    const heading = section.querySelector("h2")?.textContent || "";
     // If it's a bullet list, add a new bullet
     if (el.tagName === "LI") {
-      const ul = el.closest(".obm-bullets");
+      const ul = el.closest("ul.editable-list");
       if (ul) {
         const newLi = document.createElement("li");
         newLi.setAttribute("data-editable", "true");
@@ -624,7 +629,7 @@
     if (el.tagName === "LI") {
       el.remove();
       toast("تم الحذف", "success");
-    } else if (el.classList.contains("obm-item")) {
+    } else if (el.classList.contains("list-item")) {
       el.remove();
       toast("تم حذف العنصر", "success");
     } else {
