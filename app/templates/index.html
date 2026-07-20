@@ -93,58 +93,233 @@
 
 <!-- ============ EDITOR VIEW (toolbar on top + preview below) ============ -->
 <div id="editorView" class="editor-shell" style="display:none">
-  <!-- EDITING TOOLBAR (top) -->
-  <div class="editor-toolbar" id="editorToolbar">
-    <button class="btn btn-ghost btn-sm" id="btnCloseEditor" aria-label="إغلاق">✕</button>
-    <span class="et-title">معاينة السيرة الذاتية</span>
-    <div class="toolbar-divider"></div>
+  <!-- ============ EDITOR TOOLBAR (dark, RTL, 7 rows) ============ -->
+  <div class="editor-toolbar" id="editorToolbar" dir="rtl">
 
-    <!-- Design controls group -->
-    <div class="toolbar-group">
-      <label class="toolbar-label">حجم الخط</label>
-      <div class="stepper-mini" data-control="fontSize">
-        <button class="s-btn s-minus" aria-label="تقليل">−</button>
-        <span class="s-value">8.9</span>
-        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+    <!-- ===== ROW 1: Nav bar ===== -->
+    <div class="tb-row tb-row-nav">
+      <div class="tb-right">
+        <button class="tb-btn tb-btn-danger" id="btnCloseEditor" aria-label="إغلاق">✕</button>
+        <span class="tb-title">معاينة السيرة الذاتية</span>
       </div>
-    </div>
-    <div class="toolbar-group">
-      <label class="toolbar-label">ارتفاع السطر</label>
-      <div class="stepper-mini" data-control="lineHeight">
-        <button class="s-btn s-minus" aria-label="تقليل">−</button>
-        <span class="s-value">1.20</span>
-        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+      <div class="tb-center">
+        <button class="tb-btn" data-tab="templates">القوالب</button>
+        <button class="tb-btn" data-tab="colors">الألوان</button>
+        <button class="tb-btn" data-tab="content">تعديل المحتوى</button>
+        <button class="tb-btn tb-btn-gold" data-tab="ai">مساعد الذكاء ✨</button>
+        <button class="tb-btn" id="btnUndo" title="تراجع">↶</button>
+        <button class="tb-btn" id="btnRedo" title="إعادة">↷</button>
+        <button class="tb-btn" id="btnSave" title="حفظ">💾 حفظ</button>
       </div>
-    </div>
-    <div class="toolbar-group">
-      <label class="toolbar-label">الهوامش</label>
-      <div class="stepper-mini" data-control="margin">
-        <button class="s-btn s-minus" aria-label="تقليل">−</button>
-        <span class="s-value">9</span>
-        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+      <div class="tb-left">
+        <button class="tb-btn tb-btn-orange" id="btnPdf">تنزيل PDF</button>
       </div>
     </div>
 
-    <div class="toolbar-divider"></div>
-
-    <!-- Color controls (contextual — active when section selected) -->
-    <div class="toolbar-group" id="colorGroup" style="display:none">
-      <label class="toolbar-label">لون النص</label>
-      <input type="color" id="colorPicker" value="#000000" class="color-input">
-      <button class="btn btn-sm btn-ghost" id="btnResetColor" title="إعادة اللون الافتراضي">↺</button>
+    <!-- ===== ROW 2: Steppers (font size, line height, section spacing) ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">حجم الخط</label>
+        <div class="stepper-mini" data-control="fontSize">
+          <button class="s-btn s-minus" aria-label="تقليل">−</button>
+          <span class="s-value">9.0</span>
+          <button class="s-btn s-plus" aria-label="زيادة">+</button>
+        </div>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">تباعد الأسطر</label>
+        <div class="stepper-mini" data-control="lineHeight">
+          <button class="s-btn s-minus" aria-label="تقليل">−</button>
+          <span class="s-value">1.40</span>
+          <button class="s-btn s-plus" aria-label="زيادة">+</button>
+        </div>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">تباعد الأقسام</label>
+        <div class="stepper-mini" data-control="sectionSpacing">
+          <button class="s-btn s-minus" aria-label="تقليل">−</button>
+          <span class="s-value">6</span>
+          <button class="s-btn s-plus" aria-label="زيادة">+</button>
+        </div>
+      </div>
     </div>
 
-    <div class="toolbar-divider"></div>
+    <!-- ===== ROW 3: Column distance, margins, heading align, reset ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">بُعد العمودين</label>
+        <div class="stepper-mini" data-control="columnDistance">
+          <button class="s-btn s-minus" aria-label="تقليل">−</button>
+          <span class="s-value">16</span>
+          <button class="s-btn s-plus" aria-label="زيادة">+</button>
+        </div>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">الهوامش</label>
+        <div class="stepper-mini" data-control="margin">
+          <button class="s-btn s-minus" aria-label="تقليل">−</button>
+          <span class="s-value">10</span>
+          <button class="s-btn s-plus" aria-label="زيادة">+</button>
+        </div>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">محاذاة العناوين</label>
+        <select class="tb-select" id="selHeadingAlign">
+          <option value="default">حسب القالب</option>
+          <option value="left">يسار</option>
+          <option value="center">وسط</option>
+          <option value="right">يمين</option>
+        </select>
+      </div>
+      <div class="tb-spacer"></div>
+      <button class="tb-btn tb-btn-reset" id="btnResetAll" title="إعادة ضبط">↺ إعادة ضبط</button>
+    </div>
 
-    <!-- Page info -->
-    <div class="page-info" id="pageInfo">صفحة 1 من 1</div>
+    <!-- ===== ROW 4: Quick options ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">محاذاة الاسم</label>
+        <select class="tb-select" id="selNameAlign">
+          <option value="default">حسب القالب</option>
+          <option value="left">يسار</option>
+          <option value="center">وسط</option>
+          <option value="right">يمين</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">الاسم</label>
+        <select class="tb-select" id="selNameMode">
+          <option value="bilingual">ثنائي</option>
+          <option value="en">إنجليزي فقط</option>
+          <option value="ar">عربي فقط</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">محاذاة البيانات</label>
+        <select class="tb-select" id="selDataAlign">
+          <option value="default">حسب القالب</option>
+          <option value="left">يسار</option>
+          <option value="center">وسط</option>
+          <option value="right">يمين</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">البيانات</label>
+        <select class="tb-select" id="selDataMode">
+          <option value="default">حسب القالب</option>
+          <option value="center">وسط</option>
+          <option value="left">يسار</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">لون الزينة</label>
+        <select class="tb-select" id="selAccentColor">
+          <option value="default">حسب القالب</option>
+          <option value="#2c3e50">كحلي</option>
+          <option value="#000000">أسود</option>
+          <option value="#1a5276">أزرق داكن</option>
+          <option value="#7d3c98">بنفسجي</option>
+          <option value="#196f3d">أخضر</option>
+          <option value="#922b21">أحمر</option>
+        </select>
+      </div>
+    </div>
 
-    <div class="spacer"></div>
+    <!-- ===== ROW 5: Icons & language rating ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">مكتبة الأيقونات</label>
+        <select class="tb-select" id="selIconLib">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+          <option value="emoji">إيموجي</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">الأيقونات</label>
+        <select class="tb-select" id="selIcons">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+          <option value="show">إظهار</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">شكل التقييم</label>
+        <select class="tb-select" id="selRatingStyle">
+          <option value="default">حسب القالب</option>
+          <option value="text">نص</option>
+          <option value="stars">نجوم</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">تقييم اللغات</label>
+        <select class="tb-select" id="selLangRating">
+          <option value="default">حسب القالب</option>
+          <option value="stars">نجوم</option>
+          <option value="text">نص</option>
+        </select>
+      </div>
+    </div>
 
-    <!-- Export buttons -->
-    <button class="btn btn-sm" id="btnDocx">تنزيل Word</button>
-    <button class="btn btn-sm btn-primary" id="btnPdf">تنزيل PDF</button>
-    <button class="btn btn-sm" id="btnSave">حفظ</button>
+    <!-- ===== ROW 6: Section dividers & bullets ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">فواصل الأقسام</label>
+        <select class="tb-select" id="selSectionDividers">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+          <option value="line">خط</option>
+          <option value="dots">نقاط</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">فاصل الأقسام</label>
+        <select class="tb-select" id="selDividerStyle">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+          <option value="solid">مستقيم</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">التعداد النقطي</label>
+        <select class="tb-select" id="selBulletStyle">
+          <option value="default">حسب القالب</option>
+          <option value="disc">نقطة</option>
+          <option value="dash">شرطة</option>
+          <option value="none">بدون</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">التعداد</label>
+        <select class="tb-select" id="selBullets">
+          <option value="default">حسب القالب</option>
+          <option value="disc">●</option>
+          <option value="dash">–</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ===== ROW 7: Heading icons ===== -->
+    <div class="tb-row tb-row-controls">
+      <div class="tb-control-group">
+        <label class="tb-label">أيقونات العناوين</label>
+        <select class="tb-select" id="selHeadingIcons">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+          <option value="show">إظهار</option>
+        </select>
+      </div>
+      <div class="tb-control-group">
+        <label class="tb-label">أيقونات العناوين</label>
+        <select class="tb-select" id="selHeadingIconStyle">
+          <option value="default">حسب القالب</option>
+          <option value="none">بدون</option>
+        </select>
+      </div>
+      <div class="tb-spacer"></div>
+      <div class="page-info" id="pageInfo">صفحة 1 من 1</div>
+      <button class="tb-btn" id="btnDocx" title="تنزيل Word">تنزيل Word</button>
+    </div>
   </div>
 
   <!-- Contextual editing bar (shows when text is selected) -->
@@ -163,9 +338,6 @@
     <div class="context-divider"></div>
     <button class="ctx-btn" id="btnAddItem" title="إضافة عنصر">+ عنصر</button>
     <button class="ctx-btn" id="btnDeleteItem" title="حذف العنصر" style="color:#ef4444">🗑</button>
-    <div class="context-divider"></div>
-    <button class="ctx-btn" id="btnUndo" title="تراجع (Ctrl+Z)">↶</button>
-    <button class="ctx-btn" id="btnRedo" title="إعادة (Ctrl+Y)">↷</button>
     <div class="context-divider"></div>
     <button class="ctx-btn" id="btnContextClose" title="إنهاء التحرير">✕</button>
   </div>

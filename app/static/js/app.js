@@ -786,6 +786,36 @@
   $("#templatePick").addEventListener("click", () => { toast("القالب الرسمي الوحيد مُفعّل", "info"); });
   $("#fontSelect").addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); });
 
+  // Reset all design controls to defaults
+  $("#btnResetAll")?.addEventListener("click", function() {
+    state.controls = { fontSize: 9.0, lineHeight: 1.40, sectionSpacing: 6, columnDistance: 16, margin: 10 };
+    // Update stepper displays
+    $$(".stepper-mini").forEach(st => {
+      const control = st.dataset.control;
+      const lim = state.controlLimits[control];
+      const valEl = st.querySelector(".s-value");
+      const v = state.controls[control];
+      valEl.textContent = control === "fontSize" ? v.toFixed(1) : (control === "lineHeight" ? v.toFixed(2) : v);
+      st.querySelector(".s-minus").disabled = v <= lim.min;
+      st.querySelector(".s-plus").disabled = v >= lim.max;
+    });
+    // Reset all selects
+    $$("select.tb-select").forEach(sel => { sel.value = "default"; });
+    applyDesignVars();
+    toast("تمت إعادة الضبط", "success");
+  });
+
+  // Wire up tab buttons
+  $$("[data-tab]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      if (tab === "templates") toast("القالب الرسمي الوحيد مُفعّل", "info");
+      else if (tab === "colors") toast("استخدم منتقي الألوان في شريط التحرير", "info");
+      else if (tab === "content") toast("اضغط على أي نص لتعديله", "info");
+      else if (tab === "ai") toast("مساعد الذكاء — الصق سيرتك في الصفحة الرئيسية", "info");
+    });
+  });
+
   // Escape closes modals + deselects
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
