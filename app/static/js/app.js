@@ -131,7 +131,9 @@
       const keys = p.keys || [];
       const keysHtml = keys.map(k => `<div class="kpc-key"><span class="kpc-key-masked">${esc(k.masked)}</span><span style="display:flex;align-items:center;gap:6px"><span class="kpc-key-source ${k.source}">${k.source === "env" ? "بيئة" : "مضاف"}</span><button class="kpc-key-delete" data-provider="${p.id}" data-index="${k.file_index != null ? k.file_index : -1}" ${k.deletable ? "" : "disabled"} title="${k.deletable ? "حذف" : "مفتاح بيئة"}">🗑</button></span></div>`).join("");
       const linkHtml = p.key_link ? `<a href="${esc(p.key_link)}" target="_blank" class="kpc-link">🔗 الحصول على مفتاح من ${esc(p.key_link_label)} ←</a>` : "";
-      card.innerHTML = `<div class="kpc-header"><div class="kpc-name"><span class="status-dot ${p.configured ? "" : "off"}"></span>${esc(p.name)} ${p.key_count > 0 ? `<span style="font-size:11px;color:var(--text-muted)">(${p.key_count} مفتاح)</span>` : ""}</div></div><div class="kpc-desc">${esc(p.description)}</div>${linkHtml}<div class="kpc-keys">${keysHtml || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0">لا توجد مفاتيح</div>'}</div><div class="kpc-add"><input type="text" placeholder="الصق المفتاح هنا..." dir="ltr" id="keyInput-${p.id}"><button data-add-provider="${p.id}">+ إضافة</button></div>`;
+      // Add "Test" button for Gemini only
+      const testBtnHtml = p.id === "gemini" ? `<button class="kpc-test-btn" data-test-gemini="${p.id}" title="اختبار المفتاح بطلب حقيقي">🔬 اختبار المفتاح</button>` : "";
+      card.innerHTML = `<div class="kpc-header"><div class="kpc-name"><span class="status-dot ${p.configured ? "" : "off"}"></span>${esc(p.name)} ${p.key_count > 0 ? `<span style="font-size:11px;color:var(--text-muted)">(${p.key_count} مفتاح)</span>` : ""}</div></div><div class="kpc-desc">${esc(p.description)}</div>${linkHtml}<div class="kpc-keys">${keysHtml || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0">لا توجد مفاتيح</div>'}</div><div class="kpc-add"><input type="text" placeholder="الصق المفتاح هنا..." dir="ltr" id="keyInput-${p.id}"><button data-add-provider="${p.id}">+ إضافة</button>${testBtnHtml}</div><div class="kpc-test-result" id="testResult-${p.id}" style="display:none"></div>`;
       list.appendChild(card);
     });
     $$("[data-add-provider]").forEach(btn => {
@@ -144,14 +146,70 @@
         try {
           const res = await api("/api/settings/keys", { method: "POST", body: { provider: pid, key } });
           toast(res.message || "تم إضافة المفتاح", "success");
-          // Show warnings if any
-          if (res.warnings && res.warnings.length > 0) {
-            res.warnings.forEach(w => toast(w, "warn"));
-          }
           input.value = "";
           await loadProviders();
         } catch (e) { toast("فشل الإضافة: " + e.message, "error"); }
         btn.disabled = false; btn.textContent = "+ إضافة";
+      });
+    });
+    // Wire up Gemini test button
+    $$("[data-test-gemini]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const pid = btn.dataset.testGemini;
+        const input = $(`#keyInput-${pid}`);
+        let key = input.value.trim();
+        // If input is empty, try to use the first saved key (but we don't have it in full)
+        if (!key) {
+          toast("أدخل المفتاح في الحقل أولاً لاختباره", "warn");
+          return;
+        }
+        btn.disabled = true; btn.textContent = "جاري الاختبار...";
+        const resultDiv = $(`#testResult-${pid}`);
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = '<div style="padding:8px;color:var(--text-muted)">جاري إرسال طلب حقيقي لـ Google Gemini...</div>';
+        try {
+          const res = await api("/api/settings/test-gemini", { method: "POST", body: { key } });
+          if (res.success) {
+            resultDiv.innerHTML = `
+              <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);border-radius:6px;padding:10px;margin-top:8px">
+                <div style="color:#4ade80;font-weight:700;margin-bottom:4px">✅ ${esc(res.message)}</div>
+                <div style="font-size:11px;color:var(--text-muted)">
+                  <div>Endpoint: <code dir="ltr">${esc(res.endpoint)}</code></div>
+                  <div>Model: <code dir="ltr">${esc(res.model)}</code></div>
+                  <div>HTTP Status: <strong>${res.http_status}</strong></div>
+                  <div>Authenticated: <strong>${res.authenticated ? "نعم" : "لا"}</strong></div>
+                  <div>Response: <code dir="ltr">${esc(res.response_text)}</code></div>
+                  <div>Key: <code dir="ltr">${esc(res.key_masked)}</code></div>
+                </div>
+              </div>`;
+          } else {
+            const errorTypeLabels = {
+              "invalid_key": "مفتاح API غير صالح",
+              "auth_error": "خطأ في المصادقة",
+              "permission_error": "خطأ في الصلاحيات",
+              "model_not_found": "النموذج غير موجود",
+              "quota_exceeded": "تجاوز الحصة (Rate Limit)",
+              "network_error": "خطأ في الشبكة",
+              "invalid_request": "طلب غير صالح",
+              "server_error": "خطأ في الخادم",
+              "unknown": "خطأ غير معروف",
+            };
+            resultDiv.innerHTML = `
+              <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.4);border-radius:6px;padding:10px;margin-top:8px">
+                <div style="color:#fca5a5;font-weight:700;margin-bottom:4px">❌ ${esc(errorTypeLabels[res.error_type] || "فشل")}</div>
+                <div style="font-size:11px;color:var(--text-muted)">
+                  <div>الخطأ من Google: <code dir="ltr">${esc(res.error)}</code></div>
+                  <div>HTTP Status: <strong>${res.http_status}</strong></div>
+                  <div>Endpoint: <code dir="ltr">${esc(res.endpoint)}</code></div>
+                  <div>Model: <code dir="ltr">${esc(res.model)}</code></div>
+                  <div>Key: <code dir="ltr">${esc(res.key_masked)}</code></div>
+                </div>
+              </div>`;
+          }
+        } catch (e) {
+          resultDiv.innerHTML = `<div style="color:#fca5a5;padding:8px">خطأ: ${esc(e.message)}</div>`;
+        }
+        btn.disabled = false; btn.textContent = "🔬 اختبار المفتاح";
       });
     });
     $$(".kpc-key-delete:not(:disabled)").forEach(btn => {

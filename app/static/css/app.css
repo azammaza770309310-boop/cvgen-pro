@@ -798,3 +798,20 @@ button { font-family: inherit; }
   outline: 1px solid var(--accent) !important;
   background: rgba(249,115,22,0.06);
 }
+
+/* Gemini test button */
+.kpc-test-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.kpc-test-btn:hover { background: var(--accent-soft); }
+.kpc-test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.kpc-test-result { margin-top: 8px; }
