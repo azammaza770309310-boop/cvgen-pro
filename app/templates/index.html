@@ -12,22 +12,18 @@
 </head>
 <body>
 
-<!-- ============ LANDING PAGE (Image 1) ============ -->
+<!-- ============ LANDING PAGE ============ -->
 <div id="landingView" class="landing">
   <div class="landing-inner">
-
     <div class="landing-header">
       <div class="landing-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       </div>
       <h1 class="landing-title">منشئ السير الذاتية بالذكاء الاصطناعي</h1>
-      <p class="landing-subtitle">حوّل معلوماتك الخام — منظمة أو غير منظمة — إلى سيرة ذاتية احترافية جاهزة للمراجعة والتصدير. يدعم العربية والإنجليزية والمختلط.</p>
-      <div class="feature-badges" id="featureBadges">
-        <!-- populated dynamically; count comes from registry -->
-      </div>
+      <p class="landing-subtitle">حوّل معلوماتك الخام إلى سيرة ذاتية احترافية بالقالب الرسمي المعتمد.</p>
+      <div class="feature-badges" id="featureBadges"></div>
     </div>
 
-    <!-- Account / API panel -->
     <div class="account-panel">
       <div class="account-top">
         <span class="account-email" id="accountEmail">guest@cvgen.pro</span>
@@ -35,17 +31,15 @@
       </div>
       <div class="account-status">
         <span class="status-dot" id="aiStatusDot"></span>
-        <span id="aiStatusText">جارٍ التحقق من حالة الذكاء الاصطناعي...</span>
+        <span id="aiStatusText">جارٍ التحقق...</span>
       </div>
       <div class="account-actions">
         <button class="btn btn-ghost btn-sm" id="btnSettings">⚙ إعدادات API</button>
         <button class="btn btn-ghost btn-sm">مساعدة</button>
         <button class="btn btn-ghost btn-sm">نهاري ☀</button>
-        <button class="btn btn-ghost btn-sm">لوحة التحكم</button>
       </div>
     </div>
 
-    <!-- Error banner (shown when AI not configured) -->
     <div id="errorBanner" class="error-banner" style="display:none">
       <span id="errorBannerText"></span>
       <div class="eb-actions">
@@ -53,12 +47,10 @@
       </div>
     </div>
 
-    <!-- Raw text input -->
     <div class="input-card">
-      <textarea class="raw-textarea" id="rawInput" placeholder="الصق معلوماتك هنا كاملةً (الاسم، الهاتف، البريد، الخبرات، التعليم، المهارات، الدورات...)&#10;&#10;يمكنك لصق نص عربي أو إنجليزي أو مختلط. سيقرأ الذكاء الاصطناعي المستند كاملاً ويفهم العلاقات بين الأقسام."></textarea>
+      <textarea class="raw-textarea" id="rawInput" placeholder="الصق معلوماتك هنا كاملةً (الاسم، الهاتف، البريد، الخبرات، التعليم، المهارات...)&#10;&#10;يدعم العربية والإنجليزية والمختلط. سيقرأ الذكاء الاصطناعي المستند كاملاً."></textarea>
     </div>
 
-    <!-- Configuration row -->
     <div class="config-row">
       <div class="config-field">
         <label>مزود الذكاء الاصطناعي</label>
@@ -67,8 +59,8 @@
       <div class="config-field">
         <label>خط السيرة</label>
         <select id="fontSelect">
-          <option value="Tajawal">تجوال • Tajawal</option>
           <option value="Cairo">القاهرة • Cairo</option>
+          <option value="Tajawal">تجوال • Tajawal</option>
           <option value="Amiri">أميري • Amiri</option>
           <option value="Inter">Inter</option>
         </select>
@@ -82,196 +74,103 @@
       </div>
     </div>
 
-    <!-- Primary CTA -->
     <button class="cta-generate" id="btnGenerate">
       <span id="ctaIcon">⚡</span>
       <span id="ctaText">توليد ومعاينة السيرة الذاتية</span>
     </button>
+    <button class="btn-secondary-block" id="btnLoadSample">📄 تحميل نموذج للتجربة</button>
     <button class="btn-secondary-block" id="btnSavedResumes">سيري الذاتية المحفوظة</button>
 
-    <!-- Footer info box -->
     <div class="info-box">
       <strong>كيف يعمل؟</strong><br>
-      • المعالجة الدلالية تتم بالكامل عبر مزودي الذكاء الاصطناعي السحابية (Gemini / OpenAI / Claude...).<br>
-      • يفهم الذكاء الاصطناعي المستند كاملاً ولا يخترع معلومات غير موجودة.<br>
-      • يدعم العربية والإنجليزية والمختلط بشكل كامل.<br>
-      • يجب إعداد مفتاح API من الإعدادات لتفعيل التوليد بالذكاء الاصطناعي.
+      • المعالجة الدلالية تتم بالكامل عبر مزودي الذكاء الاصطناعي السحابية.<br>
+      • يفهم الذكاء الاصطناعي المستند كاملاً ولا يخترع معلومات.<br>
+      • القالب الرسمي ثابت — البيانات فقط تتغير.<br>
+      • بعد التوليد: اضغط على أي نص في السيرة لتعديله مباشرةً.
     </div>
-
   </div>
 </div>
 
-<!-- ============ EDITOR VIEW (Image 3) ============ -->
+<!-- ============ EDITOR VIEW (toolbar on top + preview below) ============ -->
 <div id="editorView" class="editor-shell" style="display:none">
-  <div class="editor-toolbar">
-    <button class="btn btn-ghost btn-sm" id="btnCloseEditor" aria-label="إغلاق المحرر">✕</button>
+  <!-- EDITING TOOLBAR (top) -->
+  <div class="editor-toolbar" id="editorToolbar">
+    <button class="btn btn-ghost btn-sm" id="btnCloseEditor" aria-label="إغلاق">✕</button>
     <span class="et-title">معاينة السيرة الذاتية</span>
+    <div class="toolbar-divider"></div>
+
+    <!-- Design controls group -->
+    <div class="toolbar-group">
+      <label class="toolbar-label">حجم الخط</label>
+      <div class="stepper-mini" data-control="fontSize">
+        <button class="s-btn s-minus" aria-label="تقليل">−</button>
+        <span class="s-value">8.9</span>
+        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+      </div>
+    </div>
+    <div class="toolbar-group">
+      <label class="toolbar-label">ارتفاع السطر</label>
+      <div class="stepper-mini" data-control="lineHeight">
+        <button class="s-btn s-minus" aria-label="تقليل">−</button>
+        <span class="s-value">1.20</span>
+        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+      </div>
+    </div>
+    <div class="toolbar-group">
+      <label class="toolbar-label">الهوامش</label>
+      <div class="stepper-mini" data-control="margin">
+        <button class="s-btn s-minus" aria-label="تقليل">−</button>
+        <span class="s-value">9</span>
+        <button class="s-btn s-plus" aria-label="زيادة">+</button>
+      </div>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Color controls (contextual — active when section selected) -->
+    <div class="toolbar-group" id="colorGroup" style="display:none">
+      <label class="toolbar-label">لون النص</label>
+      <input type="color" id="colorPicker" value="#000000" class="color-input">
+      <button class="btn btn-sm btn-ghost" id="btnResetColor" title="إعادة اللون الافتراضي">↺</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Page info -->
+    <div class="page-info" id="pageInfo">صفحة 1 من 1</div>
+
     <div class="spacer"></div>
+
+    <!-- Export buttons -->
     <button class="btn btn-sm" id="btnDocx">تنزيل Word</button>
     <button class="btn btn-sm btn-primary" id="btnPdf">تنزيل PDF</button>
     <button class="btn btn-sm" id="btnSave">حفظ</button>
   </div>
 
-  <div class="editor-tabs">
-    <button class="editor-tab" data-etab="templates">القوالب</button>
-    <button class="editor-tab" data-etab="colors">الألوان</button>
-    <button class="editor-tab" data-etab="content">تعديل المحتوى</button>
-    <button class="editor-tab active" data-etab="preview">معاينة A4 دقيقة</button>
+  <!-- Contextual editing bar (shows when text is selected) -->
+  <div class="context-bar" id="contextBar" style="display:none">
+    <span id="contextLabel">تحرير</span>
+    <input type="color" id="contextColorPicker" value="#000000" class="color-input" title="لون النص المحدد">
+    <button class="btn btn-sm btn-ghost" id="btnContextReset" title="إعادة اللون">↺ افتراضي</button>
+    <button class="btn btn-sm btn-ghost" id="btnContextClose">✕</button>
   </div>
 
-  <div class="editor-body">
-    <!-- Side panel (changes per tab) -->
-    <aside class="editor-side" id="editorSide">
-      <!-- Preview tab: design steppers -->
-      <div class="etab-panel" data-etab="preview">
-        <div class="stepper-group">
-          <div class="sg-title">التحكم بالتصميم</div>
-          <div class="stepper" data-control="fontSize">
-            <span class="s-label">حجم الخط</span>
-            <div class="s-controls">
-              <button class="s-btn s-minus" aria-label="تقليل">−</button>
-              <span class="s-value">9.0</span>
-              <button class="s-btn s-plus" aria-label="زيادة">+</button>
-            </div>
-          </div>
-          <div class="stepper" data-control="lineHeight">
-            <span class="s-label">ارتفاع السطر</span>
-            <div class="s-controls">
-              <button class="s-btn s-minus" aria-label="تقليل">−</button>
-              <span class="s-value">1.40</span>
-              <button class="s-btn s-plus" aria-label="زيادة">+</button>
-            </div>
-          </div>
-          <div class="stepper" data-control="sectionSpacing">
-            <span class="s-label">تباعد الأقسام</span>
-            <div class="s-controls">
-              <button class="s-btn s-minus" aria-label="تقليل">−</button>
-              <span class="s-value">6</span>
-              <button class="s-btn s-plus" aria-label="زيادة">+</button>
-            </div>
-          </div>
-          <div class="stepper" data-control="columnDistance">
-            <span class="s-label">مسافة الأعمدة</span>
-            <div class="s-controls">
-              <button class="s-btn s-minus" aria-label="تقليل">−</button>
-              <span class="s-value">16</span>
-              <button class="s-btn s-plus" aria-label="زيادة">+</button>
-            </div>
-          </div>
-          <div class="stepper" data-control="margin">
-            <span class="s-label">الهوامش</span>
-            <div class="s-controls">
-              <button class="s-btn s-minus" aria-label="تقليل">−</button>
-              <span class="s-value">10</span>
-              <button class="s-btn s-plus" aria-label="زيادة">+</button>
-            </div>
-          </div>
-        </div>
-        <div class="stepper-group">
-          <div class="sg-title">حالة الصفحة</div>
-          <div id="pageStatusBox" style="font-size:12.5px;color:var(--text-muted);line-height:1.8">
-            <div>الصفحات: <strong id="psPages" style="color:var(--text)">1</strong></div>
-            <div>الارتفاع الفعلي: <strong id="psHeight" style="color:var(--text)">—</strong></div>
-            <div>حد الصفحة 1: <strong style="color:var(--text)">1123px</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Templates tab -->
-      <div class="etab-panel" data-etab="templates" style="display:none">
-        <div class="stepper-group">
-          <div class="sg-title">القوالب المتاحة (<span id="sideTemplateCount">—</span>)</div>
-          <div id="sideTemplateList"></div>
-        </div>
-      </div>
-
-      <!-- Colors tab -->
-      <div class="etab-panel" data-etab="colors" style="display:none">
-        <div class="stepper-group">
-          <div class="sg-title">لون التمييز</div>
-          <div id="colorSwatches" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-        </div>
-      </div>
-
-      <!-- Content tab -->
-      <div class="etab-panel" data-etab="content" style="display:none">
-        <div class="stepper-group">
-          <div class="sg-title">المعلومات الشخصية</div>
-          <div class="field-group"><label>الاسم (EN)</label><input type="text" data-field="personal.name_en"></div>
-          <div class="field-group"><label>الاسم (AR)</label><input type="text" data-field="personal.name_ar" dir="rtl"></div>
-          <div class="field-group"><label>المسمى (EN)</label><input type="text" data-field="personal.title_en"></div>
-          <div class="field-group"><label>المسمى (AR)</label><input type="text" data-field="personal.title_ar" dir="rtl"></div>
-          <div class="field-row">
-            <div class="field-group"><label>البريد</label><input type="email" data-field="personal.email" dir="ltr"></div>
-            <div class="field-group"><label>الهاتف</label><input type="tel" data-field="personal.phone" dir="ltr"></div>
-          </div>
-          <div class="field-group"><label>الموقع</label><input type="text" data-field="personal.location"></div>
-          <div class="field-group"><label>لينكدإن</label><input type="text" data-field="personal.linkedin" dir="ltr"></div>
-          <div class="field-group"><label>ملخص (EN)</label><textarea data-field="summary.en" rows="3"></textarea></div>
-          <div class="field-group"><label>ملخص (AR)</label><textarea data-field="summary.ar" rows="3" dir="rtl"></textarea></div>
-        </div>
-        <div class="stepper-group">
-          <div class="sg-title">الخبرات</div>
-          <div id="experienceList"></div>
-          <button class="add-btn" id="btnAddExperience">+ إضافة خبرة</button>
-        </div>
-        <div class="stepper-group">
-          <div class="sg-title">التعليم</div>
-          <div id="educationList"></div>
-          <button class="add-btn" id="btnAddEducation">+ إضافة تعليم</button>
-        </div>
-        <div class="stepper-group">
-          <div class="sg-title">المهارات</div>
-          <div class="field-group"><label>المهارات (مفصولة بفواصل)</label><textarea data-field="skills" rows="3"></textarea></div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main preview area -->
-    <main class="editor-main">
-      <div class="preview-toolbar">
-        <div class="page-info" id="pageInfo">صفحة 1 من 1</div>
-        <div class="page-nav">
-          <button class="btn btn-sm" id="btnPrevPage" aria-label="الصفحة السابقة">›</button>
-          <button class="btn btn-sm" id="btnNextPage" aria-label="الصفحة التالية">‹</button>
-        </div>
-        <div style="flex:1"></div>
-        <div class="page-info" id="langToggle">
-          <button class="btn btn-sm" data-lang="en">EN</button>
-          <button class="btn btn-sm" data-lang="ar">AR</button>
-          <button class="btn btn-sm btn-primary" data-lang="bilingual">ثنائي</button>
-        </div>
-      </div>
-      <div id="overflowWarning" class="overflow-warning" style="display:none">
-        <span>📄</span>
-        <span id="overflowText"></span>
-      </div>
-      <div class="a4-wrap">
-        <div class="a4-scaler" id="a4Scaler">
-          <div class="a4-page" id="a4Page">
-            <div id="a4Content"></div>
-            <div class="page1-boundary"></div>
-            <div class="page1-badge">نهاية الصفحة 1 ⬅</div>
-          </div>
-        </div>
-      </div>
-    </main>
+  <!-- Overflow warning -->
+  <div id="overflowWarning" class="overflow-warning" style="display:none">
+    <span>📄</span>
+    <span id="overflowText"></span>
   </div>
-</div>
 
-<!-- ============ TEMPLATE GALLERY MODAL (Image 2) ============ -->
-<div class="modal-overlay" id="galleryModal" style="display:none">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <h2>معرض القوالب <span class="count-pill" id="galleryCount">—</span></h2>
-        <div class="subtitle">قوالب ATS آمنة للفرز • قوالب إبداعية • قوالب ثنائية اللغة (عربي + إنجليزي)</div>
+  <!-- RESUME PREVIEW (directly below toolbar) -->
+  <div class="editor-preview-area">
+    <div class="a4-wrap">
+      <div class="a4-scaler" id="a4Scaler">
+        <div class="a4-page" id="a4Page">
+          <div id="a4Content"></div>
+          <div class="page1-boundary"></div>
+          <div class="page1-badge">نهاية الصفحة 1 ⬅</div>
+        </div>
       </div>
-      <button class="modal-close" id="closeGallery" aria-label="إغلاق المعرض">✕</button>
-    </div>
-    <div class="gallery-filters" id="galleryFilters"></div>
-    <div class="gallery-body">
-      <div class="template-grid" id="galleryGrid"></div>
     </div>
   </div>
 </div>
@@ -281,7 +180,7 @@
   <div class="modal settings-modal" style="max-width:680px">
     <div class="modal-head">
       <h2>إعدادات مفاتيح API</h2>
-      <button class="modal-close" id="closeSettings" aria-label="إغلاق الإعدادات">✕</button>
+      <button class="modal-close" id="closeSettings" aria-label="إغلاق">✕</button>
     </div>
     <div class="modal-body">
       <p class="help-text">

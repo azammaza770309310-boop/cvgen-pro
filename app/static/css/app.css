@@ -643,3 +643,125 @@ button { font-family: inherit; }
   font-weight: 600; cursor: pointer; white-space: nowrap;
 }
 .kpc-add button:hover { background: var(--accent-hover); }
+
+/* ============ NEW EDITOR LAYOUT: toolbar on top + preview below ============ */
+.editor-shell { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+
+.editor-toolbar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky; top: 0; z-index: 50;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+.editor-toolbar .et-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0 4px; }
+.toolbar-divider { width: 1px; height: 28px; background: var(--border-light); margin: 0 4px; }
+.toolbar-group { display: flex; align-items: center; gap: 6px; }
+.toolbar-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+/* Mini stepper for toolbar */
+.stepper-mini {
+  display: flex; align-items: center; gap: 3px;
+  background: var(--bg-input); border: 1px solid var(--border-light);
+  border-radius: 6px; padding: 2px;
+}
+.stepper-mini .s-btn {
+  width: 22px; height: 22px;
+  background: var(--bg-card-2); border: 1px solid var(--border-light);
+  color: var(--text); border-radius: 4px; cursor: pointer;
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.stepper-mini .s-btn:hover:not(:disabled) { background: #333; }
+.stepper-mini .s-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.stepper-mini .s-value {
+  min-width: 32px; text-align: center;
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.color-input {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px; cursor: pointer;
+  background: transparent; padding: 2px;
+}
+
+/* Contextual editing bar */
+.context-bar {
+  background: var(--bg-card-2);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.context-bar #contextLabel { color: var(--accent); font-weight: 600; }
+
+/* Preview area — directly below toolbar */
+.editor-preview-area {
+  flex: 1;
+  overflow: auto;
+  background: #2a2a2a;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+.editor-preview-area .a4-wrap { display: flex; justify-content: center; }
+
+/* ============ INLINE EDITING ============ */
+/* Editable elements in the resume */
+[contenteditable="true"] {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+  background: rgba(249,115,22,0.08);
+  border-radius: 2px;
+  cursor: text;
+  min-width: 20px;
+  display: inline-block;
+}
+[contenteditable="true"]:focus {
+  outline: 2px solid var(--accent) !important;
+  background: rgba(249,115,22,0.12);
+}
+[contenteditable="true"]:empty::before {
+  content: "—";
+  color: var(--text-dim);
+  opacity: 0.4;
+}
+
+/* Selected section highlight */
+.obm-section.selected-section {
+  background: rgba(249,115,22,0.06);
+  border-left: 3px solid var(--accent);
+  padding-left: 6px;
+  margin-left: -9px;
+  border-radius: 2px;
+}
+.obm-item.selected-item {
+  background: rgba(249,115,22,0.06);
+  border-left: 3px solid var(--accent);
+  padding-left: 6px;
+  margin-left: -9px;
+  border-radius: 2px;
+}
+
+/* Editable hover hint */
+.obm-master [data-editable]:hover {
+  background: rgba(249,115,22,0.04);
+  cursor: text;
+  border-radius: 2px;
+}
+
+/* Responsive toolbar */
+@media (max-width: 768px) {
+  .editor-toolbar { padding: 6px 10px; gap: 6px; }
+  .toolbar-label { display: none; }
+  .et-title { display: none; }
+  .stepper-mini .s-value { min-width: 26px; font-size: 11px; }
+}
