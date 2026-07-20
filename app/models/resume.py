@@ -146,7 +146,7 @@ class ResumeData(BaseModel):
     other: List[OtherItem] = Field(default_factory=list)
 
     # metadata
-    template_id: str = "ats_classic"
+    template_id: str = "official_bilingual_master"
     lang: str = "en"  # primary display language: en | ar | bilingual
 
     # ------------------------------------------------------------------

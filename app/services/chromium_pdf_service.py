@@ -34,7 +34,7 @@ def _load_template_css() -> str:
 
 def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = None) -> str:
     """Build the full HTML document for Chromium print-to-PDF."""
-    tid = template_id or resume.template_id or "ats_classic"
+    tid = template_id or resume.template_id or "official_bilingual_master"
     body = render_template(tid, resume)
     css = _load_template_css()
     is_ar = resume.lang == "ar"

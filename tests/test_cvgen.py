@@ -216,7 +216,7 @@ def test_all_templates_render_html():
 
 
 def test_templates_api_render():
-    r = client.post("/api/templates/render", json={"data": sample_resume("en").model_dump(), "template_id": "ats_classic"})
+    r = client.post("/api/templates/render", json={"data": sample_resume("en").model_dump(), "template_id": "official_bilingual_master"})
     assert r.status_code == 200
     assert "cv-root" in r.json()["html"]
 
@@ -288,13 +288,13 @@ def test_page1_boundary_text_in_html():
 
 def test_pdf_export_bytes():
     resume = sample_resume("en")
-    pdf = export_pdf(resume, "ats_classic")
+    pdf = export_pdf(resume, "official_bilingual_master")
     assert isinstance(pdf, bytes)
     assert pdf[:4] == b"%PDF"
 
 
 def test_pdf_api_endpoint():
-    r = client.post("/api/export/pdf", json={"data": sample_resume("en").model_dump(), "template_id": "ats_classic"})
+    r = client.post("/api/export/pdf", json={"data": sample_resume("en").model_dump(), "template_id": "official_bilingual_master"})
     assert r.status_code == 200
     assert r.headers["content-type"] == "application/pdf"
     assert r.content[:4] == b"%PDF"
@@ -343,13 +343,18 @@ def test_ai_manager_lists_all_providers():
 
 def test_ai_manager_no_key_is_configured_by_default(monkeypatch):
     """By default (no env vars set), external providers are not configured.
-    ZAI may be configured if the internal gateway is available."""
+    ZAI may be configured if the internal gateway is available.
+    Keys added via the website UI (file store) may also be present."""
     from app.ai import manager as mgr_mod
+    from app.core.config import settings as app_settings
     original_list = mgr_mod.ai_manager.list_providers()
     # Check that all EXTERNAL providers (gemini, openai, etc.) are not configured
-    external = [p for p in original_list if p["id"] != "zai"]
-    for p in external:
-        assert p["configured"] is False
+    # via environment variables. File-based keys (added via UI) may exist.
+    for p in original_list:
+        if p["id"] != "zai":
+            # Provider should not be configured via env by default
+            env_keys = app_settings.get_provider_keys(p["id"])
+            assert len(env_keys) == 0, f"{p['id']} should not have env keys by default"
 
 
 # ---------------------------------------------------------------------------

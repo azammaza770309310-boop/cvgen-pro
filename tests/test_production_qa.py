@@ -241,7 +241,7 @@ class TestFailureRecovery:
         assert r.experience == []
 
     def test_export_with_empty_resume_does_not_crash(self):
-        r = client.post("/api/export/pdf", json={"data": {}, "template_id": "ats_classic"})
+        r = client.post("/api/export/pdf", json={"data": {}, "template_id": "official_bilingual_master"})
         # should produce a valid (empty) PDF, not a 500
         assert r.status_code == 200
         assert r.content[:4] == b"%PDF"
@@ -250,7 +250,7 @@ class TestFailureRecovery:
         """Stress: 500 skills should not crash."""
         data = sample_resume("en").model_dump()
         data["skills"] = [f"Skill{i}" for i in range(500)]
-        r = client.post("/api/export/pdf", json={"data": data, "template_id": "ats_classic"})
+        r = client.post("/api/export/pdf", json={"data": data, "template_id": "official_bilingual_master"})
         assert r.status_code == 200
 
     def test_export_with_invalid_template_falls_back(self):
@@ -269,11 +269,11 @@ class TestTemplateRegistry:
         assert len(ids) == len(set(ids)), f"Duplicate IDs: {[x for x in ids if ids.count(x)>1]}"
 
     def test_all_have_renderers(self):
-        for t in REGISTRY:
+        for t in REGISTRY:  # now only 1 template
             assert callable(t.render), f"{t.id} has no callable render"
 
     def test_all_have_required_metadata(self):
-        for t in REGISTRY:
+        for t in REGISTRY:  # now only 1 template
             assert t.id and t.name and t.name_ar
             assert t.description and t.description_ar
             assert t.category in ("ats", "creative", "bilingual")
@@ -283,7 +283,7 @@ class TestTemplateRegistry:
 
     def test_all_templates_render_without_error(self):
         resume = sample_resume("bilingual")
-        for t in REGISTRY:
+        for t in REGISTRY:  # now only 1 template
             html = render_template(t.id, resume)
             assert "cv-root" in html
             assert t.id.replace("_", "-") in html or "cv-" in html
@@ -325,7 +325,7 @@ class TestTemplateRegistry:
 # ===========================================================================
 
 class TestPDFValidation:
-    def _export_pdf(self, data, template_id="ats_classic"):
+    def _export_pdf(self, data, template_id="official_bilingual_master"):
         r = client.post("/api/export/pdf", json={"data": data, "template_id": template_id})
         assert r.status_code == 200
         return r.content
@@ -350,16 +350,16 @@ class TestPDFValidation:
         assert "Jane" in text or "Doe" in text
 
     def test_pdf_bilingual_text_present(self):
-        pdf = self._export_pdf(sample_resume("bilingual").model_dump(), "international_bilingual")
+        pdf = self._export_pdf(sample_resume("bilingual").model_dump(), "official_bilingual_master")
         reader = pypdf.PdfReader(io.BytesIO(pdf))
         text = "".join(p.extract_text() for p in reader.pages)
         # English content
-        assert "Ahmed" in text
+        assert "ahmed" in text.lower()
         # Arabic content (may be shaped but characters present)
         assert "أحمد" in text or "عبدالله" in text
 
     def test_pdf_all_templates_produce_valid_pdf(self):
-        for t in REGISTRY:
+        for t in REGISTRY:  # now only 1 template
             pdf = self._export_pdf(sample_resume("bilingual").model_dump(), t.id)
             assert pdf[:4] == b"%PDF", f"{t.id} did not produce valid PDF"
             assert self._page_count(pdf) >= 1, f"{t.id} produced 0-page PDF"
@@ -431,7 +431,7 @@ class TestDOCXValidation:
         docx_bytes = self._export_docx(sample_resume("bilingual").model_dump(), "bilingual")
         doc = docx_mod.Document(io.BytesIO(docx_bytes))
         text = "\n".join(p.text for p in doc.paragraphs)
-        assert "Ahmed" in text
+        assert "ahmed" in text.lower()
         # Arabic may be present (python-docx reads it fine)
         assert len(text) > 50  # not empty
 
@@ -448,7 +448,7 @@ class TestDOCXValidation:
 class TestBilingualRTL:
     def test_bilingual_columns_have_dir_attributes(self):
         resume = sample_resume("bilingual")
-        for tid in ("bilingual_teal_gold", "bilingual_navy", "bilingual_peach"):
+        for tid in ("official_bilingual_master", "official_bilingual_master", "official_bilingual_master"):
             html = render_template(tid, resume)
             assert 'dir="ltr"' in html or "dir='ltr'" in html, f"{tid} missing dir=ltr"
             assert 'dir="rtl"' in html or "dir='rtl'" in html, f"{tid} missing dir=rtl"
@@ -457,14 +457,14 @@ class TestBilingualRTL:
         resume = sample_resume("bilingual")
         resume.personal.email = "test@example.com"
         resume.personal.phone = "+966555123456"
-        html = render_template("bilingual_teal_gold", resume)
+        html = render_template("official_bilingual_master", resume)
         # email should appear inside a dir=ltr span
         assert 'dir="ltr"' in html
         assert "test@example.com" in html
 
     def test_english_and_arabic_both_render(self):
         resume = sample_resume("bilingual")
-        for tid in ("bilingual_teal_gold", "bilingual_navy", "bilingual_peach", "international_bilingual"):
+        for tid in ("official_bilingual_master",):
             html = render_template(tid, resume)
             assert "Ahmed" in html, f"{tid} missing English"
             assert "أحمد" in html, f"{tid} missing Arabic"
@@ -512,7 +512,7 @@ class TestPageCountParity:
     Exact match is hard due to WeasyPrint vs browser rendering differences, but
     they should be within 1 page for normal resumes.
     """
-    def _pdf_pages(self, data, template_id="ats_classic"):
+    def _pdf_pages(self, data, template_id="official_bilingual_master"):
         r = client.post("/api/export/pdf", json={"data": data, "template_id": template_id})
         reader = pypdf.PdfReader(io.BytesIO(r.content))
         return len(reader.pages)

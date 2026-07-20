@@ -10,7 +10,7 @@
   // ---------------- State ----------------
   const state = {
     data: emptyResume(),
-    templateId: "ats_classic",
+    templateId: "official_bilingual_master",
     font: "Tajawal",
     displayLang: "bilingual",
     templates: [],

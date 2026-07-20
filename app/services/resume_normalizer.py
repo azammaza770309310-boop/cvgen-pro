@@ -357,7 +357,7 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
         achievements=_normalize_achievements(raw.get("achievements")),
         references=_normalize_references(raw.get("references")),
         other=_normalize_other(raw.get("other")),
-        template_id=_coerce_str(raw.get("template_id")) or "ats_classic",
+        template_id=_coerce_str(raw.get("template_id")) or "official_bilingual_master",
         lang=_coerce_str(raw.get("lang")) or "en",
     )
 

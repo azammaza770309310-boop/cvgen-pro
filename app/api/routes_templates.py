@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/templates", tags=["templates"])
 
 class RenderRequest(BaseModel):
     data: dict
-    template_id: str = "ats_classic"
+    template_id: str = "official_bilingual_master"
 
 
 @router.get("/")
