@@ -144,6 +144,10 @@
         try {
           const res = await api("/api/settings/keys", { method: "POST", body: { provider: pid, key } });
           toast(res.message || "تم إضافة المفتاح", "success");
+          // Show warnings if any
+          if (res.warnings && res.warnings.length > 0) {
+            res.warnings.forEach(w => toast(w, "warn"));
+          }
           input.value = "";
           await loadProviders();
         } catch (e) { toast("فشل الإضافة: " + e.message, "error"); }
@@ -480,14 +484,26 @@
     deselectAll();
   });
 
-  // ----- Formatting buttons (bold, italic, undo, redo) -----
+  // ----- Formatting buttons (bold, italic, alignment, undo, redo) -----
   $("#btnBold")?.addEventListener("mousedown", function(e) {
-    e.preventDefault(); // keep focus on editable
+    e.preventDefault();
     document.execCommand("bold", false, null);
   });
   $("#btnItalic")?.addEventListener("mousedown", function(e) {
     e.preventDefault();
     document.execCommand("italic", false, null);
+  });
+  $("#btnAlignLeft")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("justifyLeft", false, null);
+  });
+  $("#btnAlignCenter")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("justifyCenter", false, null);
+  });
+  $("#btnAlignRight")?.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    document.execCommand("justifyRight", false, null);
   });
   $("#btnUndo")?.addEventListener("mousedown", function(e) {
     e.preventDefault();
@@ -496,6 +512,52 @@
   $("#btnRedo")?.addEventListener("mousedown", function(e) {
     e.preventDefault();
     document.execCommand("redo", false, null);
+  });
+  // Add item (adds a new bullet to the current list or a new experience item)
+  $("#btnAddItem")?.addEventListener("click", function() {
+    if (!state.selectedElement) { toast("حدد عنصراً أولاً", "warn"); return; }
+    const el = state.selectedElement;
+    const section = el.closest(".obm-section");
+    if (!section) return;
+    const heading = section.querySelector(".obm-h-en")?.textContent || "";
+    // If it's a bullet list, add a new bullet
+    if (el.tagName === "LI") {
+      const ul = el.closest(".obm-bullets");
+      if (ul) {
+        const newLi = document.createElement("li");
+        newLi.setAttribute("data-editable", "true");
+        newLi.textContent = "عنصر جديد";
+        ul.appendChild(newLi);
+        attachInlineEditors();
+        toast("تم إضافة عنصر", "success");
+      }
+    } else if (heading.includes("EXPERIENCE")) {
+      // Add new experience item to data
+      state.data.experience.push({ title_en: "New Position", company_en: "", start_date: "", end_date: "", bullets_en: [] });
+      schedulePreview();
+      toast("تم إضافة خبرة جديدة", "success");
+    } else if (heading.includes("EDUCATION")) {
+      state.data.education.push({ degree_en: "New Degree", institution_en: "" });
+      schedulePreview();
+      toast("تم إضافة تعليم جديد", "success");
+    } else {
+      toast("لا يمكن إضافة عناصر في هذا القسم", "warn");
+    }
+  });
+  // Delete item
+  $("#btnDeleteItem")?.addEventListener("click", function() {
+    if (!state.selectedElement) { toast("حدد عنصراً للحذف", "warn"); return; }
+    if (!confirm("هل تريد حذف هذا العنصر؟")) return;
+    const el = state.selectedElement;
+    if (el.tagName === "LI") {
+      el.remove();
+      toast("تم الحذف", "success");
+    } else if (el.classList.contains("obm-item")) {
+      el.remove();
+      toast("تم حذف العنصر", "success");
+    } else {
+      toast("لا يمكن حذف هذا العنصر", "warn");
+    }
   });
 
   // Keyboard shortcuts for bold/italic

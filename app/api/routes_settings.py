@@ -73,24 +73,39 @@ async def get_providers():
 
 @router.post("/keys")
 async def add_api_key(req: AddKeyRequest):
-    """Add an API key for a provider. Multiple keys per provider supported."""
+    """Add an API key for a provider. Multiple keys per provider supported.
+    Validates key format for known providers."""
     if not req.provider or not req.key:
         raise HTTPException(status_code=400, detail="Provider and key are required")
     
     provider = req.provider.lower()
+    key = req.key.strip()
+    
     # Validate provider exists
     from app.ai.manager import PROVIDER_META
     if provider not in PROVIDER_META:
         raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
     
-    added = add_key(provider, req.key)
+    # Key format validation (warn but don't block)
+    warnings = []
+    if provider == "gemini" and not key.startswith("AIza"):
+        warnings.append("تنبيه: مفاتيح Gemini عادة تبدأ بـ 'AIza'. تأكد أنك نسخت المفتاح الصحيح من Google AI Studio.")
+    elif provider == "openai" and not key.startswith("sk-"):
+        warnings.append("تنبيه: مفاتيح OpenAI عادة تبدأ بـ 'sk-'. تأكد من نسخ المفتاح الصحيح.")
+    elif provider == "groq" and not key.startswith("gsk_"):
+        warnings.append("تنبيه: مفاتيح Groq عادة تبدأ بـ 'gsk_'. تأكد من نسخ المفتاح الصحيح.")
+    elif provider == "anthropic" and not key.startswith("sk-ant-"):
+        warnings.append("تنبيه: مفاتيح Anthropic عادة تبدأ بـ 'sk-ant-'. تأكد من نسخ المفتاح الصحيح.")
+    
+    added = add_key(provider, key)
     if not added:
         raise HTTPException(status_code=409, detail="Key already exists for this provider")
     
     return {
         "success": True,
         "provider": provider,
-        "message": f"Key added successfully. Provider now has {len(get_key_sources(provider))} key(s)."
+        "message": f"Key added successfully. Provider now has {len(get_key_sources(provider))} key(s).",
+        "warnings": warnings,
     }
 
 
