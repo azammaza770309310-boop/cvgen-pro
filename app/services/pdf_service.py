@@ -46,10 +46,10 @@ def render_html_for_pdf(resume: ResumeData, template_id: str | None = None) -> s
 <title>Resume</title>
 <style>
 {css}
-/* PDF page setup */
+/* PDF page setup — zero margins, CSS handles padding */
 @page {{
   size: A4;
-  margin: {settings.pdf_margin_top} {settings.pdf_margin_right} {settings.pdf_margin_bottom} {settings.pdf_margin_left};
+  margin: 0;
 }}
 .cv-root {{ box-sizing: border-box; }}
 .break-inside-avoid {{ break-inside: avoid; }}

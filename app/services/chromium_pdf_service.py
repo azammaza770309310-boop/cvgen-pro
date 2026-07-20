@@ -83,12 +83,14 @@ def export_pdf_chromium(resume_data: ResumeData | dict, template_id: str | None 
             browser = p.chromium.launch()
             page = browser.new_page()
             page.set_content(html_doc, wait_until="networkidle")
-            # Wait for fonts to load
             page.evaluate("document.fonts.ready")
+            # Exact config from spec: preferCSSPageSize + zero margins
             pdf_bytes = page.pdf(
                 format="A4",
                 print_background=True,
-                margin={"top": "10mm", "bottom": "10mm", "left": "10mm", "right": "10mm"},
+                prefer_css_page_size=True,
+                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
+                display_header_footer=False,
             )
             browser.close()
         return pdf_bytes

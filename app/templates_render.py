@@ -1,7 +1,21 @@
-"""OFFICIAL MASTER TEMPLATE RENDERER — matches the provided specification.
+"""OFFICIAL MASTER TEMPLATE RENDERER — exact implementation from provided spec.
 
-Layout: centered header + TWO SEPARATE COLUMNS (English left, Arabic right).
-Each column has its own sections independently. Template is FIXED, data is dynamic.
+Layout (strict):
+  ┌──────────────────────────────────────────┐
+  │  Header EN (left)  │  Header AR (right)  │  ← 50/50, border-bottom
+  ├──────────────────────────────────────────┤
+  │  ENGLISH COLUMN    │    ARABIC COLUMN    │  ← 50/50, central divider
+  │  CAREER OBJECTIVE  │    الهدف الوظيفي    │
+  │  EDUCATION         │    التعليم          │
+  │  EXPERIENCE        │    الخبرات المهنية  │
+  │  COURSES           │    الدورات          │
+  │  SKILLS            │    المهارات         │
+  │  TECHNICAL SKILLS  │    المهارات التقنية │
+  │  LANGUAGES         │    اللغات           │
+  └──────────────────────────────────────────┘
+
+Strict isolation: English column dir="ltr", Arabic column dir="rtl".
+Central vertical divider between them.
 """
 from __future__ import annotations
 
@@ -40,19 +54,19 @@ def _exp_item(exp, lang: str) -> str:
         date_parts.append("Present" if lang == "en" else "حتى الآن")
     date_str = " – ".join(date_parts) if date_parts else ""
 
-    parts = ['<div class="item">']
+    parts = ['<div class="list-item">']
     parts.append('<div class="item-header">')
     if position:
-        parts.append(f'<span class="item-title">{esc(position)}</span>')
-    if company:
-        parts.append(f'<span class="item-subtitle">{esc(company)}</span>')
+        parts.append(f'<span class="editable item-title">{esc(position)}</span>')
     if date_str:
-        parts.append(f'<span class="item-date">{esc(date_str)}</span>')
+        parts.append(f'<span class="editable item-date">{esc(date_str)}</span>')
     parts.append('</div>')
+    if company:
+        parts.append(f'<div class="editable item-subtitle">{esc(company)}</div>')
     if bullets:
-        items = "".join(f"<li>{esc(b)}</li>" for b in bullets if b)
+        items = "".join(f'<li class="editable">{esc(b)}</li>' for b in bullets if b)
         if items:
-            parts.append(f'<ul class="item-achievements">{items}</ul>')
+            parts.append(f'<ul class="editable-list">{items}</ul>')
     parts.append('</div>')
     return "".join(parts)
 
@@ -67,116 +81,146 @@ def _edu_item(ed, lang: str) -> str:
     year = ed.year or ed.end_date or ""
     gpa = ed.gpa or ""
 
-    parts = ['<div class="item"><div class="item-header">']
+    parts = ['<div class="list-item"><div class="item-header">']
     if degree:
-        parts.append(f'<span class="item-title">{esc(degree)}</span>')
-    if institution:
-        parts.append(f'<span class="item-subtitle">{esc(institution)}</span>')
+        parts.append(f'<span class="editable item-title">{esc(degree)}</span>')
     if year:
-        parts.append(f'<span class="item-date">{esc(year)}</span>')
+        parts.append(f'<span class="editable item-date">{esc(year)}</span>')
+    parts.append('</div>')
+    if institution:
+        parts.append(f'<div class="editable item-subtitle">{esc(institution)}</div>')
     if gpa:
-        parts.append(f'<span class="item-date">GPA: {esc(gpa)}</span>')
-    parts.append('</div></div>')
+        parts.append(f'<div class="editable item-subtitle">GPA: {esc(gpa)}</div>')
+    parts.append('</div>')
     return "".join(parts)
 
 
 def _bullet_list(items: List[str]) -> str:
     if not items:
         return ""
-    lis = "".join(f"<li>{esc(item)}</li>" for item in items if item)
-    return f'<ul class="list">{lis}</ul>' if lis else ""
+    lis = "".join(f'<li class="editable">{esc(item)}</li>' for item in items if item)
+    return f'<ul class="editable-list">{lis}</ul>' if lis else ""
+
+
+def _section(title: str, content_html: str) -> str:
+    if not content_html:
+        return ""
+    return f'<div class="section"><h2>{esc(title)}</h2>{content_html}</div>'
 
 
 # ---------------------------------------------------------------------------
-# RENDERER
+# RENDERER — exact DOM from provided spec
 # ---------------------------------------------------------------------------
 
 def render_official_bilingual_master(resume: ResumeData) -> str:
-    parts = ['<div class="cv-root obm-master" data-lang="bilingual">']
+    parts = ['<div class="a4-page" id="resume-document">']
 
-    # ===== HEADER (centered) =====
+    # ===== HEADER (50/50, EN left + AR right) =====
     name_en = resume.personal.name_en or resume.personal.name or ""
     name_ar = resume.personal.name_ar or resume.personal.name or ""
-    parts.append('<div class="obm-header">')
+    parts.append('<header class="resume-header section-container">')
+
+    # English header
+    parts.append('<div class="header-en" dir="ltr">')
     if name_en:
-        parts.append(f'<div class="obm-name-en" dir="ltr">{esc(name_en)}</div>')
-    if name_ar:
-        parts.append(f'<div class="obm-name-ar" dir="rtl">{esc(name_ar)}</div>')
-    contact_parts = []
+        parts.append(f'<h1 class="editable" data-field="name_en">{esc(name_en)}</h1>')
     if resume.personal.email:
-        contact_parts.append(_contact_ltr(resume.personal.email))
+        parts.append(f'<p class="editable" data-field="email">{esc(resume.personal.email)}</p>')
     if resume.personal.phone:
-        contact_parts.append(_contact_ltr(resume.personal.phone))
+        parts.append(f'<p class="editable" data-field="phone">{esc(resume.personal.phone)}</p>')
     if resume.personal.location:
-        contact_parts.append(esc(resume.personal.location))
-    if resume.personal.linkedin:
-        contact_parts.append(_contact_ltr(resume.personal.linkedin))
-    if contact_parts:
-        parts.append(f'<div class="obm-contact-bar">{" | ".join(contact_parts)}</div>')
+        parts.append(f'<p class="editable" data-field="location_en">{esc(resume.personal.location)}</p>')
     parts.append('</div>')
 
-    # ===== TWO SEPARATE COLUMNS =====
-    parts.append('<div class="obm-columns">')
+    # Arabic header
+    parts.append('<div class="header-ar" dir="rtl">')
+    if name_ar:
+        parts.append(f'<h1 class="editable" data-field="name_ar">{esc(name_ar)}</h1>')
+    if resume.personal.email:
+        parts.append(f'<p class="editable" data-field="email">{esc(resume.personal.email)}</p>')
+    if resume.personal.phone:
+        parts.append(f'<p class="editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</p>')
+    if resume.personal.location:
+        parts.append(f'<p class="editable" data-field="location_ar">{esc(resume.personal.location)}</p>')
+    parts.append('</div>')
 
-    # --- ENGLISH COLUMN (left) ---
-    parts.append('<div class="obm-column obm-english" dir="ltr">')
+    parts.append('</header>')
+
+    # ===== COLUMNS CONTAINER =====
+    parts.append('<div class="columns-container">')
+
+    # --- ENGLISH COLUMN (strict LTR) ---
+    parts.append('<div class="column col-en" dir="ltr">')
+
     sum_en = resume.summary_text("en")
     if sum_en:
-        parts.append(f'<section class="section"><h2 class="section-title">CAREER OBJECTIVE</h2><p class="section-content">{esc(sum_en)}</p></section>')
-    if resume.experience:
-        parts.append('<section class="section"><h2 class="section-title">EXPERIENCE</h2>')
-        for e in resume.experience:
-            parts.append(_exp_item(e, "en"))
-        parts.append('</section>')
+        parts.append(_section("CAREER OBJECTIVE", f'<p class="editable" data-field="summary_en">{esc(sum_en)}</p>'))
+
     if resume.education:
-        parts.append('<section class="section"><h2 class="section-title">EDUCATION</h2>')
-        for ed in resume.education:
-            parts.append(_edu_item(ed, "en"))
-        parts.append('</section>')
+        edu_html = "".join(_edu_item(ed, "en") for ed in resume.education)
+        parts.append(_section("EDUCATION", edu_html))
+
+    if resume.experience:
+        exp_html = "".join(_exp_item(e, "en") for e in resume.experience)
+        parts.append(_section("EXPERIENCE", exp_html))
+
     if resume.courses:
-        parts.append(f'<section class="section"><h2 class="section-title">COURSES</h2>{_bullet_list(resume.courses)}</section>')
+        parts.append(_section("COURSES", _bullet_list(resume.courses)))
+
     all_skills = resume.skills + resume.soft_skills
     if all_skills:
-        parts.append(f'<section class="section"><h2 class="section-title">SKILLS</h2>{_bullet_list(all_skills)}</section>')
+        parts.append(_section("SKILLS", _bullet_list(all_skills)))
+
     if resume.technical_skills:
-        parts.append(f'<section class="section"><h2 class="section-title">TECHNICAL SKILLS</h2>{_bullet_list(resume.technical_skills)}</section>')
+        parts.append(_section("TECHNICAL SKILLS", _bullet_list(resume.technical_skills)))
+
     if resume.certifications:
         cert_names = [c.name if hasattr(c, "name") else str(c) for c in resume.certifications]
-        parts.append(f'<section class="section"><h2 class="section-title">CERTIFICATIONS</h2>{_bullet_list(cert_names)}</section>')
+        parts.append(_section("CERTIFICATIONS", _bullet_list(cert_names)))
+
     if resume.languages:
         lang_items = [f"{l.name} – {l.level}" if l.level else l.name for l in resume.languages]
-        parts.append(f'<section class="section"><h2 class="section-title">LANGUAGES</h2>{_bullet_list(lang_items)}</section>')
-    parts.append('</div>')
+        parts.append(_section("LANGUAGES", _bullet_list(lang_items)))
 
-    # --- ARABIC COLUMN (right) ---
-    parts.append('<div class="obm-column obm-arabic" dir="rtl">')
+    parts.append('</div>')  # end col-en
+
+    # --- CENTRAL DIVIDER ---
+    parts.append('<div class="central-divider"></div>')
+
+    # --- ARABIC COLUMN (strict RTL) ---
+    parts.append('<div class="column col-ar" dir="rtl">')
+
     sum_ar = resume.summary_text("ar")
     if sum_ar:
-        parts.append(f'<section class="section"><h2 class="section-title">الهدف الوظيفي</h2><p class="section-content">{esc(sum_ar)}</p></section>')
-    if resume.experience:
-        parts.append('<section class="section"><h2 class="section-title">الخبرات المهنية</h2>')
-        for e in resume.experience:
-            parts.append(_exp_item(e, "ar"))
-        parts.append('</section>')
+        parts.append(_section("الهدف الوظيفي", f'<p class="editable" data-field="summary_ar">{esc(sum_ar)}</p>'))
+
     if resume.education:
-        parts.append('<section class="section"><h2 class="section-title">التعليم</h2>')
-        for ed in resume.education:
-            parts.append(_edu_item(ed, "ar"))
-        parts.append('</section>')
+        edu_html = "".join(_edu_item(ed, "ar") for ed in resume.education)
+        parts.append(_section("التعليم", edu_html))
+
+    if resume.experience:
+        exp_html = "".join(_exp_item(e, "ar") for e in resume.experience)
+        parts.append(_section("الخبرات المهنية", exp_html))
+
     if resume.courses:
-        parts.append(f'<section class="section"><h2 class="section-title">الدورات</h2>{_bullet_list(resume.courses)}</section>')
+        parts.append(_section("الدورات", _bullet_list(resume.courses)))
+
     if all_skills:
-        parts.append(f'<section class="section"><h2 class="section-title">المهارات</h2>{_bullet_list(all_skills)}</section>')
+        parts.append(_section("المهارات", _bullet_list(all_skills)))
+
     if resume.technical_skills:
-        parts.append(f'<section class="section"><h2 class="section-title">المهارات التقنية</h2>{_bullet_list(resume.technical_skills)}</section>')
+        parts.append(_section("المهارات التقنية", _bullet_list(resume.technical_skills)))
+
     if resume.certifications:
         cert_names = [c.name if hasattr(c, "name") else str(c) for c in resume.certifications]
-        parts.append(f'<section class="section"><h2 class="section-title">الشهادات</h2>{_bullet_list(cert_names)}</section>')
+        parts.append(_section("الشهادات", _bullet_list(cert_names)))
+
     if resume.languages:
         lang_items = [f"{l.name} – {l.level}" if l.level else l.name for l in resume.languages]
-        parts.append(f'<section class="section"><h2 class="section-title">اللغات</h2>{_bullet_list(lang_items)}</section>')
-    parts.append('</div>')
+        parts.append(_section("اللغات", _bullet_list(lang_items)))
 
-    parts.append('</div>')  # columns
-    parts.append('</div>')  # cv-root
+    parts.append('</div>')  # end col-ar
+
+    parts.append('</div>')  # end columns-container
+    parts.append('</div>')  # end a4-page
     return "".join(parts)
