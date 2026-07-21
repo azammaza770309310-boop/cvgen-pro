@@ -18,12 +18,17 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Sentry initialization (MUST be before app = FastAPI()) ---
+# Production tuning: traces_sample_rate and profile_sample_rate are kept
+# moderate (not 1.0) to avoid excessive memory overhead from the Sentry
+# background thread. 1.0 captures EVERY transaction which can OOM on
+# memory-constrained hosts. 0.25 captures 1 in 4 — enough for error
+# correlation without the memory bloat.
 sentry_sdk.init(
     dsn="https://ddceb2aa8ca804a461db14e623d52072@o4511770582843392.ingest.us.sentry.io/4511770602504192",
     send_default_pii=True,
     enable_logs=True,
-    traces_sample_rate=1.0,
-    profile_session_sample_rate=1.0,
+    traces_sample_rate=0.25,
+    profile_session_sample_rate=0.25,
     profile_lifecycle="trace",
 )
 

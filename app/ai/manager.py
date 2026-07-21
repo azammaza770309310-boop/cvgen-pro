@@ -18,8 +18,10 @@ from app.ai.openrouter import OpenRouterProvider
 from app.core.config import settings
 from app.core.exceptions import (
     AIAllProvidersFailedError,
+    AIInvalidKeyError,
     AIProviderError,
     AIProviderNotConfiguredError,
+    AIQuotaExceededError,
 )
 
 logger = logging.getLogger("cvgen.ai")
@@ -192,6 +194,10 @@ class AIManager:
                 "(e.g. GEMINI_API_KEY) on the server."
             )
         errors: list[str] = []
+        # Track the most informative error type for the final message.
+        last_invalid_key: str | None = None
+        last_quota_error: str | None = None
+        last_other_error: str | None = None
         for pid in chain:
             try:
                 inst = self._instantiate(pid)
@@ -203,14 +209,52 @@ class AIManager:
             except AIProviderNotConfiguredError as e:
                 errors.append(f"{pid}: {e.message}")
                 continue
+            except AIInvalidKeyError as e:
+                # Invalid key — try next provider (it has a different key).
+                errors.append(f"{pid}: {e.message}")
+                last_invalid_key = e.message
+                logger.warning("AI provider '%s' invalid key: %s", pid, e.message)
+                continue
+            except AIQuotaExceededError as e:
+                # Quota/rate limit — try next provider. The key is VALID.
+                errors.append(f"{pid}: {e.message}")
+                last_quota_error = e.message
+                logger.warning("AI provider '%s' quota exceeded: %s", pid, e.message)
+                continue
             except AIProviderError as e:
                 errors.append(f"{pid}: {e.message}")
+                last_other_error = e.message
                 logger.warning("AI provider '%s' failed: %s", pid, e.message)
                 continue
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{pid}: {type(e).__name__}: {e}")
+                last_other_error = f"{type(e).__name__}: {e}"
                 logger.exception("Unexpected error from provider '%s'", pid)
                 continue
+
+        # Build the clearest possible final error message.
+        # Priority: quota > invalid key > other — because if ANY provider said
+        # 'quota exceeded', the user's keys are valid and the issue is just
+        # rate limits, which is more actionable than 'invalid key'.
+        if last_quota_error and not last_invalid_key:
+            # All providers hit quota — keys are valid.
+            raise AIAllProvidersFailedError(
+                "All configured AI providers hit their quota/rate limit. "
+                "Your API keys are valid — please wait and retry, or add a "
+                "provider with available quota. Details: " + " | ".join(errors)
+            )
+        if last_invalid_key and not last_quota_error:
+            raise AIAllProvidersFailedError(
+                "All configured AI providers rejected the API key as invalid. "
+                "Please verify your API keys in Settings. Details: " + " | ".join(errors)
+            )
+        if last_invalid_key and last_quota_error:
+            # Mixed: some keys invalid, others quota'd. Report both clearly.
+            raise AIAllProvidersFailedError(
+                "AI providers failed — some keys are invalid, others hit quota. "
+                "Please verify your API keys and check quota limits. "
+                "Details: " + " | ".join(errors)
+            )
         raise AIAllProvidersFailedError(
             "All configured AI providers failed. Errors: " + " | ".join(errors)
         )
