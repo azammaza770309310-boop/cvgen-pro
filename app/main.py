@@ -10,11 +10,22 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+
+# --- Sentry initialization (MUST be before app = FastAPI()) ---
+sentry_sdk.init(
+    dsn="https://ddceb2aa8ca804a461db14e623d52072@o4511770582843392.ingest.us.sentry.io/4511770602504192",
+    send_default_pii=True,
+    enable_logs=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+)
 
 from app.api.routes_ai import router as ai_router
 from app.api.routes_ats import router as ats_router
@@ -78,6 +89,11 @@ async def health():
 @app.get("/api/health")
 async def api_health():
     return {"status": "ok"}
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 
 logger.info("CVGen Pro FastAPI app initialized — version %s", settings.app_version)
