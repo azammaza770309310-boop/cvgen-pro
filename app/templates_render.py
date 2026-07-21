@@ -126,12 +126,12 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if name_ar:
         parts.append(f'<h1 class="editable header-name-ar" data-field="name_ar" dir="rtl">{esc(name_ar)}</h1>')
     parts.append('</div>')
-    # Row 2: single contact bar with icons (no duplication)
+    # Row 2: single contact bar with icons + clickable links (no duplication)
     contact_parts = []
     if resume.personal.email:
-        contact_parts.append(f'<span class="contact-item">✉️ <span class="editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</span></span>')
+        contact_parts.append(f'<span class="contact-item">✉️ <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
     if resume.personal.phone:
-        contact_parts.append(f'<span class="contact-item">📞 <span class="editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</span></span>')
+        contact_parts.append(f'<span class="contact-item">📞 <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
     if resume.personal.location:
         contact_parts.append(f'<span class="contact-item">📍 <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
     if contact_parts:
