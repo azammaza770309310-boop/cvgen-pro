@@ -1,7 +1,7 @@
 """CVGen Pro — Reflex Resume Preview Component
 
 Fixed UI styling:
-- Two equal columns (48% each) with rx.flex + justify="space_between"
+- Two equal columns (48% each) with rx.flex + justify="between"
 - Centered header with rx.vstack + align_items="center"
 - A4 canvas: white bg, box_shadow, max_width=800px, padding=2em
 - Section dividers: border_bottom 1.5px solid #000
@@ -326,7 +326,7 @@ def resume_preview_bilingual() -> rx.Component:
         rx.box(
             # Header (centered)
             resume_header(),
-            # Two equal columns (48% each, space_between)
+            # Two equal columns (48% each, between)
             rx.flex(
                 english_column(),
                 rx.box(
