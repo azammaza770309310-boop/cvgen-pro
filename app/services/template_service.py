@@ -1,8 +1,11 @@
 """Centralized template registry — the SINGLE source of truth for resume templates.
 
-ONLY the official master template is registered. The template is FIXED —
-only the data is dynamic. Cloud AI provides the data; the renderer provides
-the design. The template NEVER changes based on the data.
+3 official templates:
+1. official_bilingual_master — Two-column (EN left, AR right)
+2. official_english_single — Single-column English-only
+3. official_arabic_single — Single-column Arabic-only RTL
+
+Templates are FIXED — only data is dynamic.
 """
 from __future__ import annotations
 
@@ -10,7 +13,11 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List
 
 from app.models.resume import ResumeData
-from app.templates_render import render_official_bilingual_master
+from app.templates_render import (
+    render_official_bilingual_master,
+    render_english_single_column,
+    render_arabic_single_column,
+)
 
 
 @dataclass
@@ -21,30 +28,49 @@ class TemplateDef:
     name_ar: str
     description: str
     description_ar: str
-    category: str  # "ats" | "creative" | "bilingual"
-    ats_level: str  # "high" | "medium" | "low"
+    category: str
+    ats_level: str
     supported_languages: List[str]
     accent: str
     render: Callable[[ResumeData], str]
 
 
-# ---------------------------------------------------------------------------
-# REGISTRY — the official master template only.
-# The count is ALWAYS len(REGISTRY) = 1.
-# ---------------------------------------------------------------------------
-
 REGISTRY: List[TemplateDef] = [
     TemplateDef(
         id="official_bilingual_master",
-        name="Official Bilingual Master",
-        name_ar="القالب الرسمي ثنائي اللغة",
-        description="The official master template — black & white, two-column bilingual layout matching the original CV.",
-        description_ar="القالب الرسمي المعتمد — أسود/أبيض، تخطيط ثنائي العمود ثنائي اللغة يطابق السيرة الذاتية الأصلية.",
-        category="ats",
+        name="Bilingual Master",
+        name_ar="ثنائي اللغة",
+        description="Two-column bilingual layout — English left, Arabic right.",
+        description_ar="تخطيط ثنائي العمود — إنجليزي يسار، عربي يمين.",
+        category="bilingual",
         ats_level="high",
         supported_languages=["en", "ar", "bilingual"],
         accent="#000000",
         render=render_official_bilingual_master,
+    ),
+    TemplateDef(
+        id="official_english_single",
+        name="English Single",
+        name_ar="إنجليزي فردي",
+        description="Single-column English-only resume, centered header with blue links.",
+        description_ar="سيرة بعمود واحد بالإنجليزية فقط، رأس مركزي بروابط زرقاء.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["en"],
+        accent="#1a5276",
+        render=render_english_single_column,
+    ),
+    TemplateDef(
+        id="official_arabic_single",
+        name="Arabic Single",
+        name_ar="عربي فردي",
+        description="Single-column Arabic-only resume, RTL, centered header.",
+        description_ar="سيرة بعمود واحد بالعربية فقط، RTL، رأس مركزي.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["ar"],
+        accent="#000000",
+        render=render_arabic_single_column,
     ),
 ]
 
@@ -53,12 +79,10 @@ BY_ID: Dict[str, TemplateDef] = {t.id: t for t in REGISTRY}
 
 
 def get_template_count() -> int:
-    """Return the dynamic count of registered templates."""
     return len(REGISTRY)
 
 
 def list_templates() -> List[dict]:
-    """Serialize ALL templates for the API. Count = len(list)."""
     return [
         {
             "id": t.id,
@@ -76,7 +100,6 @@ def list_templates() -> List[dict]:
 
 
 def list_categories() -> List[dict]:
-    """Dynamically compute categories from the registry."""
     cats: Dict[str, dict] = {}
     for t in REGISTRY:
         c = t.category

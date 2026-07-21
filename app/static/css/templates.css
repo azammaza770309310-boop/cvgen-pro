@@ -212,3 +212,50 @@ ul.editable-list li { margin-bottom: 1mm; font-size: 9pt; }
   .page1-boundary, .page1-badge { display: none; }
   .editable:hover, .editable:focus { background: none; box-shadow: none; }
 }
+
+/* ===== SINGLE COLUMN TEMPLATES ===== */
+.a4-single {
+  padding: 12mm 15mm;
+}
+.resume-header-center {
+  text-align: center;
+  padding-bottom: 6mm;
+  border-bottom: 2px solid #000;
+  margin-bottom: 6mm;
+  background: transparent;
+}
+.header-name-center {
+  font-size: 18pt;
+  font-weight: 900;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 3mm;
+}
+.contact-bar-center {
+  justify-content: center;
+}
+/* Contact links: blue, no underline */
+.contact-link {
+  color: #1a5276 !important;
+  text-decoration: none;
+}
+.contact-link:hover {
+  text-decoration: underline;
+}
+.single-column {
+  max-width: 100%;
+  padding: 0;
+}
+.a4-ar .section h2 {
+  text-align: right;
+  direction: rtl;
+}
+.a4-ar .item-header {
+  flex-direction: row-reverse;
+}
+.a4-ar ul.editable-list {
+  padding-right: 4mm;
+  padding-left: 0;
+}

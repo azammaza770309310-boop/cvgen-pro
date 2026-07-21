@@ -19,11 +19,11 @@
     selectedSection: null,
     controls: { fontSize: 8.9, lineHeight: 1.20, sectionSpacing: 6, columnDistance: 15, margin: 9 },
     controlLimits: {
-      fontSize: { min: 7.0, max: 14.0, step: 0.5 },
-      lineHeight: { min: 1.0, max: 2.0, step: 0.05 },
-      sectionSpacing: { min: 2, max: 20, step: 1 },
-      columnDistance: { min: 4, max: 40, step: 2 },
-      margin: { min: 5, max: 25, step: 1 },
+      fontSize: { min: 5.0, max: 14.0, step: 0.3 },
+      lineHeight: { min: 0.8, max: 2.0, step: 0.05 },
+      sectionSpacing: { min: 0, max: 20, step: 1 },
+      columnDistance: { min: 0, max: 40, step: 1 },
+      margin: { min: 1, max: 25, step: 0.5 },
     },
   };
 
