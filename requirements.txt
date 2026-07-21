@@ -10,4 +10,3 @@ httpx
 python-multipart
 sentry-sdk[fastapi]
 starlette
-reflex
