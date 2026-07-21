@@ -84,7 +84,9 @@ def _bullet_list(items: List[str]) -> str:
 def _section(title: str, content_html: str) -> str:
     if not content_html:
         return ""
-    return f'<div class="section"><h2 class="editable">{esc(title)}</h2>{content_html}</div>'
+    # Explicit full-width solid <hr> divider — renders consistently in both
+    # browser preview and WeasyPrint PDF (replaces unreliable border-bottom on h2)
+    return f'<div class="section"><h2 class="editable">{esc(title)}</h2><hr class="section-divider">{content_html}</div>'
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +136,10 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     en_skills = [s for s in resume.skills if not contains_arabic(s)]
     ar_skills = [s for s in resume.skills if contains_arabic(s)]
     en_tech = [s for s in resume.technical_skills if not contains_arabic(s)]
-    ar_tech = [s for s in resume.technical_skills if contains_arabic(s)]
+    # Arabic column shows ALL technical skills (tech terms are universal —
+    # "Python", "JavaScript" etc. don't need translation), so the Arabic
+    # TECHNICAL SKILLS section mirrors the English one instead of being empty.
+    ar_tech = resume.technical_skills
     if en_skills:
         parts.append(_section("SKILLS", _bullet_list(en_skills)))
     if en_tech:

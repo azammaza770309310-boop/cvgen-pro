@@ -282,14 +282,15 @@ def sample_resume(lang: str = "en") -> ResumeData:
             ],
             education=[
                 EducationItem(
-                    degree_en="B.Sc. Computer Science",
-                    degree_ar="بكالوريوس علوم حاسب",
-                    institution_en="King Saud University",
-                    institution_ar="جامعة الملك سعود",
+                    degree_en="B.Sc. Information Science",
+                    degree_ar="بكالوريوس علم المعلومات",
+                    institution_en="Umm Al-Qura University",
+                    institution_ar="جامعة أم القرى",
                     end_date="2015",
                 )
             ],
             skills=["Python", "FastAPI", "React", "AWS", "Docker"],
+            technical_skills=["Python", "JavaScript", "TypeScript", "React", "Node.js", "SQL", "Docker", "AWS"],
             languages=[
                 LanguageItem(name="Arabic", level="Native"),
                 LanguageItem(name="English", level="Fluent"),
