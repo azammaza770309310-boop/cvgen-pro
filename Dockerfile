@@ -27,12 +27,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Compile Reflex frontend — skip prerender to avoid URL parsing errors
+# Compile Reflex frontend
 RUN reflex init
 RUN reflex export --frontend-only --no-prerender || reflex export --frontend-only || true
 
-# Render passes port via $PORT
-ENV PORT=10000
+# DO NOT set ENV PORT — let Render set it at runtime
 EXPOSE 10000
 
-CMD reflex run --env prod --backend-port ${PORT}
+# Use shell form so $PORT is expanded at runtime (not build time)
+CMD sh -c "reflex run --env prod --backend-port ${PORT:-10000}"
