@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Compile Reflex frontend (generates .web/ directory)
-RUN reflex init --skip-verify
+RUN reflex init
 RUN reflex export --frontend-only
 
 # Render passes port via $PORT
