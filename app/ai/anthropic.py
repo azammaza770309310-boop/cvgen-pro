@@ -80,3 +80,8 @@ class AnthropicProvider(AIProvider):
 
     async def generate_cover_letter(self, resume_dict: dict, job_description: str = "") -> str:
         return (await self._chat("You write cover letters.", build_cover_letter_prompt(resume_dict, job_description), json_mode=False)).strip()
+
+    async def translate_json(self, system: str, user: str) -> str:
+        """Generic JSON-mode call used by the bilingual sync translation service."""
+        return await self._chat(system, user, json_mode=True)
+

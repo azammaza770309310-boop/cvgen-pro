@@ -77,6 +77,8 @@ class SkillItem(BaseModel):
 
 class LanguageItem(BaseModel):
     name: str = ""
+    name_en: str = ""
+    name_ar: str = ""
     level: str = ""
 
 

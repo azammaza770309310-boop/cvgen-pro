@@ -41,6 +41,13 @@ def clean_text(raw: str) -> str:
 async def parse_resume_ai(text: str, provider: str = "", lang: str = "auto") -> ResumeData:
     """Parse a raw CV using the cloud AI provider (whole-document).
 
+    Pipeline:
+        Raw text → AI extraction (EN + AR) → normalize → bilingual sync
+        (translate any missing Arabic via cloud AI) → validate 1:1 → return
+
+    English text is NEVER copied into Arabic fields. When Arabic content is
+    missing or incomplete, a second AI call translates it for real.
+
     Raises AIProviderNotConfiguredError if no AI key is configured.
     Raises AIAllProvidersFailedError if all configured providers fail.
     There is NO local semantic fallback.
@@ -64,4 +71,23 @@ async def parse_resume_ai(text: str, provider: str = "", lang: str = "auto") -> 
 
     # Normalize: Pydantic validation + contact validation + dedup
     # (the normalizer uses regex ONLY for email/phone/URL validation, not semantics)
-    return normalize_resume_data(raw, full_text=text)
+    resume = normalize_resume_data(raw, full_text=text)
+
+    # Bilingual sync — translate any missing Arabic content via the cloud AI.
+    # This is the "Bilingual Translation / Synchronization" step. It does NOT
+    # copy English into Arabic; it generates REAL Arabic translations.
+    from app.ai.bilingual_sync import sync_bilingual, validate_bilingual_match
+    try:
+        resume = await sync_bilingual(resume, provider=provider)
+    except (AIProviderNotConfiguredError, AIAllProvidersFailedError) as e:
+        # Translation sync failed, but we still return the parsed resume.
+        # Arabic fields that are empty will simply not render in the Arabic
+        # column — English is NEVER silently copied in. Log the warning.
+        logger.warning("Bilingual sync skipped: %s", getattr(e, "message", str(e)))
+
+    # Validate 1:1 match (informational — logged, not fatal)
+    problems = validate_bilingual_match(resume)
+    if problems:
+        logger.info("Bilingual 1:1 validation notes: %s", "; ".join(problems))
+
+    return resume

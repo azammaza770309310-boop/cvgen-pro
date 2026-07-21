@@ -53,3 +53,11 @@ class AIProvider(ABC):
 
     async def generate_cover_letter(self, resume_dict: dict, job_description: str = "") -> str:
         return ""
+
+    async def translate_json(self, system: str, user: str) -> str:
+        """Generic JSON-mode call for the bilingual sync translation service.
+
+        Default implementation returns empty string; providers override with
+        their raw _generate call (json_mode=True).
+        """
+        return ""

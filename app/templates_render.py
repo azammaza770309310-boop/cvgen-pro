@@ -1,8 +1,21 @@
 """OFFICIAL MASTER BILINGUAL TEMPLATE — matches reference PDF exactly.
 
-Layout: Two equal columns (EN left LTR, AR right RTL).
-Header: Both names in one row, contact below in blue links.
-Sections: 7 sections with black dividers.
+Reference: CVGen Pro - مولّد السير الذاتية الاحترافي.pdf
+See: official-template-measurements.md
+
+Layout (row-based, matching the PDF):
+  - Single A4 page. Header (name + contact) + full-width header divider.
+  - 6 section ROWS. Each row: EN heading (left) + AR heading (right) on the
+    same baseline, then a FULL-WIDTH section divider (spans both columns),
+    then EN content (left) + AR content (right).
+  - No vertical divider between columns — only a ~10mm gap.
+  - 6 sections in official order:
+      1. CAREER OBJECTIVE / الهدف المهني
+      2. PROFESSIONAL EXPERIENCE / الخبرة العملية
+      3. EDUCATION / المؤهلات العلمية
+      4. SKILLS / المهارات
+      5. COURSES & CERTIFICATIONS / الدورات والشهادات
+      6. LANGUAGES / اللغات
 """
 from __future__ import annotations
 
@@ -89,11 +102,38 @@ def _section(title: str, content_html: str) -> str:
     return f'<div class="section"><h2 class="editable">{esc(title)}</h2><hr class="section-divider">{content_html}</div>'
 
 
+def _section_row(title_en: str, title_ar: str, body_en: str, body_ar: str) -> str:
+    """Render one section as a ROW matching the official PDF layout.
+
+    EN heading (left) + AR heading (right) on the same baseline, then a
+    full-width divider spanning both columns, then EN content (left) +
+    AR content (right). This mirrors the reference PDF exactly.
+    """
+    return (
+        '<div class="section-row">'
+        '<div class="section-headings">'
+        f'<h2 class="editable section-heading-en">{esc(title_en)}</h2>'
+        f'<h2 class="editable section-heading-ar">{esc(title_ar)}</h2>'
+        '</div>'
+        '<hr class="section-divider">'
+        '<div class="section-body">'
+        f'<div class="body-en">{body_en}</div>'
+        f'<div class="body-ar">{body_ar}</div>'
+        '</div>'
+        '</div>'
+    )
+
+
 # ---------------------------------------------------------------------------
 # RENDERER
 # ---------------------------------------------------------------------------
 
 def render_official_bilingual_master(resume: ResumeData) -> str:
+    """Render the resume matching the official reference PDF (row-based layout).
+
+    See official-template-measurements.md for the exact specs this implements.
+    """
+    from app.utils.arabic import contains_arabic
     parts = ['<div class="a4-page" id="resume-document">']
 
     # ===== HEADER: names in one row + contact below =====
@@ -106,7 +146,7 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if name_ar:
         parts.append(f'<h1 class="editable header-name-ar" data-field="name_ar" dir="rtl">{esc(name_ar)}</h1>')
     parts.append('</div>')
-    # Contact bar — English only, blue links
+    # Contact bar — NOT blue (reference PDF uses dark slate #364153)
     contact_parts = []
     if resume.personal.email:
         contact_parts.append(f'<span class="contact-item">✉️ <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
@@ -118,71 +158,72 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
         parts.append(f'<div class="contact-bar">{"  ".join(contact_parts)}</div>')
     parts.append('</header>')
 
-    # ===== TWO EQUAL COLUMNS =====
-    parts.append('<div class="columns-container">')
+    # ===== HEADER DIVIDER (full width, solid black) =====
+    parts.append('<hr class="header-divider">')
 
-    # --- ENGLISH COLUMN (left, LTR) ---
-    parts.append('<div class="column col-en" dir="ltr">')
+    # ===== SECTION ROWS (official order from the reference PDF) =====
+    # 1. CAREER OBJECTIVE / الهدف المهني
     sum_en = resume.summary_text("en")
-    if sum_en:
-        parts.append(_section("CAREER OBJECTIVE", f'<p class="editable" data-field="summary_en">{esc(sum_en)}</p>'))
-    if resume.education:
-        parts.append(_section("EDUCATION", "".join(_edu_item(ed, "en") for ed in resume.education)))
-    if resume.experience:
-        parts.append(_section("EXPERIENCE", "".join(_exp_item(e, "en") for e in resume.experience)))
-    if resume.courses:
-        parts.append(_section("COURSES", _bullet_list(resume.courses)))
-    from app.utils.arabic import contains_arabic
-    # Use explicit bilingual skill arrays (skills_en / skills_ar) populated by
-    # the normalizer's 1:1 enforcement. Fall back to language filtering of the
-    # generic `skills` array only if the explicit arrays are empty.
-    en_skills = resume.skills_en or [s for s in resume.skills if not contains_arabic(s)]
-    ar_skills = resume.skills_ar or [s for s in resume.skills if contains_arabic(s)]
-    en_tech = resume.technical_skills_en or [s for s in resume.technical_skills if not contains_arabic(s)]
-    # Arabic column shows ALL technical skills (tech terms are universal —
-    # "Python", "JavaScript" etc. don't need translation), so the Arabic
-    # TECHNICAL SKILLS section mirrors the English one instead of being empty.
-    ar_tech = resume.technical_skills_ar or resume.technical_skills
-    if en_skills:
-        parts.append(_section("SKILLS", _bullet_list(en_skills)))
-    if en_tech:
-        parts.append(_section("TECHNICAL SKILLS", _bullet_list(en_tech)))
-    if resume.languages:
-        lang_items = [f"{l.name} ({l.level})" if l.level else l.name for l in resume.languages]
-        parts.append(_section("LANGUAGES", _bullet_list(lang_items)))
-    parts.append('</div>')
-
-    # --- DIVIDER ---
-    parts.append('<div class="central-divider"></div>')
-
-    # --- ARABIC COLUMN (right, RTL) ---
-    parts.append('<div class="column col-ar" dir="rtl">')
     sum_ar = resume.summary_text("ar")
-    if sum_ar:
-        parts.append(_section("الهدف الوظيفي", f'<p class="editable" data-field="summary_ar">{esc(sum_ar)}</p>'))
-    if resume.education:
-        parts.append(_section("التعليم", "".join(_edu_item(ed, "ar") for ed in resume.education)))
-    if resume.experience:
-        parts.append(_section("الخبرات المهنية", "".join(_exp_item(e, "ar") for e in resume.experience)))
-    if resume.courses:
-        parts.append(_section("الدورات", _bullet_list(resume.courses)))
-    # Arabic skills column uses skills_ar (1:1 mirror of skills_en, enforced by normalizer).
-    # Falls back to soft_skills (Arabic) + any Arabic items in generic skills.
-    ar_all_skills = ar_skills or resume.skills_ar
-    if not ar_all_skills and resume.soft_skills:
-        ar_all_skills = [s for s in resume.soft_skills if contains_arabic(s)] or resume.soft_skills
-    if ar_all_skills:
-        parts.append(_section("المهارات", _bullet_list(ar_all_skills)))
-    # Arabic technical skills mirrors English (tech terms are universal)
-    ar_all_tech = ar_tech or resume.technical_skills_ar or resume.technical_skills
-    if ar_all_tech:
-        parts.append(_section("المهارات التقنية", _bullet_list(ar_all_tech)))
-    if resume.languages:
-        lang_items = [f"{l.name} ({l.level})" if l.level else l.name for l in resume.languages]
-        parts.append(_section("اللغات", _bullet_list(lang_items)))
-    parts.append('</div>')
+    if sum_en or sum_ar:
+        body_en = f'<p class="editable" data-field="summary_en">{esc(sum_en)}</p>' if sum_en else ""
+        body_ar = f'<p class="editable" data-field="summary_ar">{esc(sum_ar)}</p>' if sum_ar else ""
+        parts.append(_section_row("CAREER OBJECTIVE", "الهدف المهني", body_en, body_ar))
 
-    parts.append('</div>')
+    # 2. PROFESSIONAL EXPERIENCE / الخبرة العملية
+    if resume.experience:
+        body_en = "".join(_exp_item(e, "en") for e in resume.experience)
+        body_ar = "".join(_exp_item(e, "ar") for e in resume.experience)
+        if body_en or body_ar:
+            parts.append(_section_row("PROFESSIONAL EXPERIENCE", "الخبرة العملية", body_en, body_ar))
+
+    # 3. EDUCATION / المؤهلات العلمية
+    if resume.education:
+        body_en = "".join(_edu_item(ed, "en") for ed in resume.education)
+        body_ar = "".join(_edu_item(ed, "ar") for ed in resume.education)
+        if body_en or body_ar:
+            parts.append(_section_row("EDUCATION", "المؤهلات العلمية", body_en, body_ar))
+
+    # 4. SKILLS / المهارات
+    # Merge generic skills + technical_skills into one SKILLS section (matching
+    # the reference PDF which has a single SKILLS section, no separate technical).
+    en_skills = resume.skills_en or [s for s in resume.skills if not contains_arabic(s)]
+    en_tech = resume.technical_skills_en or [s for s in resume.technical_skills if not contains_arabic(s)]
+    ar_skills = resume.skills_ar or [s for s in resume.skills if contains_arabic(s)]
+    ar_tech = resume.technical_skills_ar or [s for s in resume.technical_skills if contains_arabic(s)]
+    en_all = en_skills + en_tech
+    ar_all = ar_skills + ar_tech
+    if en_all or ar_all:
+        body_en = _bullet_list(en_all)
+        body_ar = _bullet_list(ar_all)
+        parts.append(_section_row("SKILLS", "المهارات", body_en, body_ar))
+
+    # 5. COURSES & CERTIFICATIONS / الدورات والشهادات
+    if resume.courses or resume.certifications:
+        en_items = list(resume.courses)
+        ar_items = list(resume.courses)  # courses are language-neutral titles
+        for cert in resume.certifications:
+            en_items.append(cert.name)
+            ar_items.append(cert.name)
+        body_en = _bullet_list(en_items)
+        body_ar = _bullet_list(ar_items)
+        if body_en or body_ar:
+            parts.append(_section_row("COURSES & CERTIFICATIONS", "الدورات والشهادات", body_en, body_ar))
+
+    # 6. LANGUAGES / اللغات
+    if resume.languages:
+        lang_items_en = [f"{l.name} ({l.level})" if l.level else l.name for l in resume.languages]
+        # For the Arabic column, translate the language name if an Arabic name
+        # is available; otherwise keep it (language names are often universal).
+        lang_items_ar = []
+        for l in resume.languages:
+            nm = l.name_ar or l.name
+            lang_items_ar.append(f"{nm} ({l.level})" if l.level else nm)
+        body_en = _bullet_list(lang_items_en)
+        body_ar = _bullet_list(lang_items_ar)
+        if body_en or body_ar:
+            parts.append(_section_row("LANGUAGES", "اللغات", body_en, body_ar))
+
     parts.append('</div>')
     return "".join(parts)
 

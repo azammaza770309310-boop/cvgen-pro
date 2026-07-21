@@ -170,6 +170,16 @@ class AIManager:
             "generate_cover_letter", provider=provider or self._primary, args=(resume_dict,), kwargs={"job_description": job_description}
         )
 
+    async def translate_json(self, system: str, user: str, provider: str = "") -> str:
+        """Generic JSON-in/JSON-out call used by the bilingual sync service.
+
+        Reuses the failover engine. Providers implement `translate_json` as a
+        thin wrapper around their raw _generate call with JSON mode enabled.
+        """
+        return await self._run_with_failover(
+            "translate_json", provider=provider or self._primary, args=(system, user), kwargs={}
+        )
+
     # ------------------------------------------------------------------
     # Failover engine
     # ------------------------------------------------------------------

@@ -1,11 +1,28 @@
-"""CVGen Pro — Reflex Resume Preview Component
+"""CVGen Pro — Reflex Resume Preview Component (matches official PDF template).
 
-Fixed UI styling:
-- Two equal columns (48% each) with rx.flex + justify="between"
-- Centered header with rx.vstack + align_items="center"
-- A4 canvas: white bg, box_shadow, max_width=800px, padding=2em
-- Section dividers: border_bottom 1.5px solid #000
-- Blue contact links: #1a5276, text_decoration="none"
+Reference: CVGen Pro - مولّد السير الذاتية الاحترافي.pdf
+See: official-template-measurements.md
+
+Layout (row-based, matching the PDF):
+  - Single A4 page. Header (name + contact) + full-width header divider.
+  - 6 section ROWS. Each row: EN heading (left) + AR heading (right) on the
+    same baseline, then a FULL-WIDTH section divider, then EN content (left)
+    + AR content (right).
+  - No vertical divider between columns — only a ~10mm gap.
+
+Static font sizes (measured from PDF, scaled to A4, ISOLATED from global
+font_size control):
+  - Name:        20pt  (PDF 7.9pt × 2.47)
+  - Contact:      9pt  (PDF 3.5pt × 2.47)
+  - Heading:    11.5pt  (PDF 4.6pt × 2.47)
+  - Body:        11pt   (PDF 4.4pt × 2.47)  ← scales with global font_size
+  - Dates:        9pt   (PDF 3.7pt × 2.47)
+
+Colors (from PDF):
+  #000000 — name, headings, dividers, item titles
+  #1E2939 — body text
+  #364153 — secondary (institution, contact, location)
+  #4A5565 — dates
 """
 from __future__ import annotations
 
@@ -20,6 +37,20 @@ from reflex_app.reflex_app.state import (
 
 
 # ---------------------------------------------------------------------------
+# Static font-size constants (measured from the official PDF, isolated from
+# ResumeState.font_size so the header never changes when the user adjusts the
+# global font-size control).
+# ---------------------------------------------------------------------------
+_NAME_SIZE = "20pt"
+_CONTACT_SIZE = "9pt"
+_HEADING_SIZE = "11.5pt"
+_DATE_SIZE = "9pt"
+
+# Body font sizes scale with the global font_size control via computed vars
+# (ResumeState.body_font_size_px / body_font_size_small_px). The header does NOT.
+
+
+# ---------------------------------------------------------------------------
 # Sub-components
 # ---------------------------------------------------------------------------
 
@@ -27,7 +58,7 @@ def bullet_item(bullet: BulletData) -> rx.Component:
     return rx.list_item(
         bullet.text,
         font_size=ResumeState.body_font_size_px,
-        color="#000",
+        color="#1E2939",
         margin_bottom="2px",
     )
 
@@ -38,31 +69,40 @@ def experience_item(exp: ExperienceData) -> rx.Component:
             exp.title_en,
             font_weight="bold",
             font_size=ResumeState.body_font_size_px,
+            color="#000000",
             as_="span",
         ),
         rx.text(
             f" — {exp.company_en} ({exp.start_date} - {exp.end_date})",
             font_size=ResumeState.body_font_size_small_px,
-            color="#555",
+            color="#364153",
             as_="span",
         ),
         rx.unordered_list(
             rx.foreach(exp.bullets_en, bullet_item),
             padding_left="15px",
             margin_top="2px",
-            list_style_type="disc",
+            list_style_type="none",
         ),
+        margin_bottom="8px",
+    )
+
+
+def experience_item_ar(exp: ExperienceData) -> rx.Component:
+    """Arabic-side experience item (RTL)."""
+    return rx.box(
         rx.text(
             exp.title_ar,
             font_weight="bold",
             font_size=ResumeState.body_font_size_px,
+            color="#000000",
             as_="span",
             dir="rtl",
         ),
         rx.text(
             f" — {exp.company_ar}",
             font_size=ResumeState.body_font_size_small_px,
-            color="#555",
+            color="#364153",
             as_="span",
             dir="rtl",
         ),
@@ -71,121 +111,159 @@ def experience_item(exp: ExperienceData) -> rx.Component:
             padding_right="15px",
             padding_left="0",
             margin_top="2px",
-            list_style_type="disc",
+            list_style_type="none",
             dir="rtl",
         ),
-        margin_bottom="10px",
+        margin_bottom="8px",
     )
 
 
 def education_item(edu: EducationData) -> rx.Component:
     return rx.box(
-        rx.text(edu.degree_en, font_weight="bold", font_size=ResumeState.body_font_size_px),
-        rx.text(edu.institution_en, font_size=ResumeState.body_font_size_small_px, color="#555"),
+        rx.text(edu.degree_en, font_weight="bold", font_size=ResumeState.body_font_size_px, color="#000000"),
+        rx.text(edu.institution_en, font_size=ResumeState.body_font_size_small_px, color="#364153"),
         rx.cond(
             edu.year != "",
-            rx.text(edu.year, font_size=ResumeState.body_font_size_small_px, color="#555"),
+            rx.text(edu.year, font_size=_DATE_SIZE, color="#4A5565"),
         ),
-        margin_bottom="8px",
+        margin_bottom="6px",
+    )
+
+
+def education_item_ar(edu: EducationData) -> rx.Component:
+    return rx.box(
+        rx.text(edu.degree_ar, font_weight="bold", font_size=ResumeState.body_font_size_px, color="#000000", dir="rtl"),
+        rx.text(edu.institution_ar, font_size=ResumeState.body_font_size_small_px, color="#364153", dir="rtl"),
+        rx.cond(
+            edu.year != "",
+            rx.text(edu.year, font_size=_DATE_SIZE, color="#4A5565"),
+        ),
+        margin_bottom="6px",
     )
 
 
 def skill_item(skill: str) -> rx.Component:
-    return rx.list_item(skill, font_size=ResumeState.body_font_size_px, margin_bottom="2px")
+    return rx.list_item(skill, font_size=ResumeState.body_font_size_px, color="#1E2939", margin_bottom="2px")
 
 
 def language_item(lang: LanguageData) -> rx.Component:
+    nm = lang.name
     return rx.list_item(
-        lang.name,
+        nm,
         rx.cond(
             lang.level != "",
-            rx.text(f" ({lang.level})", font_size=ResumeState.body_font_size_small_px, color="#555", as_="span"),
+            rx.text(f" ({lang.level})", font_size=ResumeState.body_font_size_small_px, color="#364153", as_="span"),
         ),
         font_size=ResumeState.body_font_size_px,
+        color="#1E2939",
         margin_bottom="2px",
     )
 
 
-def section(title: str, content: rx.Component) -> rx.Component:
-    """Resume section with a SINGLE full-width solid divider line.
+# ---------------------------------------------------------------------------
+# Section ROW (matches official PDF: EN heading | AR heading, full-width divider,
+# then EN body | AR body)
+# ---------------------------------------------------------------------------
 
-    The divider is a dedicated rx.divider (border_color=black, width=100%)
-    placed BELOW the heading. This replaces the previous unreliable
-    `border_bottom` on the heading box, which WeasyPrint/Chromium often
-    rendered as a broken/dashed line.
+def section_row(title_en: str, title_ar: str, body_en: rx.Component, body_ar: rx.Component) -> rx.Component:
+    """Render one section as a ROW matching the official PDF layout.
 
-    The heading font size is STATIC (14px) and intentionally NOT bound to
-    ResumeState.font_size — only the body text inside `content` scales.
+    EN heading (left) + AR heading (right) on the same baseline, then a
+    full-width divider spanning both columns, then EN content (left) +
+    AR content (right).
     """
     return rx.box(
-        rx.heading(
-            title,
-            size="5",
-            font_size="14px",
-            font_weight="bold",
-            color="#2c3e50",
-            padding_bottom="5px",
-            margin_bottom="0",
+        # Paired headings on the same row
+        rx.grid(
+            rx.heading(
+                title_en,
+                size="5",
+                font_size=_HEADING_SIZE,
+                font_weight="bold",
+                color="#000000",
+                text_transform="uppercase",
+                text_align="left",
+            ),
+            rx.heading(
+                title_ar,
+                size="5",
+                font_size=_HEADING_SIZE,
+                font_weight="bold",
+                color="#000000",
+                text_align="right",
+                dir="rtl",
+            ),
+            grid_template_columns="1fr 1fr",
+            gap="10mm",
+            align_items="baseline",
         ),
-        # Explicit full-width solid divider — single continuous black line
+        # Full-width solid divider spanning both columns
         rx.divider(
             width="100%",
-            border_color="black",
+            border_color="#000000",
+            border_width="1.5px",
             margin_y="2px",
         ),
-        content,
-        margin_bottom="8px",
+        # Paired body: EN (left, LTR) + AR (right, RTL)
+        rx.grid(
+            rx.box(body_en, text_align="left", dir="ltr"),
+            rx.box(body_ar, text_align="right", dir="rtl"),
+            grid_template_columns="1fr 1fr",
+            gap="10mm",
+        ),
+        margin_bottom="10px",
     )
 
 
 # ---------------------------------------------------------------------------
-# Header (centered with rx.vstack)
+# Header (centered with rx.vstack) — STATIC fonts, isolated from global font_size
 # ---------------------------------------------------------------------------
 
 def resume_header() -> rx.Component:
-    """Resume header with STATIC font sizes for name and contact.
+    """Resume header with STATIC font sizes (measured from official PDF).
 
-    The name is locked at 24px and the email/phone/location at 12px.
-    These sizes are NOT affected by ResumeState.font_size (the global
-    font-size control) — only the resume body text scales with it.
-    The header border is a dedicated rx.divider instead of border_bottom
-    on the container, so it renders as one solid continuous line.
+    Name = 20pt, contact = 9pt. These are NOT bound to ResumeState.font_size —
+    only the resume body text scales with the global control.
     """
     return rx.vstack(
-        # Names row — STATIC 24px (isolated from global font_size)
-        rx.flex(
+        # Names row — STATIC 20pt (isolated from global font_size)
+        rx.grid(
             rx.heading(
                 ResumeState.name_en,
                 size="6",
-                font_size="24px",
+                font_size=_NAME_SIZE,
                 font_weight="bold",
-                color="#2c3e50",
+                color="#000000",
+                text_transform="uppercase",
                 as_="h1",
+                text_align="left",
             ),
             rx.heading(
                 ResumeState.name_ar,
                 size="6",
-                font_size="24px",
+                font_size=_NAME_SIZE,
                 font_weight="bold",
-                color="#2c3e50",
+                color="#000000",
                 as_="h1",
+                text_align="right",
                 dir="rtl",
             ),
-            width="100%",
-            justify="between",
+            grid_template_columns="1fr 1fr",
+            gap="10mm",
             align_items="center",
-            direction="row",
+            width="100%",
         ),
-        # Contact bar — STATIC 12px (isolated from global font_size)
+        # Contact bar — STATIC 9pt (isolated from global font_size).
+        # Contact links are NOT blue (official PDF uses dark slate #364153).
         rx.hstack(
             rx.cond(
                 ResumeState.email != "",
                 rx.link(
                     f"✉️ {ResumeState.email}",
                     href=f"mailto:{ResumeState.email}",
-                    color="#1a5276",
+                    color="#364153",
                     text_decoration="none",
-                    font_size="12px",
+                    font_size=_CONTACT_SIZE,
                 ),
             ),
             rx.cond(
@@ -193,174 +271,163 @@ def resume_header() -> rx.Component:
                 rx.link(
                     f"📞 {ResumeState.phone}",
                     href=f"tel:{ResumeState.phone}",
-                    color="#1a5276",
+                    color="#364153",
                     text_decoration="none",
-                    font_size="12px",
+                    font_size=_CONTACT_SIZE,
                 ),
             ),
             rx.cond(
                 ResumeState.location != "",
                 rx.text(
                     f"📍 {ResumeState.location}",
-                    font_size="12px",
-                    color="#555",
+                    font_size=_CONTACT_SIZE,
+                    color="#364153",
                 ),
             ),
             spacing="4",
             justify="center",
             align_items="center",
         ),
-        # Single full-width solid divider under the header (replaces border_bottom)
+        # Full-width solid header divider (replaces container border_bottom)
         rx.divider(
             width="100%",
-            border_color="#2c3e50",
-            border_width="2px",
+            border_color="#000000",
+            border_width="1.5px",
         ),
         align_items="center",
         width="100%",
-        padding="10px 0 10px 0",
-        margin_bottom="15px",
-        background_color="#f8f9fa",
+        padding="0 0 10px 0",
+        margin_bottom="10px",
     )
 
 
 # ---------------------------------------------------------------------------
-# English Column (left, 48%)
-# ---------------------------------------------------------------------------
-
-def english_column() -> rx.Component:
-    return rx.box(
-        rx.cond(
-            ResumeState.summary_en != "",
-            section("CAREER OBJECTIVE", rx.text(ResumeState.summary_en, font_size=ResumeState.body_font_size_px)),
-        ),
-        rx.cond(
-            ResumeState.has_education,
-            section("EDUCATION", rx.foreach(ResumeState.education, education_item)),
-        ),
-        rx.cond(
-            ResumeState.has_experience,
-            section("EXPERIENCE", rx.foreach(ResumeState.experience, experience_item)),
-        ),
-        rx.cond(
-            ResumeState.courses.length() > 0,
-            section("COURSES", rx.unordered_list(
-                rx.foreach(ResumeState.courses, skill_item),
-                padding_left="15px", list_style_type="disc",
-            )),
-        ),
-        rx.cond(
-            ResumeState.has_skills_en,
-            section("SKILLS", rx.unordered_list(
-                rx.foreach(ResumeState.skills_en, skill_item),
-                padding_left="15px", list_style_type="disc",
-            )),
-        ),
-        rx.cond(
-            ResumeState.technical_skills_en.length() > 0,
-            section("TECHNICAL SKILLS", rx.unordered_list(
-                rx.foreach(ResumeState.technical_skills_en, skill_item),
-                padding_left="15px", list_style_type="disc",
-            )),
-        ),
-        rx.cond(
-            ResumeState.languages.length() > 0,
-            section("LANGUAGES", rx.unordered_list(
-                rx.foreach(ResumeState.languages, language_item),
-                padding_left="15px", list_style_type="disc",
-            )),
-        ),
-        width="48%",
-        text_align="left",
-        padding="0 8px",
-    )
-
-
-# ---------------------------------------------------------------------------
-# Arabic Column (right, 48%)
-# ---------------------------------------------------------------------------
-
-def arabic_column() -> rx.Component:
-    return rx.box(
-        rx.cond(
-            ResumeState.summary_ar != "",
-            section("الهدف الوظيفي", rx.text(ResumeState.summary_ar, font_size=ResumeState.body_font_size_px, dir="rtl")),
-        ),
-        rx.cond(
-            ResumeState.has_education,
-            section("التعليم", rx.foreach(ResumeState.education, education_item)),
-        ),
-        rx.cond(
-            ResumeState.has_experience,
-            section("الخبرات المهنية", rx.foreach(ResumeState.experience, experience_item)),
-        ),
-        rx.cond(
-            ResumeState.courses.length() > 0,
-            section("الدورات", rx.unordered_list(
-                rx.foreach(ResumeState.courses, skill_item),
-                padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-            )),
-        ),
-        rx.cond(
-            ResumeState.has_skills_ar,
-            section("المهارات", rx.unordered_list(
-                rx.foreach(ResumeState.skills_ar, skill_item),
-                padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-            )),
-        ),
-        rx.cond(
-            ResumeState.technical_skills_ar.length() > 0,
-            section("المهارات التقنية", rx.unordered_list(
-                rx.foreach(ResumeState.technical_skills_ar, skill_item),
-                padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-            )),
-        ),
-        rx.cond(
-            ResumeState.languages.length() > 0,
-            section("اللغات", rx.unordered_list(
-                rx.foreach(ResumeState.languages, language_item),
-                padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-            )),
-        ),
-        width="48%",
-        text_align="right",
-        padding="0 8px",
-    )
-
-
-# ---------------------------------------------------------------------------
-# Main Resume Preview (A4 Canvas)
+# Main Resume Preview (A4 Canvas) — row-based layout matching official PDF
 # ---------------------------------------------------------------------------
 
 def resume_preview_bilingual() -> rx.Component:
-    """A4 resume preview with fixed column widths and centered header."""
+    """A4 resume preview with row-based sections matching the official PDF.
+
+    Section order (official):
+      1. CAREER OBJECTIVE / الهدف المهني
+      2. PROFESSIONAL EXPERIENCE / الخبرة العملية
+      3. EDUCATION / المؤهلات العلمية
+      4. SKILLS / المهارات
+      5. COURSES & CERTIFICATIONS / الدورات والشهادات
+      6. LANGUAGES / اللغات
+    """
     return rx.center(
         rx.box(
-            # Header (centered)
+            # Header (static fonts)
             resume_header(),
-            # Two equal columns (48% each, between)
-            rx.flex(
-                english_column(),
-                rx.box(
-                    width="1px",
-                    background_color="#ccc",
-                    flex_shrink="0",
+
+            # 1. CAREER OBJECTIVE / الهدف المهني
+            rx.cond(
+                (ResumeState.summary_en != "") | (ResumeState.summary_ar != ""),
+                section_row(
+                    "CAREER OBJECTIVE", "الهدف المهني",
+                    rx.cond(
+                        ResumeState.summary_en != "",
+                        rx.text(ResumeState.summary_en, font_size=ResumeState.body_font_size_px, color="#1E2939"),
+                        rx.text(""),
+                    ),
+                    rx.cond(
+                        ResumeState.summary_ar != "",
+                        rx.text(ResumeState.summary_ar, font_size=ResumeState.body_font_size_px, color="#1E2939", dir="rtl"),
+                        rx.text(""),
+                    ),
                 ),
-                arabic_column(),
-                width="100%",
-                justify="between",
-                direction="row",
-                padding="0 10px 20px 10px",
             ),
+
+            # 2. PROFESSIONAL EXPERIENCE / الخبرة العملية
+            rx.cond(
+                ResumeState.has_experience,
+                section_row(
+                    "PROFESSIONAL EXPERIENCE", "الخبرة العملية",
+                    rx.foreach(ResumeState.experience, experience_item),
+                    rx.foreach(ResumeState.experience, experience_item_ar),
+                ),
+            ),
+
+            # 3. EDUCATION / المؤهلات العلمية
+            rx.cond(
+                ResumeState.has_education,
+                section_row(
+                    "EDUCATION", "المؤهلات العلمية",
+                    rx.foreach(ResumeState.education, education_item),
+                    rx.foreach(ResumeState.education, education_item_ar),
+                ),
+            ),
+
+            # 4. SKILLS / المهارات (merged: skills + technical_skills)
+            rx.cond(
+                (ResumeState.has_skills_en) | (ResumeState.technical_skills_en.length() > 0),
+                section_row(
+                    "SKILLS", "المهارات",
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.skills_en, skill_item),
+                        padding_left="15px",
+                        list_style_type="none",
+                    ),
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.skills_ar, skill_item),
+                        padding_right="15px",
+                        padding_left="0",
+                        list_style_type="none",
+                        dir="rtl",
+                    ),
+                ),
+            ),
+
+            # 5. COURSES & CERTIFICATIONS / الدورات والشهادات
+            rx.cond(
+                ResumeState.courses.length() > 0,
+                section_row(
+                    "COURSES & CERTIFICATIONS", "الدورات والشهادات",
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.courses, skill_item),
+                        padding_left="15px",
+                        list_style_type="none",
+                    ),
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.courses, skill_item),
+                        padding_right="15px",
+                        padding_left="0",
+                        list_style_type="none",
+                        dir="rtl",
+                    ),
+                ),
+            ),
+
+            # 6. LANGUAGES / اللغات
+            rx.cond(
+                ResumeState.languages.length() > 0,
+                section_row(
+                    "LANGUAGES", "اللغات",
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.languages, language_item),
+                        padding_left="15px",
+                        list_style_type="none",
+                    ),
+                    rx.unordered_list(
+                        rx.foreach(ResumeState.languages, language_item),
+                        padding_right="15px",
+                        padding_left="0",
+                        list_style_type="none",
+                        dir="rtl",
+                    ),
+                ),
+            ),
+
             # A4 canvas styling
             background_color="white",
             color="black",
             box_shadow="lg",
-            padding="2em",
+            padding="15mm",
             margin_x="auto",
-            max_width="800px",
+            max_width="210mm",
             width="100%",
-            min_height="1100px",
+            min_height="297mm",
             display="flex",
             flex_direction="column",
         ),

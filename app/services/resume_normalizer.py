@@ -369,7 +369,11 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
     resume = _strip_contact_from_lists(resume)
     resume = _dedup_all(resume)
     resume = _sanitize_resume(resume)
-    resume = _enforce_bilingual_skill_match(resume)
+    # NOTE: Bilingual translation sync (translating missing Arabic from English
+    # via the cloud AI) is performed in app.services.resume_parser.parse_resume_ai
+    # AFTER normalization. We do NOT copy English into Arabic here — that would
+    # violate the strict 1:1 real-translation rule. If Arabic is missing, it
+    # stays empty until the bilingual_sync service fills it with a real translation.
     return resume
 
 
@@ -411,16 +415,10 @@ def _sanitize_resume(resume: ResumeData) -> ResumeData:
         if edu.year:
             edu.year = _normalize_date(edu.year)
 
-    # Ensure balanced bullets_en/bullets_ar
-    for exp in resume.experience:
-        en_count = len(exp.bullets_en) if exp.bullets_en else 0
-        ar_count = len(exp.bullets_ar) if exp.bullets_ar else 0
-        if en_count > 0 and ar_count == 0:
-            # AI didn't provide Arabic bullets — use English as fallback
-            exp.bullets_ar = list(exp.bullets_en)
-        elif ar_count > 0 and en_count == 0:
-            # AI didn't provide English bullets — use Arabic as fallback
-            exp.bullets_en = list(exp.bullets_ar)
+    # NOTE: We do NOT copy bullets_en into bullets_ar (or vice versa) here.
+    # That would violate the strict 1:1 real-translation rule. Missing Arabic
+    # bullets are translated by the bilingual_sync service (cloud AI) in
+    # parse_resume_ai(). Empty arrays stay empty until real translations arrive.
 
     # Ensure skills are clean (no nulls, no empty strings)
     resume.skills = [s for s in resume.skills if s and s.strip()]
@@ -437,62 +435,33 @@ def _sanitize_resume(resume: ResumeData) -> ResumeData:
             resume.soft_skills = ar_skills
             resume.skills = en_skills
 
-    # Ensure skills_en / skills_ar / technical_skills_en / technical_skills_ar
-    # are all populated. If only the generic `skills`/`technical_skills` array
-    # was provided, split it by language. If one language side is missing,
-    # mirror the other side so columns stay balanced (1:1 rule).
-    resume.skills_en = resume.skills_en or [s for s in resume.skills if not contains_arabic(s)] or list(resume.skills)
-    resume.skills_ar = resume.skills_ar or [s for s in resume.skills if contains_arabic(s)]
-    if not resume.skills_ar and resume.skills_en:
-        # No Arabic skills provided — mirror English so the Arabic column is never empty.
-        # Tech/soft terms stay as-is (universal); Arabic text skills keep their script.
-        resume.skills_ar = list(resume.skills_en)
-    if not resume.skills_en and resume.skills_ar:
-        resume.skills_en = list(resume.skills_ar)
-
-    resume.technical_skills_en = resume.technical_skills_en or list(resume.technical_skills)
-    resume.technical_skills_ar = resume.technical_skills_ar or list(resume.technical_skills)
-    if not resume.technical_skills_ar and resume.technical_skills_en:
-        resume.technical_skills_ar = list(resume.technical_skills_en)
-    if not resume.technical_skills_en and resume.technical_skills_ar:
-        resume.technical_skills_en = list(resume.technical_skills_ar)
+    # Populate the explicit bilingual arrays from whatever the AI provided.
+    # We DO NOT copy English into Arabic (or vice versa) — that is the job of
+    # the bilingual_sync service, which calls the cloud AI for a REAL translation.
+    # Here we only split the generic `skills`/`technical_skills` arrays by
+    # language so the explicit _en/_ar fields reflect what was actually returned.
+    if not resume.skills_en:
+        resume.skills_en = [s for s in resume.skills if not contains_arabic(s)]
+    if not resume.skills_ar:
+        resume.skills_ar = [s for s in resume.skills if contains_arabic(s)]
+    if not resume.technical_skills_en:
+        resume.technical_skills_en = [s for s in resume.technical_skills if not contains_arabic(s)]
+    if not resume.technical_skills_ar:
+        resume.technical_skills_ar = [s for s in resume.technical_skills if contains_arabic(s)]
 
     return resume
 
 
 def _enforce_bilingual_skill_match(resume: ResumeData) -> ResumeData:
-    """Enforce STRICT 1:1 matching between EN and AR skill arrays.
+    """DEPRECATED — kept only for backward compatibility.
 
-    Per the system prompt rule: every skill in the English array MUST have an
-    exact Arabic counterpart. If counts mismatch (AI sometimes returns fewer
-    on one side), pad the shorter side by mirroring so both columns render
-    the same number of items.
+    This function previously COPIED English into Arabic when Arabic was empty.
+    That behavior violates the strict 1:1 real-translation rule and has been
+    removed. Bilingual translation is now handled by app.ai.bilingual_sync.sync_bilingual(),
+    which calls the cloud AI to produce REAL Arabic translations.
+
+    This function is now a no-op. It does NOT copy anything.
     """
-    # Skills
-    en, ar = resume.skills_en, resume.skills_ar
-    if en and not ar:
-        resume.skills_ar = list(en)
-    elif ar and not en:
-        resume.skills_en = list(ar)
-    elif en and ar and len(en) != len(ar):
-        # Pad the shorter array
-        if len(en) > len(ar):
-            resume.skills_ar = ar + list(en[len(ar):])
-        else:
-            resume.skills_en = en + list(ar[len(en):])
-
-    # Technical skills
-    en, ar = resume.technical_skills_en, resume.technical_skills_ar
-    if en and not ar:
-        resume.technical_skills_ar = list(en)
-    elif ar and not en:
-        resume.technical_skills_en = list(ar)
-    elif en and ar and len(en) != len(ar):
-        if len(en) > len(ar):
-            resume.technical_skills_ar = ar + list(en[len(ar):])
-        else:
-            resume.technical_skills_en = en + list(ar[len(en):])
-
     return resume
 
 

@@ -98,3 +98,8 @@ class XAIProvider(_OpenAICompatibleProvider):
     name = "xAI (Grok)"
     model = "grok-2-latest"
     endpoint = "https://api.x.ai/v1/chat/completions"
+
+    async def translate_json(self, system: str, user: str) -> str:
+        """Generic JSON-mode call used by the bilingual sync translation service."""
+        return await self._chat(system, user, json_mode=True)
+
