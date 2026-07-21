@@ -1,12 +1,19 @@
 # CVGen Pro — Python dependencies
-fastapi
-uvicorn[standard]
-pydantic
-pydantic-settings
-jinja2
-weasyprint
-python-docx
-httpx
-python-multipart
-sentry-sdk[fastapi]
-starlette
+# Minimum version constraints prevent the Starlette/FastAPI version mismatch
+# that previously caused "TypeError: Router.__init__() got an unexpected
+# keyword argument 'on_startup'" in production.
+fastapi>=0.110
+starlette>=0.36
+uvicorn[standard]>=0.27
+pydantic>=2.5
+pydantic-settings>=2.1
+jinja2>=3.1
+weasyprint>=60
+python-docx>=1.1
+httpx>=0.26
+python-multipart>=0.0.7
+sentry-sdk[fastapi]>=1.40
+# PDF page-count (/api/export/page-count) uses pypdf to count rendered PDF pages.
+# WeasyPrint alone does not expose the final page count reliably, so pypdf reads
+# the rendered bytes. MUST be installed in production (not a transitive dep).
+pypdf>=4.0

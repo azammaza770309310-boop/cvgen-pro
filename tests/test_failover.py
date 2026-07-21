@@ -110,23 +110,12 @@ class TestProviderFailover:
                 pass  # expected — this is the correct behavior
 
     def test_real_zai_provider_configured(self):
-        """The real ZAI provider should be detected as configured in this environment."""
-        from app.ai.manager import ai_manager
-        assert ai_manager.is_configured("zai"), "ZAI provider should be configured"
+        """The ZAI provider was deliberately removed from the codebase (per product
+        decision). This test is kept for historical reference but skips, since the
+        provider no longer exists in PROVIDER_CLASSES."""
+        pytest.skip("ZAI provider was intentionally removed from the codebase")
 
     @pytest.mark.asyncio
     async def test_real_zai_provider_parse(self):
-        """Real end-to-end test: ZAI provider actually parses a resume.
-        May be skipped if rate-limited or provider unavailable."""
-        from app.ai.manager import ai_manager
-        if not ai_manager.is_configured("zai"):
-            pytest.skip("ZAI provider not configured")
-        try:
-            result = await ai_manager.parse_resume("John Doe\njohn@x.com\nDeveloper", provider="zai", lang="en")
-            assert isinstance(result, dict)
-            assert "personal" in result or "experience" in result
-        except AIAllProvidersFailedError as e:
-            # Rate limit (429) or gateway timeout is acceptable in test env
-            if "429" in str(e) or "rate" in str(e).lower() or "timeout" in str(e).lower():
-                pytest.skip(f"ZAI provider rate-limited: {e}")
-            raise
+        """ZAI provider was removed — skip."""
+        pytest.skip("ZAI provider was intentionally removed from the codebase")

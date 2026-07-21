@@ -62,7 +62,25 @@ async def get_page_count(req: ExportRequest, engine: str = Query("chromium", pat
 
     This is the authoritative page count — the browser DOM estimate is only
     an approximation. Use this endpoint when exact parity is required.
+
+    Error handling distinguishes between:
+      - pypdf not installed (deployment misconfiguration → 500 with clear message)
+      - PDF generation failure (engine error → 500)
+      - PDF parsing failure (corrupt bytes → 500)
     """
+    # Import pypdf at the top of the function with a clear error if missing.
+    # This is a required production dependency (listed in requirements.txt).
+    try:
+        import io
+        import pypdf
+    except ImportError:
+        logger.error("pypdf is not installed — add it to requirements.txt")
+        raise HTTPException(
+            status_code=500,
+            detail="PDF page count is unavailable: the 'pypdf' package is not installed. "
+                   "It is listed in requirements.txt — verify the production build installs it.",
+        )
+
     try:
         resume = normalize_resume_data(req.data)
         if req.template_id:
@@ -70,19 +88,43 @@ async def get_page_count(req: ExportRequest, engine: str = Query("chromium", pat
         if req.lang:
             resume.lang = req.lang
 
-        import io
-        import pypdf
+        # Render the PDF using the requested engine.
+        try:
+            if engine == "chromium":
+                from app.services.chromium_pdf_service import export_pdf_chromium
+                pdf_bytes = export_pdf_chromium(resume, req.template_id)
+            else:
+                pdf_bytes = export_pdf(resume, req.template_id)
+        except Exception as render_err:
+            logger.exception("PDF rendering failed during page-count")
+            raise HTTPException(
+                status_code=500,
+                detail=f"PDF rendering failed ({engine}): {render_err}",
+            )
 
-        if engine == "chromium":
-            from app.services.chromium_pdf_service import export_pdf_chromium
-            pdf_bytes = export_pdf_chromium(resume, req.template_id)
-        else:
-            pdf_bytes = export_pdf(resume, req.template_id)
+        if not pdf_bytes or len(pdf_bytes) == 0:
+            logger.error("PDF engine returned empty bytes for page-count")
+            raise HTTPException(
+                status_code=500,
+                detail=f"PDF engine '{engine}' returned empty output.",
+            )
 
-        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
-        return {"page_count": len(reader.pages), "engine": engine}
+        # Count pages from the rendered bytes.
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+            page_count = len(reader.pages)
+        except Exception as parse_err:
+            logger.exception("Failed to parse rendered PDF for page count")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to read page count from rendered PDF: {parse_err}",
+            )
+
+        return {"page_count": page_count, "engine": engine}
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception("Page count failed")
+        logger.exception("Unexpected error in page-count")
         raise HTTPException(status_code=500, detail=f"Page count failed: {e}")
 
 

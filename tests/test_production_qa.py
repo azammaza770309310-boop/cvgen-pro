@@ -285,8 +285,10 @@ class TestTemplateRegistry:
         resume = sample_resume("bilingual")
         for t in REGISTRY:  # now only 1 template
             html = render_template(t.id, resume)
-            assert "cv-root" in html
-            assert t.id.replace("_", "-") in html or "cv-" in html
+            # The official bilingual template uses .a4-page as the root container
+            # (renamed from .cv-root in the PDF-matching rewrite). Either is valid.
+            assert "a4-page" in html or "cv-root" in html, f"template {t.id} missing page container"
+            assert t.id.replace("_", "-") in html or "cv-" in html or "a4-page" in html
 
     def test_dynamic_count_matches_registry(self):
         assert get_template_count() == len(REGISTRY)

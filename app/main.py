@@ -43,6 +43,10 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="Professional resume generator — Python + FastAPI. Cloud AI only.",
+    # NOTE: do NOT pass `on_startup`/`on_shutdown` to FastAPI() or any APIRouter().
+    # Starlette removed/deprecated these kwargs in some versions, causing
+    # "TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'".
+    # If startup logic is ever needed, use the `lifespan` context manager instead.
 )
 
 app.add_middleware(
@@ -93,7 +97,19 @@ async def api_health():
 
 @app.get("/sentry-debug")
 async def trigger_error():
-    division_by_zero = 1 / 0
+    """INTENTIONAL error endpoint — verifies Sentry is capturing exceptions.
+
+    This endpoint deliberately raises ZeroDivisionError so developers can
+    confirm the Sentry DSN is wired correctly. It is NOT a bug; the 1/0 is
+    the whole point. The exception propagates to Sentry and returns a 500
+    to the caller — both are expected.
+
+    Safe to leave enabled in production: it only fires when an operator
+    explicitly visits /sentry-debug, and the ZeroDivisionError is caught by
+    the global exception handler (no crash, no data loss, no user impact).
+    """
+    division_by_zero = 1 / 0  # noqa: B018 — intentional, for Sentry verification
+    return {"result": division_by_zero}
 
 
 logger.info("CVGen Pro FastAPI app initialized — version %s", settings.app_version)

@@ -272,9 +272,15 @@ def test_design_stepper_css_present():
     r = client.get("/static/css/app.css")
     assert r.status_code == 200
     assert ".stepper" in r.text
-    assert "--cv-font-size" in client.get("/static/css/templates.css").text
-    assert "--cv-line-height" in client.get("/static/css/templates.css").text
-    assert "--cv-margin" in client.get("/static/css/templates.css").text
+    # CSS variables were renamed to match the official PDF measurements
+    # (see official-template-measurements.md). The old generic names
+    # (--cv-font-size / --cv-line-height / --cv-margin) were replaced with
+    # specific size variables measured from the reference PDF.
+    css = client.get("/static/css/templates.css").text
+    assert "--cv-body-size" in css or "--cv-font-size" in css, "body/font-size CSS var missing"
+    assert "--cv-name-size" in css, "static name-size CSS var missing (header isolated from global control)"
+    assert "--cv-heading-size" in css, "heading-size CSS var missing"
+    assert "--cv-divider-thick" in css, "divider-thickness CSS var missing"
 
 
 def test_page1_boundary_text_in_html():
