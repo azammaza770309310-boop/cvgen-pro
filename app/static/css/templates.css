@@ -1,4 +1,6 @@
-/* OFFICIAL MASTER TEMPLATE CSS — fixed header + PDF print rules */
+/* OFFICIAL MASTER BILINGUAL TEMPLATE CSS
+   Matches reference PDF: two equal columns, Arial/Tahoma, blue links, black dividers.
+*/
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -9,7 +11,7 @@
 }
 
 .cv-root {
-  font-family: "Helvetica Neue", Helvetica, Arial, "Segoe UI", Tahoma, sans-serif;
+  font-family: Arial, Tahoma, "Helvetica Neue", sans-serif;
   color: #333;
   background: #fff;
   line-height: var(--cv-line-height);
@@ -26,11 +28,12 @@
   overflow: hidden;
   position: relative;
   color: #333;
+  font-family: Arial, Tahoma, "Helvetica Neue", sans-serif;
 }
 
-/* ===== Header: names row + single contact bar ===== */
+/* ===== Header ===== */
 .resume-header {
-  padding: 10mm 10mm 4mm 10mm;
+  padding: 8mm 10mm 3mm 10mm;
   background-color: #f8f9fa;
   border-bottom: 2px solid #2c3e50;
 }
@@ -39,28 +42,29 @@
   justify-content: space-between;
   align-items: center;
   direction: ltr;
-  margin-bottom: 3mm;
+  margin-bottom: 2mm;
 }
 .header-name-en {
-  font-size: 18pt;
-  font-weight: 900;
+  font-size: 16pt;
+  font-weight: bold;
   color: #2c3e50;
   text-transform: uppercase;
-  text-align: left;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  font-family: Arial, "Helvetica Neue", sans-serif;
 }
 .header-name-ar {
-  font-size: 18pt;
-  font-weight: 900;
+  font-size: 16pt;
+  font-weight: bold;
   color: #2c3e50;
-  text-align: right;
-  font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
+  font-family: Tahoma, "Cairo", Arial, sans-serif;
 }
+
+/* ===== Contact bar ===== */
 .contact-bar {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8mm;
+  gap: 6mm;
   flex-wrap: wrap;
   font-size: 9pt;
   color: #555;
@@ -72,80 +76,119 @@
 }
 .contact-link {
   text-decoration: none;
-  color: inherit;
+  color: #1a5276 !important;
+}
+.contact-link:hover {
+  text-decoration: underline;
 }
 
-/* ===== Columns (strict isolation) ===== */
+/* ===== Two Equal Columns ===== */
 .columns-container {
   display: flex;
   flex-direction: row;
   direction: ltr;
   flex: 1;
-  padding: 6mm 10mm;
-  gap: 6mm;
+  padding: 4mm 8mm;
+  gap: 4mm;
 }
 .column {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4mm;
+  gap: 2mm;
+  width: 48%;
 }
-.col-en { text-align: left; direction: ltr; }
+.col-en {
+  text-align: left;
+  direction: ltr;
+  font-family: Arial, "Helvetica Neue", sans-serif;
+}
 .col-ar {
   text-align: right;
   direction: rtl;
-  font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
+  font-family: Tahoma, "Cairo", Arial, sans-serif;
 }
 
 /* ===== Central Divider ===== */
 .central-divider {
   width: 1px;
-  background-color: #d1d5db;
+  background-color: #ccc;
+  flex-shrink: 0;
 }
 
 /* ===== Sections ===== */
-.section { margin-bottom: 2mm; }
+.section { margin-bottom: 1mm; }
 .section h2 {
-  font-size: 11pt;
+  font-size: 10pt;
   font-weight: bold;
   color: #2c3e50;
   border-bottom: 1.5px solid #000;
-  padding-bottom: 5px;
-  margin-bottom: 12px;
+  padding-bottom: 3px;
+  margin-bottom: 8px;
   text-transform: uppercase;
+  font-family: Arial, Tahoma, sans-serif;
+}
+.col-ar .section h2 {
+  text-align: right;
+  text-transform: none;
 }
 .section p, .section div, .section li {
-  font-size: 9pt;
-  line-height: 1.3;
+  font-size: 8.5pt;
+  line-height: 1.25;
+  color: #333;
 }
 
 /* ===== Items ===== */
-.list-item { margin-bottom: 3mm; }
-.item-header {
-  display: flex;
-  justify-content: space-between;
+.item { margin-bottom: 2mm; }
+.item-title {
   font-weight: bold;
+  font-size: 9pt;
+  color: #333;
   margin-bottom: 1px;
 }
-.item-title { font-size: 10pt; font-weight: bold; }
-.item-subtitle { font-style: italic; color: #555; margin-bottom: 1px; font-size: 9pt; }
-.item-date { font-size: 8pt; color: #555; }
 
 /* ===== Lists ===== */
 ul.editable-list {
   padding-inline-start: 4mm;
-  margin-top: 1mm;
+  margin-top: 0.5mm;
   list-style-type: disc;
 }
-ul.editable-list li { margin-bottom: 1mm; font-size: 9pt; }
+ul.editable-list li {
+  margin-bottom: 0.5mm;
+  font-size: 8.5pt;
+}
 
 /* ===== Editable ===== */
 .editable { outline: none; transition: background 0.2s; }
-.editable:hover { background-color: rgba(255, 235, 59, 0.2); }
+.editable:hover { background-color: rgba(255, 235, 59, 0.15); }
 .editable:focus {
-  background-color: rgba(255, 235, 59, 0.4);
+  background-color: rgba(255, 235, 59, 0.3);
   box-shadow: 0 0 0 1px #ffc107;
 }
+
+/* ===== Single Column Templates ===== */
+.a4-single { padding: 10mm 15mm; }
+.resume-header-center {
+  text-align: center;
+  padding-bottom: 4mm;
+  border-bottom: 2px solid #2c3e50;
+  margin-bottom: 4mm;
+  background: transparent;
+}
+.header-name-center {
+  font-size: 18pt;
+  font-weight: bold;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 2mm;
+}
+.contact-bar-center { justify-content: center; }
+.single-column { max-width: 100%; }
+.a4-ar .section h2 { text-align: right; direction: rtl; }
+.a4-ar .item-title { direction: rtl; }
+.a4-ar ul.editable-list { padding-right: 4mm; padding-left: 0; }
 
 /* ===== Page boundary ===== */
 .page1-boundary {
@@ -172,90 +215,17 @@ ul.editable-list li { margin-bottom: 1mm; font-size: 9pt; }
   z-index: 6;
 }
 
-/* ===== PRINT / PDF RULES — prevent column collapse ===== */
-@page {
-  size: A4;
-  margin: 0;
-}
+/* ===== Print / PDF ===== */
+@page { size: A4; margin: 0; }
 
 @media print {
-  .a4-page {
-    box-shadow: none;
-    overflow: visible;
-    width: 210mm !important;
-    height: 297mm !important;
-  }
-  .columns-container {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    flex-direction: row !important;
-    direction: ltr !important;
-    width: 100% !important;
-  }
-  .col-en {
-    direction: ltr !important;
-    width: 48% !important;
-    flex: 0 0 48% !important;
-    max-width: 48% !important;
-    overflow: hidden;
-  }
-  .col-ar {
-    direction: rtl !important;
-    width: 48% !important;
-    flex: 0 0 48% !important;
-    max-width: 48% !important;
-    overflow: hidden;
-  }
+  .a4-page { box-shadow: none; overflow: visible; width: 210mm !important; height: 297mm !important; }
+  .columns-container { display: flex !important; flex-wrap: nowrap !important; flex-direction: row !important; direction: ltr !important; }
+  .col-en { direction: ltr !important; width: 48% !important; flex: 0 0 48% !important; max-width: 48% !important; overflow: hidden; }
+  .col-ar { direction: rtl !important; width: 48% !important; flex: 0 0 48% !important; max-width: 48% !important; overflow: hidden; }
   .central-divider { width: 1px !important; flex: 0 0 1px !important; }
   .section { page-break-inside: avoid; }
-  .list-item { page-break-inside: avoid; }
+  .item { page-break-inside: avoid; }
   .page1-boundary, .page1-badge { display: none; }
   .editable:hover, .editable:focus { background: none; box-shadow: none; }
-}
-
-/* ===== SINGLE COLUMN TEMPLATES ===== */
-.a4-single {
-  padding: 12mm 15mm;
-}
-.resume-header-center {
-  text-align: center;
-  padding-bottom: 6mm;
-  border-bottom: 2px solid #000;
-  margin-bottom: 6mm;
-  background: transparent;
-}
-.header-name-center {
-  font-size: 18pt;
-  font-weight: 900;
-  color: #2c3e50;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-  margin-bottom: 3mm;
-}
-.contact-bar-center {
-  justify-content: center;
-}
-/* Contact links: blue, no underline */
-.contact-link {
-  color: #1a5276 !important;
-  text-decoration: none;
-}
-.contact-link:hover {
-  text-decoration: underline;
-}
-.single-column {
-  max-width: 100%;
-  padding: 0;
-}
-.a4-ar .section h2 {
-  text-align: right;
-  direction: rtl;
-}
-.a4-ar .item-header {
-  flex-direction: row-reverse;
-}
-.a4-ar ul.editable-list {
-  padding-right: 4mm;
-  padding-left: 0;
 }
