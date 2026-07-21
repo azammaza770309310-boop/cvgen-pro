@@ -1,8 +1,11 @@
+import os
 import reflex as rx
+
+_port = os.environ.get("PORT", "10000")
 
 config = rx.Config(
     app_name="reflex_app",
-    backend_port=int(__import__("os").environ.get("PORT", "10000")),
-    frontend_port=int(__import__("os").environ.get("PORT", "10000")),
-    api_url="",
+    backend_port=int(_port),
+    frontend_port=int(_port),
+    api_url=f"http://localhost:{_port}",
 )

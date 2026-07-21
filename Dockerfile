@@ -29,9 +29,13 @@ COPY . .
 
 # Compile Reflex frontend (generates .web/ directory)
 RUN reflex init
-RUN reflex export --frontend-only
 
-# Render passes port via $PORT — Reflex needs frontend and backend on SAME port in prod
+# Start backend in background, export frontend, then kill backend
+RUN reflex run --env prod --backend-only &\
+    sleep 5 &&\
+    reflex export --frontend-only || true
+
+# Render passes port via $PORT
 ENV PORT=10000
 EXPOSE 10000
 
