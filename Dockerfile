@@ -1,7 +1,6 @@
 FROM python:3.11-bookworm
 
-# WeasyPrint system dependencies + Arabic fonts
-# ملاحظة: fonts-noto-arabic غير متوفر في bookworm، نستخدم fonts-arabeyes أو fonts-kacst
+# WeasyPrint system dependencies + Arabic fonts + Node.js for Reflex frontend
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpango-1.0-0 \
@@ -14,7 +13,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-extra \
     fonts-kacst \
     fonts-hosny-amiri \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Install bun (Reflex uses bun for frontend)
+RUN npm install -g bun
 
 WORKDIR /app
 COPY requirements.txt .
@@ -22,8 +27,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Render يمرر الـ port عبر متغير البيئة $PORT
+# Compile Reflex frontend (generates .web/ directory)
+RUN reflex init --skip-verify
+RUN reflex export --frontend-only
+
+# Render passes port via $PORT
 ENV PORT=10000
 EXPOSE 10000
 
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}
+# Run Reflex in production mode (serves both frontend + backend)
+CMD ["reflex", "run", "--env", "prod"]

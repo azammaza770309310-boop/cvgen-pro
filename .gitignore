@@ -16,3 +16,5 @@ data/*.db
 *.log
 qa-screenshots/
 data/api_keys.json
+frontend.zip
+reflex.lock/
