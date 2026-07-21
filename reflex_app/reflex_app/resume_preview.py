@@ -279,14 +279,6 @@ def arabic_column() -> rx.Component:
                 rx.foreach(ResumeState.skills_ar, skill_item),
                 padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
             )),
-            # Fallback: if skills_ar is empty, show soft_skills as Arabic skills
-            rx.cond(
-                ResumeState.soft_skills.length() > 0,
-                section("المهارات", rx.unordered_list(
-                    rx.foreach(ResumeState.soft_skills, skill_item),
-                    padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-                )),
-            ),
         ),
         rx.cond(
             ResumeState.technical_skills_ar.length() > 0,
@@ -294,14 +286,6 @@ def arabic_column() -> rx.Component:
                 rx.foreach(ResumeState.technical_skills_ar, skill_item),
                 padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
             )),
-            # Fallback: show technical_skills (generic) if AR-specific is empty
-            rx.cond(
-                ResumeState.technical_skills_en.length() > 0,
-                section("المهارات التقنية", rx.unordered_list(
-                    rx.foreach(ResumeState.technical_skills_en, skill_item),
-                    padding_right="15px", padding_left="0", list_style_type="disc", dir="rtl",
-                )),
-            ),
         ),
         rx.cond(
             ResumeState.languages.length() > 0,
