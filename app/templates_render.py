@@ -159,13 +159,17 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("COURSES", _bullet_list(resume.courses)))
 
-    # Skills: English column shows only English skills (skills list as-is)
-    if resume.skills:
-        parts.append(_section("SKILLS", _bullet_list(resume.skills)))
+    # Skills: English column shows ONLY English-language skills (filter out Arabic)
+    from app.utils.arabic import contains_arabic
+    en_skills = [s for s in resume.skills if not contains_arabic(s)]
+    ar_skills = [s for s in resume.skills if contains_arabic(s)]
+    en_tech = [s for s in resume.technical_skills if not contains_arabic(s)]
+    ar_tech = [s for s in resume.technical_skills if contains_arabic(s)]
 
-    # Technical skills: English column only
-    if resume.technical_skills:
-        parts.append(_section("TECHNICAL SKILLS", _bullet_list(resume.technical_skills)))
+    if en_skills:
+        parts.append(_section("SKILLS", _bullet_list(en_skills)))
+    if en_tech:
+        parts.append(_section("TECHNICAL SKILLS", _bullet_list(en_tech)))
 
     if resume.certifications:
         cert_names = [c.name if hasattr(c, "name") else str(c) for c in resume.certifications]
@@ -198,14 +202,12 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("الدورات", _bullet_list(resume.courses)))
 
-    # Skills: Arabic column shows soft skills (Arabic-named) only
-    if resume.soft_skills:
-        parts.append(_section("المهارات", _bullet_list(resume.soft_skills)))
-    elif resume.skills:
-        parts.append(_section("المهارات", _bullet_list(resume.skills)))
-
-    if resume.technical_skills:
-        parts.append(_section("المهارات التقنية", _bullet_list(resume.technical_skills)))
+    # Skills: Arabic column shows ONLY Arabic-language skills
+    ar_all_skills = ar_skills + [s for s in resume.soft_skills if contains_arabic(s)]
+    if ar_all_skills:
+        parts.append(_section("المهارات", _bullet_list(ar_all_skills)))
+    if ar_tech:
+        parts.append(_section("المهارات التقنية", _bullet_list(ar_tech)))
 
     if resume.certifications:
         cert_names = [c.name if hasattr(c, "name") else str(c) for c in resume.certifications]

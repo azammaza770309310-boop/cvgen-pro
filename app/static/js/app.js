@@ -532,9 +532,12 @@
   $("#contextColorPicker")?.addEventListener("input", function() {
     const color = this.value;
     if (state.selectedElement) {
-      state.selectedElement.style.color = color;
+      // Apply to the element OR its parent (for spans inside contact-bar)
+      const target = state.selectedElement.closest(".contact-item") || state.selectedElement;
+      target.style.color = color;
+      // Also apply to all children (spans inside)
+      target.querySelectorAll("*").forEach(el => { el.style.color = color; });
     } else if (state.selectedSection) {
-      // Apply to all text in section
       state.selectedSection.querySelectorAll("h2, .item-title, .item-subtitle, .item-date, p, li").forEach(el => {
         el.style.color = color;
       });

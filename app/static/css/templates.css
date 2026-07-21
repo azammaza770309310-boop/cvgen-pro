@@ -42,15 +42,16 @@
   margin-bottom: 3mm;
 }
 .header-name-en {
-  font-size: 16pt;
-  font-weight: bold;
+  font-size: 18pt;
+  font-weight: 900;
   color: #2c3e50;
   text-transform: uppercase;
   text-align: left;
+  letter-spacing: 1px;
 }
 .header-name-ar {
-  font-size: 16pt;
-  font-weight: bold;
+  font-size: 18pt;
+  font-weight: 900;
   color: #2c3e50;
   text-align: right;
   font-family: "Cairo", "Segoe UI Arabic", Tahoma, sans-serif;
@@ -177,22 +178,31 @@ ul.editable-list li { margin-bottom: 1mm; font-size: 9pt; }
   .a4-page {
     box-shadow: none;
     overflow: visible;
+    width: 210mm !important;
+    height: 297mm !important;
   }
   .columns-container {
     display: flex !important;
     flex-wrap: nowrap !important;
+    flex-direction: row !important;
+    direction: ltr !important;
+    width: 100% !important;
   }
   .col-en {
     direction: ltr !important;
     width: 48% !important;
-    flex: none !important;
+    flex: 0 0 48% !important;
+    max-width: 48% !important;
+    overflow: hidden;
   }
   .col-ar {
     direction: rtl !important;
     width: 48% !important;
-    flex: none !important;
+    flex: 0 0 48% !important;
+    max-width: 48% !important;
+    overflow: hidden;
   }
-  .central-divider { width: 1px !important; }
+  .central-divider { width: 1px !important; flex: 0 0 1px !important; }
   .section { page-break-inside: avoid; }
   .list-item { page-break-inside: avoid; }
   .page1-boundary, .page1-badge { display: none; }
