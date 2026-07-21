@@ -243,7 +243,6 @@ def english_column() -> rx.Component:
             )),
         ),
         width="48%",
-        direction="ltr",
         text_align="left",
         padding="0 8px",
     )
@@ -312,7 +311,6 @@ def arabic_column() -> rx.Component:
             )),
         ),
         width="48%",
-        direction="rtl",
         text_align="right",
         padding="0 8px",
     )

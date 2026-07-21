@@ -78,7 +78,6 @@ def index() -> rx.Component:
             # Toolbar container
             bg="#1e1e1e",
             width="100%",
-            direction="rtl",
             spacing="0",
         ),
 
