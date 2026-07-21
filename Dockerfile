@@ -27,13 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Compile Reflex frontend (generates .web/ directory)
+# Compile Reflex frontend — skip prerender to avoid URL parsing errors
 RUN reflex init
-
-# Start backend in background, export frontend, then kill backend
-RUN reflex run --env prod --backend-only &\
-    sleep 5 &&\
-    reflex export --frontend-only || true
+RUN reflex export --frontend-only --no-prerender || reflex export --frontend-only || true
 
 # Render passes port via $PORT
 ENV PORT=10000
