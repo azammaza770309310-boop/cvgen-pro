@@ -35,5 +35,5 @@ RUN reflex export --frontend-only
 ENV PORT=10000
 EXPOSE 10000
 
-# Run Reflex in production mode (serves both frontend + backend)
-CMD ["reflex", "run", "--env", "prod"]
+# Run Reflex in production mode with Render's port
+CMD sh -c "reflex run --env prod --backend-port ${PORT:-8000}"
