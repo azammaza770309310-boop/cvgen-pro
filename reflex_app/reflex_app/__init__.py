@@ -40,7 +40,7 @@ def index() -> rx.Component:
                     rx.button("−", on_click=ResumeState.decrease_font_size, bg="#2d2d2d", color="white", size="2"),
                     rx.text(ResumeState.font_size, color="#f97316", font_weight="bold", font_size="13px", min_width="35px", text_align="center"),
                     rx.button("+", on_click=ResumeState.increase_font_size, bg="#2d2d2d", color="white", size="2"),
-                    spacing="6px",
+                    spacing="2",
                     align_items="center",
                 ),
                 # Margin stepper
@@ -49,7 +49,7 @@ def index() -> rx.Component:
                     rx.button("−", on_click=ResumeState.decrease_margin, bg="#2d2d2d", color="white", size="2"),
                     rx.text(ResumeState.margin, color="#f97316", font_weight="bold", font_size="13px", min_width="35px", text_align="center"),
                     rx.button("+", on_click=ResumeState.increase_margin, bg="#2d2d2d", color="white", size="2"),
-                    spacing="6px",
+                    spacing="2",
                     align_items="center",
                 ),
                 # Reset button
@@ -67,7 +67,7 @@ def index() -> rx.Component:
                     rx.text("صفحة", color="#999", font_size="12px"),
                     rx.spacer(),
                     rx.button("📄 تحميل نموذج", on_click=ResumeState.load_sample, bg="#2d2d2d", color="white", size="2"),
-                    spacing="8px",
+                    spacing="3",
                     align_items="center",
                 ),
                 columns="4",

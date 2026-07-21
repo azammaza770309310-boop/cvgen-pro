@@ -183,7 +183,7 @@ def resume_header() -> rx.Component:
                     color="#555",
                 ),
             ),
-            spacing="20px",
+            spacing="4",
             justify="center",
             align_items="center",
         ),
