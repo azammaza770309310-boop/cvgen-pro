@@ -4,49 +4,75 @@ from __future__ import annotations
 import json
 
 PARSE_SYSTEM_PROMPT = (
-    "You are an expert resume parser. Read the ENTIRE resume document carefully and "
-    "extract structured information. Preserve the semantic structure: one job = one "
-    "experience entry (do NOT split a single job into multiple entries). "
-    "Never put contact info (email/phone/URLs) into skills, courses, or any other list. "
-    "Return ONLY valid JSON matching the schema below. No markdown, no explanation.\n\n"
-    "JSON SCHEMA:\n"
+    "You are an expert bilingual resume parser. Read the ENTIRE resume document carefully and "
+    "extract structured information in BOTH Arabic and English.\n\n"
+    "CRITICAL BILINGUAL RULES:\n"
+    "1. You MUST provide BOTH Arabic and English versions for EVERY field. Never leave any _en or _ar field empty.\n"
+    "2. If the resume is in Arabic only, you MUST translate all content to English for the _en fields.\n"
+    "3. If the resume is in English only, you MUST translate all content to Arabic for the _ar fields.\n"
+    "4. The number of bullet points (bullets_en, bullets_ar) in each experience MUST be EXACTLY the same count.\n"
+    "5. The number of items in skills_en MUST equal skills_ar. Translate each skill.\n"
+    "6. The number of items in technical_skills_en MUST equal technical_skills_ar.\n"
+    "7. The number of experience entries in experience_en MUST equal experience_ar.\n"
+    "8. The number of education entries in education_en MUST equal education_ar.\n"
+    "9. This ensures balanced column lengths between Arabic and English.\n\n"
+    "DATE FORMAT RULES:\n"
+    "- All dates MUST be in format: YYYY/MM or 'Present'.\n"
+    "- Example: 2024/03 - Present, 2018/09 - 2022/12.\n"
+    "- start_date and end_date must use this format consistently.\n"
+    "- If currently employed, end_date = 'Present'.\n\n"
+    "NAME RULES:\n"
+    "- Do NOT add extra spaces or newlines inside names.\n"
+    "- name_en and name_ar must be clean single-line strings.\n\n"
+    "SCHEMA (return ONLY this JSON, no markdown, no explanation):\n"
     "{\n"
-    '  "personal": {"name": "", "name_en": "", "name_ar": "", "title": "", "title_en": "", "title_ar": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": ""},\n'
+    '  "personal": {"name": "", "name_en": "", "name_ar": "", "title": "", "title_en": "", "title_ar": "", "email": "", "phone": "", "location": "", "location_en": "", "location_ar": "", "linkedin": "", "website": "", "github": ""},\n'
     '  "summary": {"en": "", "ar": ""},\n'
     '  "objective": {"en": "", "ar": ""},\n'
-    '  "experience": [{"title": "", "title_en": "", "title_ar": "", "company": "", "company_en": "", "company_ar": "", "location": "", "start_date": "", "end_date": "", "current": false, "description": "", "bullets": [], "bullets_en": [], "bullets_ar": []}],\n'
+    '  "experience": [{"title": "", "title_en": "", "title_ar": "", "company": "", "company_en": "", "company_ar": "", "location": "", "start_date": "", "end_date": "", "current": false, "description": "", "description_en": "", "description_ar": "", "bullets": [], "bullets_en": [], "bullets_ar": []}],\n'
     '  "education": [{"degree": "", "degree_en": "", "degree_ar": "", "institution": "", "institution_en": "", "institution_ar": "", "location": "", "start_date": "", "end_date": "", "year": "", "gpa": "", "description": ""}],\n'
     '  "skills": [],\n'
+    '  "skills_en": [],\n'
+    '  "skills_ar": [],\n'
     '  "technical_skills": [],\n'
+    '  "technical_skills_en": [],\n'
+    '  "technical_skills_ar": [],\n'
     '  "soft_skills": [],\n'
     '  "courses": [],\n'
     '  "certifications": [{"name": "", "issuer": "", "date": "", "url": ""}],\n'
-    '  "languages": [{"name": "", "level": ""}],\n'
+    '  "languages": [{"name": "", "name_en": "", "name_ar": "", "level": ""}],\n'
     '  "projects": [{"name": "", "description": "", "url": "", "technologies": []}],\n'
     '  "volunteering": [],\n'
     '  "achievements": [{"title": "", "description": "", "date": ""}],\n'
     '  "references": [{"name": "", "position": "", "contact": ""}],\n'
     '  "other": []\n'
     "}\n\n"
-    "RULES:\n"
-    "1. One job position = ONE experience object with multiple bullets. NEVER split bullets into separate experience entries.\n"
+    "ABSOLUTE RULES:\n"
+    "1. One job position = ONE experience object. NEVER split bullets into separate entries.\n"
     "2. Email, phone, LinkedIn, website, GitHub MUST go in 'personal' only.\n"
-    "3. If content is Arabic, fill the _ar fields; if English, fill _en; if bilingual, fill both.\n"
-    "4. Leave fields empty ('' or []) when information is not present. Do NOT invent data.\n"
-    "5. Return ONLY the JSON object."
+    "3. NEVER leave skills_en, skills_ar, technical_skills_en, or technical_skills_ar empty. Always translate.\n"
+    "4. bullets_en and bullets_ar must have the SAME count for each experience entry.\n"
+    "5. If information is truly missing, use empty string ''. Never use null.\n"
+    "6. Do NOT invent information that is not in the resume.\n"
+    "7. Clean all names: no extra spaces, no newlines.\n"
+    "8. Return ONLY the JSON object."
 )
 
 
 def build_parse_prompt(text: str, lang: str) -> str:
     hint = ""
     if lang == "ar":
-        hint = "The resume is primarily in Arabic."
+        hint = "The resume is primarily in Arabic. You MUST translate everything to English for _en fields."
     elif lang == "en":
-        hint = "The resume is primarily in English."
+        hint = "The resume is primarily in English. You MUST translate everything to Arabic for _ar fields."
     elif lang == "bilingual":
-        hint = "The resume is bilingual (Arabic + English)."
+        hint = "The resume is bilingual (Arabic + English). Fill both _en and _ar fields."
     return (
-        f"{hint}\n\nParse the following resume and return ONLY the JSON object:\n\n"
+        f"{hint}\n\n"
+        f"IMPORTANT: skills_en and skills_ar must have the SAME number of items. "
+        f"bullets_en and bullets_ar must have the SAME number of items per experience. "
+        f"All dates in YYYY/MM format.\n\n"
+        f"Parse the following resume and return ONLY the JSON object:\n\n"
         f"--- RESUME START ---\n{text}\n--- RESUME END ---"
     )
 

@@ -11,6 +11,7 @@ No other module performs normalization.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 from app.models.resume import (
@@ -346,9 +347,9 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
         objective=objective,
         experience=_normalize_experience(raw.get("experience")),
         education=_normalize_education(raw.get("education")),
-        skills=_normalize_skills(raw.get("skills")),
-        technical_skills=_normalize_skills(raw.get("technical_skills")),
-        soft_skills=_normalize_skills(raw.get("soft_skills")),
+        skills=_normalize_skills(raw.get("skills_en") or raw.get("skills")),
+        technical_skills=_normalize_skills(raw.get("technical_skills_en") or raw.get("technical_skills")),
+        soft_skills=_normalize_skills(raw.get("soft_skills") or raw.get("skills_ar")),
         courses=_normalize_skills(raw.get("courses")),
         certifications=_normalize_certifications(raw.get("certifications")),
         languages=_normalize_languages(raw.get("languages")),
@@ -363,4 +364,137 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
 
     resume = _strip_contact_from_lists(resume)
     resume = _dedup_all(resume)
+    resume = _sanitize_resume(resume)
     return resume
+
+
+def _sanitize_resume(resume: ResumeData) -> ResumeData:
+    """Clean and sanitize the resume data before sending to frontend.
+
+    - Remove extra spaces/newlines from names
+    - Ensure no null values in arrays
+    - Normalize dates to YYYY/MM format
+    - Ensure balanced bullets_en/bullets_ar count
+    """
+    import re
+
+    # Clean names
+    if resume.personal.name:
+        resume.personal.name = re.sub(r'\s+', ' ', resume.personal.name).strip()
+    if resume.personal.name_en:
+        resume.personal.name_en = re.sub(r'\s+', ' ', resume.personal.name_en).strip()
+    if resume.personal.name_ar:
+        resume.personal.name_ar = re.sub(r'\s+', ' ', resume.personal.name_ar).strip()
+
+    # Clean title
+    if resume.personal.title:
+        resume.personal.title = re.sub(r'\s+', ' ', resume.personal.title).strip()
+    if resume.personal.title_en:
+        resume.personal.title_en = re.sub(r'\s+', ' ', resume.personal.title_en).strip()
+    if resume.personal.title_ar:
+        resume.personal.title_ar = re.sub(r'\s+', ' ', resume.personal.title_ar).strip()
+
+    # Normalize dates in experience
+    for exp in resume.experience:
+        exp.start_date = _normalize_date(exp.start_date)
+        exp.end_date = _normalize_date(exp.end_date)
+
+    # Normalize dates in education
+    for edu in resume.education:
+        edu.start_date = _normalize_date(edu.start_date)
+        edu.end_date = _normalize_date(edu.end_date)
+        if edu.year:
+            edu.year = _normalize_date(edu.year)
+
+    # Ensure balanced bullets_en/bullets_ar
+    for exp in resume.experience:
+        en_count = len(exp.bullets_en) if exp.bullets_en else 0
+        ar_count = len(exp.bullets_ar) if exp.bullets_ar else 0
+        if en_count > 0 and ar_count == 0:
+            # AI didn't provide Arabic bullets — use English as fallback
+            exp.bullets_ar = list(exp.bullets_en)
+        elif ar_count > 0 and en_count == 0:
+            # AI didn't provide English bullets — use Arabic as fallback
+            exp.bullets_en = list(exp.bullets_ar)
+
+    # Ensure skills are clean (no nulls, no empty strings)
+    resume.skills = [s for s in resume.skills if s and s.strip()]
+    resume.technical_skills = [s for s in resume.technical_skills if s and s.strip()]
+    resume.soft_skills = [s for s in resume.soft_skills if s and s.strip()]
+    resume.courses = [s for s in resume.courses if s and s.strip()]
+
+    # If soft_skills is empty but skills has Arabic items, move them
+    from app.utils.arabic import contains_arabic
+    if not resume.soft_skills:
+        ar_skills = [s for s in resume.skills if contains_arabic(s)]
+        en_skills = [s for s in resume.skills if not contains_arabic(s)]
+        if ar_skills:
+            resume.soft_skills = ar_skills
+            resume.skills = en_skills
+
+    return resume
+
+
+def _normalize_date(date_str: str) -> str:
+    """Normalize date to YYYY/MM format.
+
+    Handles:
+    - 'March 2024' → '2024/03'
+    - '2024' → '2024'
+    - 'Present' / 'Current' / 'حتى الآن' → 'Present'
+    - 'Jan 2020' → '2020/01'
+    """
+    if not date_str or not date_str.strip():
+        return ""
+    s = date_str.strip()
+
+    # Check for "present" variations
+    if s.lower() in ("present", "current", "now", "حتى الآن", "الآن"):
+        return "Present"
+
+    # Already in YYYY/MM format
+    if re.match(r'^\d{4}/\d{1,2}$', s):
+        return s
+
+    # Just a year
+    if re.match(r'^\d{4}$', s):
+        return s
+
+    # Try to parse month name + year
+    month_map = {
+        'january': '01', 'jan': '01', 'فبراير': '02', 'february': '02', 'feb': '02',
+        'march': '03', 'mar': '03', 'مارس': '03',
+        'april': '04', 'apr': '04', 'أبريل': '04',
+        'may': '05', 'مايو': '05',
+        'june': '06', 'jun': '06', 'يونيو': '06',
+        'july': '07', 'jul': '07', 'يوليو': '07',
+        'august': '08', 'aug': '08', 'أغسطس': '08',
+        'september': '09', 'sep': '09', 'sept': '09', 'سبتمبر': '09',
+        'october': '10', 'oct': '10', 'أكتوبر': '10',
+        'november': '11', 'nov': '11', 'نوفمبر': '11',
+        'december': '12', 'dec': '12', 'ديسمبر': '12',
+    }
+
+    # Try "Month Year" format
+    parts = s.replace('-', ' ').replace('/', ' ').split()
+    for i, part in enumerate(parts):
+        lower = part.lower()
+        if lower in month_map and i + 1 < len(parts):
+            year_match = re.search(r'\d{4}', parts[i + 1])
+            if year_match:
+                return f"{year_match.group()}/{month_map[lower]}"
+
+    # Try "Year Month" format
+    for i, part in enumerate(parts):
+        lower = part.lower()
+        if lower in month_map and i > 0:
+            year_match = re.search(r'\d{4}', parts[i - 1])
+            if year_match:
+                return f"{year_match.group()}/{month_map[lower]}"
+
+    # Try to extract just a year
+    year_match = re.search(r'(19|20)\d{2}', s)
+    if year_match:
+        return year_match.group()
+
+    return s
