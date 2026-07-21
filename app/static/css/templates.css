@@ -41,6 +41,13 @@
   --cv-body-size: 11pt;        /* PDF: 4.4pt × 2.47 ≈ 10.9pt → 11pt */
   --cv-date-size: 9pt;         /* PDF: 3.7pt × 2.47 ≈ 9.1pt → 9pt */
   --cv-divider-thick: 1.5pt;   /* PDF: 0.6pt × 2.47 ≈ 1.5pt */
+
+  /* Adjustable layout variables — set by app.js applyDesignVars().
+   * Only affect body text + layout spacing, NOT structural typography. */
+  --cv-body-line-height: 1.5;
+  --cv-section-spacing: 2mm;
+  --cv-column-gap: 10mm;
+  --cv-page-padding: 15mm;
 }
 
 .cv-root {
@@ -57,7 +64,7 @@
   min-height: 297mm;
   max-height: 297mm;
   background-color: var(--cv-bg);
-  padding: 15mm;
+  padding: var(--cv-page-padding);
   color: var(--cv-body);
   font-family: Arial, Tahoma, "Helvetica Neue", sans-serif;
   overflow: hidden;
@@ -128,13 +135,13 @@
  * baseline, then a full-width divider, then EN content (left) + AR content.
  */
 .section-row {
-  margin-bottom: 3mm;
+  margin-bottom: var(--cv-section-spacing);
   page-break-inside: avoid;
 }
 .section-headings {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10mm;
+  gap: var(--cv-column-gap);
   align-items: baseline;
 }
 .section-heading-en {
@@ -164,11 +171,11 @@
   padding: 0;
   display: block;
 }
-/* Section body — two columns side by side, NO vertical divider, ~10mm gap. */
+/* Section body — two columns side by side, NO vertical divider, gap adjustable. */
 .section-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10mm;
+  gap: var(--cv-column-gap);
 }
 .body-en {
   text-align: left;
@@ -184,7 +191,7 @@
 /* ===== Body text ===== */
 .section-body p {
   font-size: var(--cv-body-size);
-  line-height: 1.5;
+  line-height: var(--cv-body-line-height);
   color: var(--cv-body);
 }
 .item { margin-bottom: 2mm; }
@@ -213,7 +220,7 @@ ul.editable-list li {
   margin-bottom: 0.5mm;
   font-size: var(--cv-body-size);
   color: var(--cv-body);
-  line-height: 1.5;
+  line-height: var(--cv-body-line-height);
 }
 
 /* ===== Editable ===== */

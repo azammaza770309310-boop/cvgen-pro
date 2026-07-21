@@ -19,7 +19,7 @@ logger = logging.getLogger("cvgen.chromium_pdf")
 
 # CSS for the Chromium PDF context (same as preview + @page rules)
 _CHROMIUM_CSS = """
-@page { size: A4; margin: 10mm; }
+@page { size: A4; margin: 0; }
 .cv-root { box-sizing: border-box; }
 .break-inside-avoid { break-inside: avoid; }
 """

@@ -17,7 +17,7 @@
     pageCount: 1,
     selectedElement: null,
     selectedSection: null,
-    controls: { fontSize: 8.9, lineHeight: 1.20, sectionSpacing: 6, columnDistance: 15, margin: 9 },
+    controls: { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 15 },
     controlLimits: {
       fontSize: { min: 5.0, max: 14.0, step: 0.3 },
       lineHeight: { min: 0.8, max: 2.0, step: 0.05 },
@@ -296,28 +296,26 @@
   }
 
   function applyDesignVars() {
-    // Apply CSS variables to the A4 page AND content elements
+    // STRUCTURAL typography (name, headings, contact, dates) is FIXED in CSS
+    // via --cv-name-size, --cv-heading-size, --cv-contact-size, --cv-date-size.
+    // Only BODY TEXT (p, li, .item) is adjustable via --cv-body-size.
+    // We NEVER set el.style.fontSize inline — that would override the fixed
+    // structural CSS and cause Preview ≠ PDF mismatch.
     const targets = [$("#a4Page"), $("#a4Content"), $(".a4-page")];
     targets.forEach(el => {
       if (!el) return;
-      el.style.setProperty("--cv-font-size", state.controls.fontSize + "pt");
-      el.style.setProperty("--cv-line-height", state.controls.lineHeight);
+      // Only set the body-size variable — CSS uses this for p, li, .item only
+      el.style.setProperty("--cv-body-size", state.controls.fontSize + "pt");
+      el.style.setProperty("--cv-body-line-height", state.controls.lineHeight);
       el.style.setProperty("--cv-section-spacing", state.controls.sectionSpacing + "pt");
-      el.style.setProperty("--cv-column-distance", state.controls.columnDistance + "pt");
-      el.style.setProperty("--cv-margin", state.controls.margin + "mm");
-      // Also apply directly as inline styles for immediate effect
-      el.style.fontSize = state.controls.fontSize + "pt";
-      el.style.lineHeight = state.controls.lineHeight;
+      el.style.setProperty("--cv-column-gap", state.controls.columnDistance + "pt");
+      el.style.setProperty("--cv-page-padding", state.controls.margin + "mm");
+      // Do NOT set global fontSize/lineHeight inline — they override structural CSS
     });
-    // Apply font family
+    // Apply font family only (does not affect sizes)
     const content = $("#a4Content");
     if (content) {
       content.style.fontFamily = state.font + ", sans-serif";
-      // Apply to all children
-      content.querySelectorAll(".a4-page, .col-en, .col-ar, .section, .list-item, p, li, h2, h1").forEach(el => {
-        el.style.fontSize = state.controls.fontSize + "pt";
-        el.style.lineHeight = state.controls.lineHeight;
-      });
     }
   }
 
@@ -796,7 +794,7 @@
 
   // Reset all design controls to defaults
   $("#btnResetAll")?.addEventListener("click", function() {
-    state.controls = { fontSize: 9.0, lineHeight: 1.40, sectionSpacing: 6, columnDistance: 16, margin: 10 };
+    state.controls = { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 15 };
     // Update stepper displays
     $$(".stepper-mini").forEach(st => {
       const control = st.dataset.control;
