@@ -132,8 +132,15 @@ class ResumeData(BaseModel):
     experience: List[ExperienceItem] = Field(default_factory=list)
     education: List[EducationItem] = Field(default_factory=list)
 
+    # Skills are REQUIRED bilingual fields (enforced 1:1 match).
+    # The AI parser MUST populate both _en and _ar arrays with identical counts.
+    # If a section is missing, the AI auto-generates content rather than leaving empty.
     skills: List[str] = Field(default_factory=list)
+    skills_en: List[str] = Field(default_factory=list)
+    skills_ar: List[str] = Field(default_factory=list)
     technical_skills: List[str] = Field(default_factory=list)
+    technical_skills_en: List[str] = Field(default_factory=list)
+    technical_skills_ar: List[str] = Field(default_factory=list)
     soft_skills: List[str] = Field(default_factory=list)
 
     courses: List[str] = Field(default_factory=list)
@@ -153,7 +160,7 @@ class ResumeData(BaseModel):
     # Validators — strip junk and guard against bad data
     # ------------------------------------------------------------------
 
-    @field_validator("skills", "technical_skills", "soft_skills", "courses", "volunteering", mode="before")
+    @field_validator("skills", "skills_en", "skills_ar", "technical_skills", "technical_skills_en", "technical_skills_ar", "soft_skills", "courses", "volunteering", mode="before")
     @classmethod
     def _coerce_str_list(cls, v):
         if v is None:

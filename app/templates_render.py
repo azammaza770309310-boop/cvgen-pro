@@ -133,13 +133,16 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("COURSES", _bullet_list(resume.courses)))
     from app.utils.arabic import contains_arabic
-    en_skills = [s for s in resume.skills if not contains_arabic(s)]
-    ar_skills = [s for s in resume.skills if contains_arabic(s)]
-    en_tech = [s for s in resume.technical_skills if not contains_arabic(s)]
+    # Use explicit bilingual skill arrays (skills_en / skills_ar) populated by
+    # the normalizer's 1:1 enforcement. Fall back to language filtering of the
+    # generic `skills` array only if the explicit arrays are empty.
+    en_skills = resume.skills_en or [s for s in resume.skills if not contains_arabic(s)]
+    ar_skills = resume.skills_ar or [s for s in resume.skills if contains_arabic(s)]
+    en_tech = resume.technical_skills_en or [s for s in resume.technical_skills if not contains_arabic(s)]
     # Arabic column shows ALL technical skills (tech terms are universal —
     # "Python", "JavaScript" etc. don't need translation), so the Arabic
     # TECHNICAL SKILLS section mirrors the English one instead of being empty.
-    ar_tech = resume.technical_skills
+    ar_tech = resume.technical_skills_ar or resume.technical_skills
     if en_skills:
         parts.append(_section("SKILLS", _bullet_list(en_skills)))
     if en_tech:
@@ -163,11 +166,17 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
         parts.append(_section("الخبرات المهنية", "".join(_exp_item(e, "ar") for e in resume.experience)))
     if resume.courses:
         parts.append(_section("الدورات", _bullet_list(resume.courses)))
-    ar_all_skills = ar_skills + [s for s in resume.soft_skills if contains_arabic(s)]
+    # Arabic skills column uses skills_ar (1:1 mirror of skills_en, enforced by normalizer).
+    # Falls back to soft_skills (Arabic) + any Arabic items in generic skills.
+    ar_all_skills = ar_skills or resume.skills_ar
+    if not ar_all_skills and resume.soft_skills:
+        ar_all_skills = [s for s in resume.soft_skills if contains_arabic(s)] or resume.soft_skills
     if ar_all_skills:
         parts.append(_section("المهارات", _bullet_list(ar_all_skills)))
-    if ar_tech:
-        parts.append(_section("المهارات التقنية", _bullet_list(ar_tech)))
+    # Arabic technical skills mirrors English (tech terms are universal)
+    ar_all_tech = ar_tech or resume.technical_skills_ar or resume.technical_skills
+    if ar_all_tech:
+        parts.append(_section("المهارات التقنية", _bullet_list(ar_all_tech)))
     if resume.languages:
         lang_items = [f"{l.name} ({l.level})" if l.level else l.name for l in resume.languages]
         parts.append(_section("اللغات", _bullet_list(lang_items)))

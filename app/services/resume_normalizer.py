@@ -348,7 +348,11 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
         experience=_normalize_experience(raw.get("experience")),
         education=_normalize_education(raw.get("education")),
         skills=_normalize_skills(raw.get("skills_en") or raw.get("skills")),
+        skills_en=_normalize_skills(raw.get("skills_en") or raw.get("skills")),
+        skills_ar=_normalize_skills(raw.get("skills_ar")),
         technical_skills=_normalize_skills(raw.get("technical_skills_en") or raw.get("technical_skills")),
+        technical_skills_en=_normalize_skills(raw.get("technical_skills_en") or raw.get("technical_skills")),
+        technical_skills_ar=_normalize_skills(raw.get("technical_skills_ar")),
         soft_skills=_normalize_skills(raw.get("soft_skills") or raw.get("skills_ar")),
         courses=_normalize_skills(raw.get("courses")),
         certifications=_normalize_certifications(raw.get("certifications")),
@@ -365,6 +369,7 @@ def normalize_resume_data(raw: dict, full_text: str = "") -> ResumeData:
     resume = _strip_contact_from_lists(resume)
     resume = _dedup_all(resume)
     resume = _sanitize_resume(resume)
+    resume = _enforce_bilingual_skill_match(resume)
     return resume
 
 
@@ -431,6 +436,62 @@ def _sanitize_resume(resume: ResumeData) -> ResumeData:
         if ar_skills:
             resume.soft_skills = ar_skills
             resume.skills = en_skills
+
+    # Ensure skills_en / skills_ar / technical_skills_en / technical_skills_ar
+    # are all populated. If only the generic `skills`/`technical_skills` array
+    # was provided, split it by language. If one language side is missing,
+    # mirror the other side so columns stay balanced (1:1 rule).
+    resume.skills_en = resume.skills_en or [s for s in resume.skills if not contains_arabic(s)] or list(resume.skills)
+    resume.skills_ar = resume.skills_ar or [s for s in resume.skills if contains_arabic(s)]
+    if not resume.skills_ar and resume.skills_en:
+        # No Arabic skills provided — mirror English so the Arabic column is never empty.
+        # Tech/soft terms stay as-is (universal); Arabic text skills keep their script.
+        resume.skills_ar = list(resume.skills_en)
+    if not resume.skills_en and resume.skills_ar:
+        resume.skills_en = list(resume.skills_ar)
+
+    resume.technical_skills_en = resume.technical_skills_en or list(resume.technical_skills)
+    resume.technical_skills_ar = resume.technical_skills_ar or list(resume.technical_skills)
+    if not resume.technical_skills_ar and resume.technical_skills_en:
+        resume.technical_skills_ar = list(resume.technical_skills_en)
+    if not resume.technical_skills_en and resume.technical_skills_ar:
+        resume.technical_skills_en = list(resume.technical_skills_ar)
+
+    return resume
+
+
+def _enforce_bilingual_skill_match(resume: ResumeData) -> ResumeData:
+    """Enforce STRICT 1:1 matching between EN and AR skill arrays.
+
+    Per the system prompt rule: every skill in the English array MUST have an
+    exact Arabic counterpart. If counts mismatch (AI sometimes returns fewer
+    on one side), pad the shorter side by mirroring so both columns render
+    the same number of items.
+    """
+    # Skills
+    en, ar = resume.skills_en, resume.skills_ar
+    if en and not ar:
+        resume.skills_ar = list(en)
+    elif ar and not en:
+        resume.skills_en = list(ar)
+    elif en and ar and len(en) != len(ar):
+        # Pad the shorter array
+        if len(en) > len(ar):
+            resume.skills_ar = ar + list(en[len(ar):])
+        else:
+            resume.skills_en = en + list(ar[len(en):])
+
+    # Technical skills
+    en, ar = resume.technical_skills_en, resume.technical_skills_ar
+    if en and not ar:
+        resume.technical_skills_ar = list(en)
+    elif ar and not en:
+        resume.technical_skills_en = list(ar)
+    elif en and ar and len(en) != len(ar):
+        if len(en) > len(ar):
+            resume.technical_skills_ar = ar + list(en[len(ar):])
+        else:
+            resume.technical_skills_en = en + list(ar[len(en):])
 
     return resume
 

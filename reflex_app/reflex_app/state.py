@@ -124,6 +124,25 @@ class ResumeState(rx.State):
     def is_overflow(self) -> bool:
         return self.page_count > 1
 
+    @rx.var
+    def body_font_size_px(self) -> str:
+        """Global body font size as a CSS px string (e.g. '9.0px').
+
+        Used by resume body text (summary, bullets, skill lists, etc.) so the
+        user's font-size controls scale the body. The header (name, email,
+        phone, location) is NOT bound to this — it stays at fixed 24px / 12px.
+        """
+        return f"{self.font_size}px"
+
+    @rx.var
+    def body_font_size_small_px(self) -> str:
+        """Slightly smaller body font (for secondary text like dates, levels).
+
+        Scales with the global font_size control. Used for experience company
+        lines, education year, language level, etc.
+        """
+        return f"{max(self.font_size - 1.0, 5.0):.1f}px"
+
     # ------------------------------------------------------------------
     # Event Handlers
     # ------------------------------------------------------------------
