@@ -126,4 +126,23 @@ def index() -> rx.Component:
 
 
 app = rx.App()
+
+# Register the main page
 app.add_page(index, route="/")
+
+# Health check endpoint — required by Render's deployment health check.
+# Reflex's @app.api_route lets us add raw API endpoints alongside the UI.
+@app.api_route("/health", methods=["GET"])
+def health_check():
+    """Render health check endpoint.
+
+    Returns a simple JSON 200 response so Render's port scanner confirms
+    the service is up. This replaces the FastAPI /health endpoint.
+    """
+    from reflex import json_dumps
+    return {
+        "status": "ok",
+        "app": "CVGen Pro",
+        "version": "2.0.0",
+        "runtime": "reflex",
+    }

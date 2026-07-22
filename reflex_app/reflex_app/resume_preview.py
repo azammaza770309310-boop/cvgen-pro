@@ -306,9 +306,19 @@ def resume_header() -> rx.Component:
 # ---------------------------------------------------------------------------
 
 def resume_preview_bilingual() -> rx.Component:
-    """A4 resume preview with row-based sections matching the official PDF.
+    """A4 resume preview — uses the SAME rendering source as the PDF export.
 
-    Section order (official):
+    CRITICAL for preview=PDF parity: this component renders the HTML produced
+    by app.templates_render.render_official_bilingual_master() via rx.html().
+    This guarantees the browser preview and the exported PDF use the EXACT
+    SAME HTML + CSS source — no divergence possible.
+
+    The previous version built the HTML via rx.* components (section_row,
+    resume_header, etc.) which was a SEPARATE code path from the PDF
+    renderer. That caused visual drift between preview and PDF. This
+    version eliminates the drift by using the single shared renderer.
+
+    Section order (official, from the reference PDF):
       1. CAREER OBJECTIVE / الهدف المهني
       2. PROFESSIONAL EXPERIENCE / الخبرة العملية
       3. EDUCATION / المؤهلات العلمية
@@ -318,118 +328,20 @@ def resume_preview_bilingual() -> rx.Component:
     """
     return rx.center(
         rx.box(
-            # Header (static fonts)
-            resume_header(),
-
-            # 1. CAREER OBJECTIVE / الهدف المهني
-            rx.cond(
-                (ResumeState.summary_en != "") | (ResumeState.summary_ar != ""),
-                section_row(
-                    "CAREER OBJECTIVE", "الهدف المهني",
-                    rx.cond(
-                        ResumeState.summary_en != "",
-                        rx.text(ResumeState.summary_en, font_size=ResumeState.body_font_size_px, color="#1E2939"),
-                        rx.text(""),
-                    ),
-                    rx.cond(
-                        ResumeState.summary_ar != "",
-                        rx.text(ResumeState.summary_ar, font_size=ResumeState.body_font_size_px, color="#1E2939", dir="rtl"),
-                        rx.text(""),
-                    ),
-                ),
-            ),
-
-            # 2. PROFESSIONAL EXPERIENCE / الخبرة العملية
-            rx.cond(
-                ResumeState.has_experience,
-                section_row(
-                    "PROFESSIONAL EXPERIENCE", "الخبرة العملية",
-                    rx.foreach(ResumeState.experience, experience_item),
-                    rx.foreach(ResumeState.experience, experience_item_ar),
-                ),
-            ),
-
-            # 3. EDUCATION / المؤهلات العلمية
-            rx.cond(
-                ResumeState.has_education,
-                section_row(
-                    "EDUCATION", "المؤهلات العلمية",
-                    rx.foreach(ResumeState.education, education_item),
-                    rx.foreach(ResumeState.education, education_item_ar),
-                ),
-            ),
-
-            # 4. SKILLS / المهارات (merged: skills + technical_skills)
-            rx.cond(
-                (ResumeState.has_skills_en) | (ResumeState.technical_skills_en.length() > 0),
-                section_row(
-                    "SKILLS", "المهارات",
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.skills_en, skill_item),
-                        padding_left="15px",
-                        list_style_type="none",
-                    ),
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.skills_ar, skill_item),
-                        padding_right="15px",
-                        padding_left="0",
-                        list_style_type="none",
-                        dir="rtl",
-                    ),
-                ),
-            ),
-
-            # 5. COURSES & CERTIFICATIONS / الدورات والشهادات
-            rx.cond(
-                ResumeState.courses.length() > 0,
-                section_row(
-                    "COURSES & CERTIFICATIONS", "الدورات والشهادات",
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.courses, skill_item),
-                        padding_left="15px",
-                        list_style_type="none",
-                    ),
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.courses, skill_item),
-                        padding_right="15px",
-                        padding_left="0",
-                        list_style_type="none",
-                        dir="rtl",
-                    ),
-                ),
-            ),
-
-            # 6. LANGUAGES / اللغات
-            rx.cond(
-                ResumeState.languages.length() > 0,
-                section_row(
-                    "LANGUAGES", "اللغات",
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.languages, language_item),
-                        padding_left="15px",
-                        list_style_type="none",
-                    ),
-                    rx.unordered_list(
-                        rx.foreach(ResumeState.languages, language_item),
-                        padding_right="15px",
-                        padding_left="0",
-                        list_style_type="none",
-                        dir="rtl",
-                    ),
-                ),
-            ),
-
-            # A4 canvas styling
+            # Render the SAME HTML that the PDF export uses.
+            # ResumeState.preview_html is a computed var that calls
+            # app.templates_render.render_official_bilingual_master().
+            # This guarantees preview = PDF (same HTML + same CSS).
+            rx.html(ResumeState.preview_html),
+            # A4 canvas styling (the .a4-page class in templates.css
+            # handles the internal padding/layout; this wrapper just
+            # provides the shadow + centering).
             background_color="white",
-            color="black",
             box_shadow="lg",
-            padding="15mm",
             margin_x="auto",
             max_width="210mm",
             width="100%",
             min_height="297mm",
-            display="flex",
-            flex_direction="column",
         ),
         width="100%",
         padding="20px",

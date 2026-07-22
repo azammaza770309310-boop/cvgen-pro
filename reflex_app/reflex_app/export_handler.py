@@ -85,3 +85,42 @@ def get_page_count(data: dict, template_id: str = "official_bilingual_master", c
     pdf_bytes = export_pdf(data, template_id, controls)
     reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
     return len(reader.pages)
+
+
+# ---------------------------------------------------------------------------
+# Templates — list, count, render (delegates to app.services.template_service)
+# ---------------------------------------------------------------------------
+
+def list_templates() -> list[dict]:
+    """Return all available templates with metadata."""
+    from app.services.template_service import list_templates as _list
+    return _list()
+
+
+def get_template_count() -> int:
+    """Return the dynamic template count."""
+    from app.services.template_service import get_template_count as _count
+    return _count()
+
+
+def list_categories() -> list[dict]:
+    """Return template categories."""
+    from app.services.template_service import list_categories as _cats
+    return _cats()
+
+
+def normalize_resume(data: dict) -> dict:
+    """Normalize an already-structured dict into clean ResumeData.
+
+    Delegates to app.services.resume_normalizer.normalize_resume_data.
+    """
+    from app.services.resume_normalizer import normalize_resume_data
+    resume = normalize_resume_data(data)
+    return resume.model_dump()
+
+
+def get_sample_resume(lang: str = "en") -> dict:
+    """Return a sample resume for the requested language (en/ar/bilingual)."""
+    from app.models.resume import sample_resume
+    resume = sample_resume(lang if lang in ("en", "ar", "bilingual") else "en")
+    return resume.model_dump()

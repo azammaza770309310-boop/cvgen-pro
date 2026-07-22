@@ -84,6 +84,12 @@ class ResumeState(rx.State):
     # ===== Template Selection =====
     template_id: str = "official_bilingual_master"
     template_count: int = 3
+    templates_list: list[dict] = []
+    template_categories: list[dict] = []
+
+    # ===== Settings / API Key Management =====
+    settings: dict = {}
+    key_links: dict = {}
 
     # ===== Editor Controls =====
     font_size: float = 9.0
@@ -152,6 +158,26 @@ class ResumeState(rx.State):
         lines, education year, language level, etc.
         """
         return f"{max(self.font_size - 1.0, 5.0):.1f}px"
+
+    @rx.var
+    def preview_html(self) -> str:
+        """The HTML for the resume preview — SINGLE SOURCE OF TRUTH.
+
+        This computed var calls app.templates_render.render_official_bilingual_master()
+        (via export_handler.render_template_html) to produce the EXACT SAME HTML
+        that the PDF export uses. The Reflex preview renders this via rx.html(),
+        guaranteeing preview = PDF (same HTML + same CSS source).
+
+        No separate rendering code path — one renderer, one CSS file, one result.
+        """
+        from reflex_app.reflex_app.export_handler import render_template_html
+        try:
+            data = self._build_resume_data_dict()
+            return render_template_html(data, self.template_id)
+        except Exception as e:
+            # Return a minimal error message rather than crashing the preview.
+            # The user sees the error inline; the state remains valid.
+            return f'<div style="color:red;padding:20px;">Preview error: {e}</div>'
 
     # ------------------------------------------------------------------
     # Event Handlers
@@ -399,3 +425,139 @@ class ResumeState(rx.State):
             return rx.download(data=dl["data"], filename=dl["filename"])
         except Exception as e:
             return rx.toast.error(f"DOCX export error: {e}")
+
+    # ------------------------------------------------------------------
+    # Page count (native — renders PDF + counts via pypdf)
+    # ------------------------------------------------------------------
+    def get_page_count(self) -> int:
+        """Return the TRUE page count by rendering the PDF.
+
+        Calls export_handler.get_page_count() directly (in-process).
+        """
+        from reflex_app.reflex_app.export_handler import get_page_count as _gpc
+        try:
+            data = self._build_resume_data_dict()
+            controls = self._build_controls_dict()
+            count = _gpc(data, self.template_id, controls)
+            self.page_count = count
+            return count
+        except Exception as e:
+            return self.page_count  # keep previous value on error
+
+    # ------------------------------------------------------------------
+    # AI: improve, summary, cover-letter (native)
+    # ------------------------------------------------------------------
+    async def improve_section(self, section: str, content: str, lang: str = "en"):
+        """Improve a section of text via AI."""
+        from reflex_app.reflex_app.ai_handler import improve_section as _improve
+        result = await _improve(section, content, lang=lang)
+        if not result.get("success"):
+            return rx.toast.error(result.get("error", "Improve failed"))
+        return result.get("content", "")
+
+    async def generate_summary(self, role: str = "", experience_years: int = 0, skills: list = None, lang: str = "en"):
+        """Generate a professional resume summary via AI."""
+        from reflex_app.reflex_app.ai_handler import generate_summary as _summary
+        result = await _summary(role or "", experience_years or 0, skills or [], lang=lang)
+        if not result.get("success"):
+            return rx.toast.error(result.get("error", "Summary generation failed"))
+        return result.get("summary", "")
+
+    async def generate_cover_letter(self, job_description: str = ""):
+        """Generate a cover letter via AI."""
+        from reflex_app.reflex_app.ai_handler import generate_cover_letter as _cl
+        data = self._build_resume_data_dict()
+        result = await _cl(data, job_description)
+        if not result.get("success"):
+            return rx.toast.error(result.get("error", "Cover letter generation failed"))
+        return result.get("content", "")
+
+    # ------------------------------------------------------------------
+    # ATS analysis (native — rule-based + optional AI)
+    # ------------------------------------------------------------------
+    async def analyze_ats(self, job_description: str = "", use_ai: bool = False):
+        """Analyze the resume for ATS compatibility.
+
+        Returns the ATS analysis result (score, grade, recommendations).
+        """
+        from reflex_app.reflex_app.ai_handler import analyze_ats as _ats
+        data = self._build_resume_data_dict()
+        result = await _ats(data, job_description, use_ai=use_ai)
+        if not result.get("success"):
+            return rx.toast.error(result.get("error", "ATS analysis failed"))
+        return result.get("data")
+
+    # ------------------------------------------------------------------
+    # Templates (native — delegates to template_service)
+    # ------------------------------------------------------------------
+    def load_templates_list(self):
+        """Load the templates list + count + categories into state."""
+        from reflex_app.reflex_app.export_handler import list_templates, get_template_count, list_categories
+        self.templates_list = list_templates()
+        self.template_count = get_template_count()
+        self.template_categories = list_categories()
+
+    def render_template(self) -> str:
+        """Render the current resume as HTML (for preview)."""
+        from reflex_app.reflex_app.export_handler import render_template_html
+        data = self._build_resume_data_dict()
+        return render_template_html(data, self.template_id)
+
+    # ------------------------------------------------------------------
+    # Sample resume (native — supports en/ar/bilingual)
+    # ------------------------------------------------------------------
+    def load_sample_by_lang(self, lang: str = "bilingual"):
+        """Load a sample resume for the requested language."""
+        from reflex_app.reflex_app.export_handler import get_sample_resume
+        data = get_sample_resume(lang)
+        self.set_resume_data(data)
+
+    # ------------------------------------------------------------------
+    # Normalize (native — cleans structured data)
+    # ------------------------------------------------------------------
+    def normalize_data(self):
+        """Normalize the current resume data in-place."""
+        from reflex_app.reflex_app.export_handler import normalize_resume
+        data = self._build_resume_data_dict()
+        normalized = normalize_resume(data)
+        self.set_resume_data(normalized)
+
+    # ------------------------------------------------------------------
+    # Settings / API key management (native)
+    # ------------------------------------------------------------------
+    def load_settings(self):
+        """Load all settings (providers, keys, links) into state."""
+        from reflex_app.reflex_app.settings_handler import get_settings, get_key_links
+        self.settings = get_settings()
+        self.key_links = get_key_links().get("links", {})
+
+    def add_api_key(self, provider: str, key: str):
+        """Add an API key for a provider."""
+        from reflex_app.reflex_app.settings_handler import add_api_key as _add
+        result = _add(provider, key)
+        if result.get("success"):
+            self.load_settings()  # refresh
+            return rx.toast.success(result.get("message", "Key added"))
+        return rx.toast.error(result.get("error", "Failed to add key"))
+
+    def delete_api_key(self, provider: str, index: int):
+        """Delete a file-stored API key by index."""
+        from reflex_app.reflex_app.settings_handler import delete_api_key as _del
+        result = _del(provider, index)
+        if result.get("success"):
+            self.load_settings()  # refresh
+            return rx.toast.success(result.get("message", "Key deleted"))
+        return rx.toast.error(result.get("error", "Failed to delete key"))
+
+    async def test_gemini_key(self, key: str):
+        """Test a Gemini API key with a real request to Google."""
+        from reflex_app.reflex_app.settings_handler import test_gemini_key as _test
+        result = await _test(key)
+        if result.get("success"):
+            return result  # caller shows success message
+        return result  # caller shows error based on error_type
+
+    def test_provider_configured(self, provider: str) -> bool:
+        """Check if a provider is configured."""
+        from reflex_app.reflex_app.settings_handler import test_provider_configured as _test
+        return _test(provider).get("configured", False)
