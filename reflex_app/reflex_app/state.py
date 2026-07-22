@@ -103,11 +103,16 @@ class ResumeState(rx.State):
     current_page: int = 1
 
     # ===== Advanced Controls Toggle (mobile UX) =====
-    # When False, the advanced control rows (font size, line height, margins,
-    # colors, template options, formatting) are collapsed to save screen space.
-    # The basic row (save, download PDF/Word, AI assistant, edit content) is
-    # always visible.
     show_advanced_controls: bool = False
+
+    # ===== UI Panel Toggles =====
+    show_input: bool = False        # Raw text input area
+    show_settings: bool = False     # API key settings panel
+    show_templates: bool = False    # Template selector panel
+
+    # ===== Undo/Redo History =====
+    _history: list = []
+    _history_index: int = -1
 
     # ===== Loading States =====
     is_generating: bool = False
@@ -324,14 +329,57 @@ class ResumeState(rx.State):
         self.margin = 10.0
 
     def toggle_advanced_controls(self):
-        """Toggle the visibility of the advanced control rows.
-
-        When collapsed (False), only the basic toolbar (save, download,
-        AI, edit) is visible — saves screen space on mobile. When expanded
-        (True), the font size, line height, margin, reset, and template
-        controls are also visible.
-        """
+        """Toggle the visibility of the advanced control rows."""
         self.show_advanced_controls = not self.show_advanced_controls
+
+    def toggle_input(self):
+        """Toggle the raw text input area."""
+        self.show_input = not self.show_input
+
+    def toggle_settings(self):
+        """Toggle the settings panel."""
+        if not self.show_settings:
+            self.load_settings()
+        self.show_settings = not self.show_settings
+
+    def toggle_templates(self):
+        """Toggle the template selector panel."""
+        if not self.show_templates:
+            self.load_templates_list()
+        self.show_templates = not self.show_templates
+
+    def set_raw_text(self, text: str):
+        """Set the raw resume text for AI parsing."""
+        self.raw_text = text
+
+    def undo(self):
+        """Undo the last state change."""
+        if self._history_index > 0:
+            self._history_index -= 1
+            self._restore_from_history()
+
+    def redo(self):
+        """Redo the next state change."""
+        if self._history_index < len(self._history) - 1:
+            self._history_index += 1
+            self._restore_from_history()
+
+    def _save_to_history(self):
+        """Save current resume data to history for undo/redo."""
+        snapshot = self._build_resume_data_dict()
+        # Truncate any forward history (we're at a new branch)
+        self._history = self._history[:self._history_index + 1]
+        self._history.append(snapshot)
+        self._history_index = len(self._history) - 1
+        # Cap history at 50 entries to prevent memory bloat
+        if len(self._history) > 50:
+            self._history = self._history[-50:]
+            self._history_index = len(self._history) - 1
+
+    def _restore_from_history(self):
+        """Restore resume data from history snapshot."""
+        if 0 <= self._history_index < len(self._history):
+            self.set_resume_data(self._history[self._history_index])
 
     # ------------------------------------------------------------------
     # AI Parsing + PDF/DOCX Export — NATIVE (no FastAPI, no httpx)
