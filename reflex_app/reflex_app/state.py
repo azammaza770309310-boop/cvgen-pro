@@ -64,6 +64,9 @@ class ResumeState(rx.State):
     location: str = ""
     linkedin: str = ""
 
+    # ===== Raw text input (for AI parsing) =====
+    raw_text: str = ""
+
     # ===== Summary =====
     summary_en: str = ""
     summary_ar: str = ""
@@ -305,102 +308,17 @@ class ResumeState(rx.State):
         self.show_advanced_controls = not self.show_advanced_controls
 
     # ------------------------------------------------------------------
-    # AI Parsing + PDF/DOCX Export — delegates to FastAPI backend
+    # AI Parsing + PDF/DOCX Export — NATIVE (no FastAPI, no httpx)
     # ------------------------------------------------------------------
-    # The Reflex UI is the frontend; the actual AI parsing (Gemini), PDF
-    # generation (WeasyPrint), and DOCX export live in the FastAPI app
-    # (app.main:app). Reflex state calls them via httpx on the internal
-    # API port (default 3001). This keeps the heavy dependencies
-    # (WeasyPrint, sentry-sdk, etc.) in one place and lets the Reflex
-    # frontend stay lightweight.
+    # The Reflex state calls the AI + export modules directly (in-process).
+    # app.ai.* and app.services.* are FastAPI-independent — they use httpx
+    # for outbound AI calls and WeasyPrint/python-docx for file generation.
+    # No second server, no inter-process communication, no port conflicts.
+    # Single Source of Truth: the logic lives in app/ and is shared.
 
-    def _api_base(self) -> str:
-        """Internal FastAPI base URL (server-side httpx call)."""
-        import os
-        api_port = os.environ.get("API_PORT", "3001")
-        return f"http://localhost:{api_port}"
-
-    async def parse_resume_ai(self, raw_text: str, provider: str = "", lang: str = "auto"):
-        """Call the FastAPI /api/ai/parse endpoint to parse raw resume text.
-
-        Updates the Reflex state with the parsed structured data.
-        Sets is_generating=True during the call for UI feedback.
-        """
-        import httpx
-        if not raw_text or not raw_text.strip():
-            return rx.toast.error("No text provided")
-        self.is_generating = True
-        try:
-            async with httpx.AsyncClient(timeout=120) as client:
-                resp = await client.post(
-                    f"{self._api_base()}/api/ai/parse",
-                    json={"text": raw_text, "provider": provider, "lang": lang},
-                )
-            data = resp.json()
-            if not data.get("success"):
-                self.is_generating = False
-                return rx.toast.error(data.get("error", "AI parse failed"))
-            self.set_resume_data(data["data"])
-            self.is_generating = False
-            return rx.toast.success("Resume parsed successfully")
-        except Exception as e:
-            self.is_generating = False
-            return rx.toast.error(f"AI parse error: {e}")
-
-    async def export_pdf(self):
-        """Call the FastAPI /api/export/pdf endpoint and trigger download.
-
-        Sends the current resume data + design controls so the PDF matches
-        the preview exactly.
-        """
-        import httpx
-        try:
-            controls = {
-                "fontSize": self.font_size,
-                "lineHeight": self.line_height,
-                "sectionSpacing": float(self.section_spacing),
-                "columnDistance": float(self.column_distance),
-                "margin": self.margin,
-            }
-            payload = self._build_export_payload(controls)
-            async with httpx.AsyncClient(timeout=120) as client:
-                resp = await client.post(
-                    f"{self._api_base()}/api/export/pdf",
-                    json=payload,
-                )
-            if resp.status_code != 200:
-                return rx.toast.error(f"PDF export failed: HTTP {resp.status_code}")
-            # Return the PDF as a download. Reflex handles binary downloads
-            # via rx.download with a data URL.
-            import base64
-            b64 = base64.b64encode(resp.content).decode()
-            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".pdf"
-            return rx.download(data=b64, filename=filename)
-        except Exception as e:
-            return rx.toast.error(f"PDF export error: {e}")
-
-    async def export_docx(self):
-        """Call the FastAPI /api/export/docx endpoint and trigger download."""
-        import httpx
-        try:
-            payload = self._build_export_payload()
-            async with httpx.AsyncClient(timeout=120) as client:
-                resp = await client.post(
-                    f"{self._api_base()}/api/export/docx",
-                    json=payload,
-                )
-            if resp.status_code != 200:
-                return rx.toast.error(f"DOCX export failed: HTTP {resp.status_code}")
-            import base64
-            b64 = base64.b64encode(resp.content).decode()
-            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".docx"
-            return rx.download(data=b64, filename=filename)
-        except Exception as e:
-            return rx.toast.error(f"DOCX export error: {e}")
-
-    def _build_export_payload(self, controls=None) -> dict:
-        """Build the JSON payload for the FastAPI export endpoints."""
-        data = {
+    def _build_resume_data_dict(self) -> dict:
+        """Build a resume data dict from the current state (for export)."""
+        return {
             "personal": {
                 "name_en": self.name_en,
                 "name_ar": self.name_ar,
@@ -418,12 +336,66 @@ class ResumeState(rx.State):
             "courses": self.courses,
             "languages": [l.model_dump() for l in self.languages],
         }
-        payload = {
-            "data": data,
-            "template_id": self.template_id,
-            "lang": "bilingual",
-            "filename": (self.name_en or self.name_ar or "resume"),
+
+    def _build_controls_dict(self) -> dict:
+        """Build the design controls dict from the current state."""
+        return {
+            "fontSize": self.font_size,
+            "lineHeight": self.line_height,
+            "sectionSpacing": float(self.section_spacing),
+            "columnDistance": float(self.column_distance),
+            "margin": self.margin,
         }
-        if controls:
-            payload["controls"] = controls
-        return payload
+
+    async def parse_resume_ai(self, raw_text: str = "", provider: str = "", lang: str = "auto"):
+        """Parse raw resume text using the cloud AI (Gemini).
+
+        Calls app.services.resume_parser.parse_resume_ai() directly
+        (in-process async). Updates the Reflex state with the parsed data.
+        """
+        from reflex_app.reflex_app.ai_handler import parse_resume
+
+        text = raw_text or self.raw_text or ""
+        if not text.strip():
+            return rx.toast.error("No text provided")
+
+        self.is_generating = True
+        result = await parse_resume(text, provider=provider, lang=lang)
+        self.is_generating = False
+
+        if not result.get("success"):
+            return rx.toast.error(result.get("error", "AI parse failed"))
+
+        self.set_resume_data(result["data"])
+        return rx.toast.success("Resume parsed successfully")
+
+    async def export_pdf(self):
+        """Generate a PDF natively (WeasyPrint) and trigger download.
+
+        Calls app.services.pdf_service.export_pdf() directly in-process.
+        Sends design controls so the PDF matches the preview exactly.
+        """
+        from reflex_app.reflex_app.export_handler import export_pdf as _export_pdf, to_data_url
+
+        try:
+            data = self._build_resume_data_dict()
+            controls = self._build_controls_dict()
+            pdf_bytes = _export_pdf(data, self.template_id, controls)
+            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".pdf"
+            dl = to_data_url(pdf_bytes, filename)
+            return rx.download(data=dl["data"], filename=dl["filename"])
+        except Exception as e:
+            return rx.toast.error(f"PDF export error: {e}")
+
+    async def export_docx(self):
+        """Generate a DOCX natively (python-docx) and trigger download."""
+        from reflex_app.reflex_app.export_handler import export_docx as _export_docx, to_data_url
+
+        try:
+            data = self._build_resume_data_dict()
+            docx_bytes = _export_docx(data, self.template_id)
+            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".docx"
+            dl = to_data_url(docx_bytes, filename)
+            return rx.download(data=dl["data"], filename=dl["filename"])
+        except Exception as e:
+            return rx.toast.error(f"DOCX export error: {e}")
