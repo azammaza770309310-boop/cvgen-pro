@@ -37,7 +37,5 @@ RUN reflex export --frontend-only
 EXPOSE 10000
 
 # Single-process production: Reflex ONLY.
-# REFLEX_API_URL="" forces same-origin in rxconfig.py (browser → same host → WebSocket works).
-# During Docker BUILD, REFLEX_API_URL is not set → defaults to http://localhost:PORT
-#   which is a valid absolute URL that SSR/prerender can resolve.
-CMD ["sh", "-c", "REFLEX_API_URL='' reflex run --env prod --backend-port ${PORT:-10000}"]
+# rxconfig.py detects the RENDER env var and uses https://cvgen-pro.onrender.com
+CMD ["sh", "-c", "reflex run --env prod --backend-port ${PORT:-10000}"]
