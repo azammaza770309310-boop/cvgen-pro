@@ -1,24 +1,25 @@
 # CVGen Pro — Python dependencies
-# Minimum version constraints prevent the Starlette/FastAPI version mismatch
-# that previously caused "TypeError: Router.__init__() got an unexpected
-# keyword argument 'on_startup'" in production.
-fastapi>=0.110
-starlette>=0.36
-uvicorn[standard]>=0.27
+#
+# Production runtime: Reflex only (no FastAPI server).
+# FastAPI/uvicorn/jinja2 are kept for test compatibility (properly skipped
+# via conftest.py collect_ignore when Starlette version is incompatible).
+# They are NOT imported by the Reflex production code.
+
+# --- Production dependencies (used by Reflex + handlers) ---
+reflex>=0.6.0
 pydantic>=2.5
 pydantic-settings>=2.1
-jinja2>=3.1
 weasyprint>=60
 python-docx>=1.1
 httpx>=0.26
-python-multipart>=0.0.7
-sentry-sdk[fastapi]>=1.40
-# PDF page-count (/api/export/page-count) uses pypdf to count rendered PDF pages.
-# WeasyPrint alone does not expose the final page count reliably, so pypdf reads
-# the rendered bytes. MUST be installed in production (not a transitive dep).
 pypdf>=4.0
-# Reflex — the production UI framework (compiles to React frontend).
-# The Reflex app lives in reflex_app/ and is the primary user-facing interface.
-# All AI/PDF/DOCX logic runs natively inside Reflex state handlers —
-# no separate FastAPI server is used in production.
-reflex>=0.6.0
+sentry-sdk[fastapi]>=1.40
+
+# --- Transitive dependencies (required by reflex, pinned for compatibility) ---
+starlette>=0.36
+python-multipart>=0.0.7
+
+# --- Test-only dependencies (NOT used by Reflex production) ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+jinja2>=3.1
