@@ -19,5 +19,6 @@ sentry-sdk[fastapi]>=1.40
 pypdf>=4.0
 # Reflex — the production UI framework (compiles to React frontend).
 # The Reflex app lives in reflex_app/ and is the primary user-facing interface.
-# FastAPI runs alongside it as the API backend (AI parsing, PDF/DOCX export).
+# All AI/PDF/DOCX logic runs natively inside Reflex state handlers —
+# no separate FastAPI server is used in production.
 reflex>=0.6.0

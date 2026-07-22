@@ -268,8 +268,10 @@ class ResumeState(rx.State):
         ]
         self._save_to_history()
 
-    def set_resume_data(self, data: dict):
+    def set_resume_data(self, data: dict = None):
         """Populate state from AI response dict."""
+        if data is None:
+            data = {}
         personal = data.get("personal", {})
         self.name_en = personal.get("name_en", "") or personal.get("name", "")
         self.name_ar = personal.get("name_ar", "") or personal.get("name", "")
@@ -442,6 +444,18 @@ class ResumeState(rx.State):
             "margin": self.margin,
         }
 
+    @staticmethod
+    def _safe_filename(name: str) -> str:
+        """Sanitize a string for use as a filename.
+
+        Removes path separators, null bytes, and other dangerous characters.
+        Prevents path traversal via crafted resume names.
+        """
+        import re
+        # Keep only alphanumeric, underscore, hyphen, and space
+        safe = re.sub(r'[^\w\s\-]', '', name or "resume").strip().replace(" ", "_")
+        return safe or "resume"
+
     async def parse_resume_ai(self):
         """Parse raw resume text using the cloud AI (Gemini).
 
@@ -476,11 +490,13 @@ class ResumeState(rx.State):
             data = self._build_resume_data_dict()
             controls = self._build_controls_dict()
             pdf_bytes = _export_pdf(data, self.template_id, controls)
-            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".pdf"
+            filename = self._safe_filename(self.name_en or self.name_ar or "resume") + ".pdf"
             dl = to_data_url(pdf_bytes, filename)
             return rx.download(data=dl["data"], filename=dl["filename"])
-        except Exception as e:
-            return rx.toast.error(f"PDF export error: {e}")
+        except Exception:
+            import logging
+            logging.getLogger("cvgen.reflex").exception("PDF export error")
+            return rx.toast.error("PDF export failed. Please try again.")
 
     async def export_docx(self):
         """Generate a DOCX natively (python-docx) and trigger download."""
@@ -489,11 +505,13 @@ class ResumeState(rx.State):
         try:
             data = self._build_resume_data_dict()
             docx_bytes = _export_docx(data, self.template_id)
-            filename = (self.name_en or self.name_ar or "resume").replace(" ", "_") + ".docx"
+            filename = self._safe_filename(self.name_en or self.name_ar or "resume") + ".docx"
             dl = to_data_url(docx_bytes, filename)
             return rx.download(data=dl["data"], filename=dl["filename"])
-        except Exception as e:
-            return rx.toast.error(f"DOCX export error: {e}")
+        except Exception:
+            import logging
+            logging.getLogger("cvgen.reflex").exception("DOCX export error")
+            return rx.toast.error("DOCX export failed. Please try again.")
 
     # ------------------------------------------------------------------
     # Page count (native — renders PDF + counts via pypdf)
