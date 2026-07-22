@@ -32,7 +32,7 @@ def resume_preview_bilingual() -> rx.Component:
     SAME HTML + CSS source — no divergence possible.
 
     The CSS (templates.css) is injected into the page by index() in __init__.py
-    via rx.style(_load_template_css()). Without that, the preview would be
+    via rx.html(<style>...</style>). Without that, the preview would be
     unstyled.
 
     Section order (official, from the reference PDF):

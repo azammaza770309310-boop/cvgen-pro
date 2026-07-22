@@ -111,9 +111,18 @@ class ResumeState(rx.State):
     show_settings: bool = False     # API key settings panel
     show_templates: bool = False    # Template selector panel
 
-    # ===== Undo/Redo History =====
-    _history: list = []
+    # ===== Undo/Redo History (per-session, NOT class-level mutable) =====
+    # In Reflex, each session gets its own State instance, so instance attributes
+    # are per-user. But class-level mutable defaults (list = []) are SHARED.
+    # We use None defaults and initialize in __init__ to guarantee per-session.
+    _history: list = None
     _history_index: int = -1
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize per-session history — NEVER shared across users
+        if self._history is None:
+            self._history = []
 
     # ===== Loading States =====
     is_generating: bool = False
@@ -180,10 +189,12 @@ class ResumeState(rx.State):
         try:
             data = self._build_resume_data_dict()
             return render_template_html(data, self.template_id)
-        except Exception as e:
-            # Return a minimal error message rather than crashing the preview.
-            # The user sees the error inline; the state remains valid.
-            return f'<div style="color:red;padding:20px;">Preview error: {e}</div>'
+        except Exception:
+            # Log the full error server-side; show a generic message to the user
+            # (no exception details leaked to the frontend — security).
+            import logging
+            logging.getLogger("cvgen.reflex").exception("preview_html error")
+            return '<div style="color:red;padding:20px;">Preview error. Please check your data and try again.</div>'
 
     # ------------------------------------------------------------------
     # Event Handlers
@@ -255,6 +266,7 @@ class ResumeState(rx.State):
             LanguageData(name="Arabic", level="Native"),
             LanguageData(name="English", level="Fluent"),
         ]
+        self._save_to_history()
 
     def set_resume_data(self, data: dict):
         """Populate state from AI response dict."""
@@ -302,6 +314,7 @@ class ResumeState(rx.State):
         self.technical_skills_ar = data.get("technical_skills_ar", []) or []
         self.courses = data.get("courses", [])
         self.languages = [LanguageData(name=l.get("name", ""), level=l.get("level", "")) for l in data.get("languages", [])]
+        self._save_to_history()
 
     def increase_font_size(self):
         if self.font_size < 14.0:
@@ -319,8 +332,11 @@ class ResumeState(rx.State):
         if self.margin > 1.0:
             self.margin = round(self.margin - 0.5, 2)
 
-    def set_template(self, template_id: str):
-        self.template_id = template_id
+    def set_template(self, template_id: str = ""):
+        """Set the active template. Accepts a string arg (via lambda closure)."""
+        if template_id:
+            self.template_id = template_id
+            self._save_to_history()
 
     def reset_controls(self):
         self.font_size = 9.0
@@ -349,8 +365,12 @@ class ResumeState(rx.State):
             self.load_templates_list()
         self.show_templates = not self.show_templates
 
-    def set_raw_text(self, text: str):
-        """Set the raw resume text for AI parsing."""
+    def set_raw_text(self, text: str = ""):
+        """Set the raw resume text for AI parsing.
+
+        Called by rx.text_area on_change. In Reflex 0.9.7, on_change passes
+        the text value directly (not an event object).
+        """
         self.raw_text = text
 
     def undo(self):
@@ -496,7 +516,7 @@ class ResumeState(rx.State):
     # ------------------------------------------------------------------
     # AI: improve, summary, cover-letter (native)
     # ------------------------------------------------------------------
-    async def improve_section(self, section: str, content: str, lang: str = "en"):
+    async def improve_section(self, section: str = "", content: str = "", lang: str = "en"):
         """Improve a section of text via AI."""
         from reflex_app.reflex_app.ai_handler import improve_section as _improve
         result = await _improve(section, content, lang=lang)
@@ -569,7 +589,7 @@ class ResumeState(rx.State):
         from reflex_app.reflex_app.export_handler import normalize_resume
         data = self._build_resume_data_dict()
         normalized = normalize_resume(data)
-        self.set_resume_data(normalized)
+        self.set_resume_data(normalized)  # set_resume_data calls _save_to_history
 
     # ------------------------------------------------------------------
     # Settings / API key management (native)
@@ -581,7 +601,7 @@ class ResumeState(rx.State):
         self.providers_list = self.settings.get("providers", [])
         self.key_links = get_key_links().get("links", {})
 
-    def add_api_key(self, provider: str, key: str):
+    def add_api_key(self, provider: str = "", key: str = ""):
         """Add an API key for a provider."""
         from reflex_app.reflex_app.settings_handler import add_api_key as _add
         result = _add(provider, key)
@@ -590,7 +610,7 @@ class ResumeState(rx.State):
             return rx.toast.success(result.get("message", "Key added"))
         return rx.toast.error(result.get("error", "Failed to add key"))
 
-    def delete_api_key(self, provider: str, index: int):
+    def delete_api_key(self, provider: str = "", index: int = 0):
         """Delete a file-stored API key by index."""
         from reflex_app.reflex_app.settings_handler import delete_api_key as _del
         result = _del(provider, index)
@@ -599,7 +619,7 @@ class ResumeState(rx.State):
             return rx.toast.success(result.get("message", "Key deleted"))
         return rx.toast.error(result.get("error", "Failed to delete key"))
 
-    async def test_gemini_key(self, key: str):
+    async def test_gemini_key(self, key: str = ""):
         """Test a Gemini API key with a real request to Google."""
         from reflex_app.reflex_app.settings_handler import test_gemini_key as _test
         result = await _test(key)
@@ -607,7 +627,7 @@ class ResumeState(rx.State):
             return result  # caller shows success message
         return result  # caller shows error based on error_type
 
-    def test_provider_configured(self, provider: str) -> bool:
+    def test_provider_configured(self, provider: str = "") -> bool:
         """Check if a provider is configured."""
         from reflex_app.reflex_app.settings_handler import test_provider_configured as _test
         return _test(provider).get("configured", False)
