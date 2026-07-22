@@ -486,14 +486,20 @@ button { font-family: inherit; }
 }
 .overflow-warning strong { color: #fff; font-weight: 700; }
 
-/* A4 page wrapper — internal dims preserved, visual scaling via transform */
+/* A4 page wrapper — internal dims preserved, visual scaling via transform.
+ * The .a4-wrap centers the page; .a4-scaler scales it to fit the container.
+ * padding ensures the page edges aren't clipped by the container. */
 .a4-wrap {
-  display: flex; justify-content: center;
-  padding: 0;
+  display: flex;
+  justify-content: center;
+  padding: 10px 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .a4-scaler {
   transform-origin: top center;
   /* scale set dynamically by JS based on container width */
+  display: inline-block;
 }
 .a4-page {
   width: 794px;
@@ -503,6 +509,7 @@ button { font-family: inherit; }
   margin: 0 auto;
   position: relative;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 /* Page 1 boundary */

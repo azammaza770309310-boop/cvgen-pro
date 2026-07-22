@@ -149,11 +149,11 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
     # Contact bar — NOT blue (reference PDF uses dark slate #364153)
     contact_parts = []
     if resume.personal.email:
-        contact_parts.append(f'<span class="contact-item">✉️ <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg> <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
     if resume.personal.phone:
-        contact_parts.append(f'<span class="contact-item">📞 <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
     if resume.personal.location:
-        contact_parts.append(f'<span class="contact-item">📍 <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
     if contact_parts:
         parts.append(f'<div class="contact-bar">{"  ".join(contact_parts)}</div>')
     parts.append('</header>')
@@ -240,11 +240,11 @@ def render_english_single_column(resume: ResumeData) -> str:
         parts.append(f'<h1 class="editable header-name-center" data-field="name_en" dir="ltr">{esc(name_en)}</h1>')
     contact_parts = []
     if resume.personal.email:
-        contact_parts.append(f'<span class="contact-item">✉️ <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg> <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
     if resume.personal.phone:
-        contact_parts.append(f'<span class="contact-item">📞 <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
     if resume.personal.location:
-        contact_parts.append(f'<span class="contact-item">📍 <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
     if contact_parts:
         parts.append(f'<div class="contact-bar contact-bar-center">{"  ".join(contact_parts)}</div>')
     parts.append('</header>')
@@ -285,11 +285,11 @@ def render_arabic_single_column(resume: ResumeData) -> str:
         parts.append(f'<h1 class="editable header-name-center" data-field="name_ar" dir="rtl">{esc(name_ar)}</h1>')
     contact_parts = []
     if resume.personal.email:
-        contact_parts.append(f'<span class="contact-item">✉️ <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg> <a href="mailto:{esc(resume.personal.email)}" class="contact-link editable" data-field="email" dir="ltr">{esc(resume.personal.email)}</a></span>')
     if resume.personal.phone:
-        contact_parts.append(f'<span class="contact-item">📞 <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <a href="tel:{esc(resume.personal.phone)}" class="contact-link editable" data-field="phone" dir="ltr">{esc(resume.personal.phone)}</a></span>')
     if resume.personal.location:
-        contact_parts.append(f'<span class="contact-item">📍 <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
+        contact_parts.append(f'<span class="contact-item"><svg class="contact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#364153" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> <span class="editable" data-field="location">{esc(resume.personal.location)}</span></span>')
     if contact_parts:
         parts.append(f'<div class="contact-bar contact-bar-center">{"  ".join(contact_parts)}</div>')
     parts.append('</header>')

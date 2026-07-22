@@ -703,10 +703,13 @@
     const area = $(".editor-preview-area");
     const scaler = $("#a4Scaler");
     if (!area || !scaler) return;
-    const availWidth = area.clientWidth - 40;
+    // Account for container padding (20px each side = 40px) + some breathing room
+    const availWidth = area.clientWidth - 60;
     const A4_WIDTH = 794;
     const scale = Math.min(1, availWidth / A4_WIDTH);
     scaler.style.transform = `scale(${scale})`;
+    scaler.style.transformOrigin = "top center";
+    scaler.style.width = A4_WIDTH + "px";
     scaler.style.height = (1123 * scale) + "px";
   }
 
