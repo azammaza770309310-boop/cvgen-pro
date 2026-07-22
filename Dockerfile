@@ -28,8 +28,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Compile the Reflex frontend at build time.
-# --no-interactive: skip prompts (required for Docker non-interactive builds).
-RUN reflex init --no-interactive
+# reflex init is NOT needed — rxconfig.py already exists in the repo.
+# reflex export compiles the React frontend from the existing app code.
 RUN reflex export --frontend-only
 
 # Render sets $PORT at runtime (typically 10000) — this is the PUBLIC port
