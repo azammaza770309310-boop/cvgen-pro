@@ -32,7 +32,7 @@ def _load_template_css() -> str:
     return ""
 
 
-def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = None) -> str:
+def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = None, controls=None) -> str:
     """Build the full HTML document for Chromium print-to-PDF.
 
     CRITICAL: <html> must ALWAYS be dir="ltr" for the official bilingual template.
@@ -40,6 +40,9 @@ def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = N
     tid = template_id or resume.template_id or "official_bilingual_master"
     body = render_template(tid, resume)
     css = _load_template_css()
+    # Inject design controls as CSS variables so PDF matches preview
+    from app.services.pdf_service import _build_design_vars_css
+    design_vars = _build_design_vars_css(controls)
     return f"""<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -48,6 +51,7 @@ def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = N
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 {css}
+{design_vars}
 {_CHROMIUM_CSS}
 </style>
 </head>
@@ -57,7 +61,7 @@ def render_html_for_chromium_pdf(resume: ResumeData, template_id: str | None = N
 </html>"""
 
 
-def export_pdf_chromium(resume_data: ResumeData | dict, template_id: str | None = None) -> bytes:
+def export_pdf_chromium(resume_data: ResumeData | dict, template_id: str | None = None, controls=None) -> bytes:
     """Generate a PDF using Chromium's print-to-PDF — exact parity with browser preview.
 
     Falls back to WeasyPrint if Playwright/Chromium is not available.
@@ -69,14 +73,14 @@ def export_pdf_chromium(resume_data: ResumeData | dict, template_id: str | None 
     if template_id:
         resume.template_id = template_id
 
-    html_doc = render_html_for_chromium_pdf(resume, resume.template_id)
+    html_doc = render_html_for_chromium_pdf(resume, resume.template_id, controls=controls)
 
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         logger.warning("Playwright not available — falling back to WeasyPrint")
         from app.services.pdf_service import export_pdf
-        return export_pdf(resume, template_id)
+        return export_pdf(resume, template_id, controls=controls)
 
     try:
         with sync_playwright() as p:
@@ -97,4 +101,4 @@ def export_pdf_chromium(resume_data: ResumeData | dict, template_id: str | None 
     except Exception as e:
         logger.warning("Chromium PDF failed (%s) — falling back to WeasyPrint", e)
         from app.services.pdf_service import export_pdf
-        return export_pdf(resume, template_id)
+        return export_pdf(resume, template_id, controls=controls)

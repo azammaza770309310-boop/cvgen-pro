@@ -718,7 +718,15 @@
       // Apply inline color edits to data before export
       captureInlineStyles();
       state.data.lang = state.displayLang;
-      const blob = await api("/api/export/pdf", { method: "POST", body: { data: state.data, template_id: state.templateId, lang: state.displayLang, filename: state.data.personal.name_en || state.data.personal.name || "resume" } });
+      // Send design controls so PDF matches preview exactly
+      const body = {
+        data: state.data,
+        template_id: state.templateId,
+        lang: state.displayLang,
+        filename: state.data.personal.name_en || state.data.personal.name || "resume",
+        controls: state.controls
+      };
+      const blob = await api("/api/export/pdf", { method: "POST", body: body });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".pdf", "application/pdf");
       toast("تم تنزيل PDF", "success");
     } catch (e) { toast("فشل PDF: " + e.message, "error"); }

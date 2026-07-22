@@ -41,9 +41,9 @@ async def export_pdf_route(req: ExportRequest, engine: str = Query("weasyprint",
 
         if engine == "chromium":
             from app.services.chromium_pdf_service import export_pdf_chromium
-            pdf_bytes = export_pdf_chromium(resume, req.template_id)
+            pdf_bytes = export_pdf_chromium(resume, req.template_id, controls=req.controls)
         else:
-            pdf_bytes = export_pdf(resume, req.template_id)
+            pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls)
 
         filename = _safe_filename(req.filename or resume.personal.name or "resume", "pdf")
         return Response(
@@ -92,9 +92,9 @@ async def get_page_count(req: ExportRequest, engine: str = Query("chromium", pat
         try:
             if engine == "chromium":
                 from app.services.chromium_pdf_service import export_pdf_chromium
-                pdf_bytes = export_pdf_chromium(resume, req.template_id)
+                pdf_bytes = export_pdf_chromium(resume, req.template_id, controls=req.controls)
             else:
-                pdf_bytes = export_pdf(resume, req.template_id)
+                pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls)
         except Exception as render_err:
             logger.exception("PDF rendering failed during page-count")
             raise HTTPException(
