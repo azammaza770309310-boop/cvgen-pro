@@ -37,5 +37,7 @@ RUN reflex export --frontend-only
 EXPOSE 10000
 
 # Single-process production: Reflex ONLY.
-# REFLEX_ENV=prod tells rxconfig.py to use same-origin api_url (empty string).
-CMD ["sh", "-c", "REFLEX_ENV=prod reflex run --env prod --backend-port ${PORT:-10000}"]
+# REFLEX_API_URL="" forces same-origin in rxconfig.py (browser → same host → WebSocket works).
+# During Docker BUILD, REFLEX_API_URL is not set → defaults to http://localhost:PORT
+#   which is a valid absolute URL that SSR/prerender can resolve.
+CMD ["sh", "-c", "REFLEX_API_URL='' reflex run --env prod --backend-port ${PORT:-10000}"]

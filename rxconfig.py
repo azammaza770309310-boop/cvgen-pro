@@ -13,19 +13,18 @@ import reflex as rx
 # Render sets $PORT at runtime. Default to 3002 for local dev.
 _port = os.environ.get("PORT", "3002")
 
-# In production (Render), the browser reaches the backend on the SAME origin.
-# api_url must be a URL the browser can reach. Using 0.0.0.0 breaks browser
-# WebSocket connections. In prod, use the public URL or empty string for
-# same-origin. In dev, use localhost.
-_is_prod = os.environ.get("REFLEX_ENV") == "prod" or os.environ.get("RENDER", "") != ""
-
-if _is_prod:
-    # Production: browser and backend share the same origin (Render proxy).
-    # Use empty string so Reflex uses relative URLs (same-origin).
-    _api_url = ""
-else:
-    # Dev: browser reaches backend via localhost.
-    _api_url = f"http://localhost:{_port}"
+# During Docker BUILD (reflex export), REFLEX_ENV is not set yet (it's only
+# set in CMD at runtime). So we need a URL that works for BOTH:
+#   1. Build time: SSR/prerender needs a valid absolute URL to resolve /_event
+#   2. Runtime: browser needs same-origin for WebSocket
+#
+# Solution: use a placeholder absolute URL during build, and override at
+# runtime via the REFLEX_API_URL environment variable.
+#
+# At Docker build time: api_url = http://localhost:3002 (valid absolute URL,
+#   SSR can resolve /_event without ERR_INVALID_URL)
+# At Render runtime: CMD sets REFLEX_API_URL to empty string → same-origin
+_api_url = os.environ.get("REFLEX_API_URL", f"http://localhost:{_port}")
 
 config = rx.Config(
     app_name="reflex_app",
