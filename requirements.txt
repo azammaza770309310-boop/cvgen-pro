@@ -17,3 +17,7 @@ sentry-sdk[fastapi]>=1.40
 # WeasyPrint alone does not expose the final page count reliably, so pypdf reads
 # the rendered bytes. MUST be installed in production (not a transitive dep).
 pypdf>=4.0
+# Reflex — the production UI framework (compiles to React frontend).
+# The Reflex app lives in reflex_app/ and is the primary user-facing interface.
+# FastAPI runs alongside it as the API backend (AI parsing, PDF/DOCX export).
+reflex>=0.6.0
