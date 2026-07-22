@@ -93,6 +93,13 @@ class ResumeState(rx.State):
     page_count: int = 1
     current_page: int = 1
 
+    # ===== Advanced Controls Toggle (mobile UX) =====
+    # When False, the advanced control rows (font size, line height, margins,
+    # colors, template options, formatting) are collapsed to save screen space.
+    # The basic row (save, download PDF/Word, AI assistant, edit content) is
+    # always visible.
+    show_advanced_controls: bool = False
+
     # ===== Loading States =====
     is_generating: bool = False
 
@@ -286,3 +293,13 @@ class ResumeState(rx.State):
         self.section_spacing = 6
         self.column_distance = 16
         self.margin = 10.0
+
+    def toggle_advanced_controls(self):
+        """Toggle the visibility of the advanced control rows.
+
+        When collapsed (False), only the basic toolbar (save, download,
+        AI, edit) is visible — saves screen space on mobile. When expanded
+        (True), the font size, line height, margin, reset, and template
+        controls are also visible.
+        """
+        self.show_advanced_controls = not self.show_advanced_controls
