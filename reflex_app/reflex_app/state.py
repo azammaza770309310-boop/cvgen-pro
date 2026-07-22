@@ -285,8 +285,11 @@ class ResumeState(rx.State):
 
         self.experience = []
         for exp in data.get("experience", []):
-            bullets_en = [BulletData(text=b) for b in (exp.get("bullets_en") or exp.get("bullets") or [])]
-            bullets_ar = [BulletData(text=b) for b in (exp.get("bullets_ar") or [])]
+            # Handle both string bullets and dict bullets (from model_dump)
+            raw_bullets_en = exp.get("bullets_en") or exp.get("bullets") or []
+            raw_bullets_ar = exp.get("bullets_ar") or []
+            bullets_en = [BulletData(text=b if isinstance(b, str) else b.get("text", "")) for b in raw_bullets_en]
+            bullets_ar = [BulletData(text=b if isinstance(b, str) else b.get("text", "")) for b in raw_bullets_ar]
             self.experience.append(ExperienceData(
                 title_en=exp.get("title_en", "") or exp.get("title", ""),
                 title_ar=exp.get("title_ar", "") or exp.get("title", ""),
@@ -316,6 +319,8 @@ class ResumeState(rx.State):
         self.technical_skills_ar = data.get("technical_skills_ar", []) or []
         self.courses = data.get("courses", [])
         self.languages = [LanguageData(name=l.get("name", ""), level=l.get("level", "")) for l in data.get("languages", [])]
+        if data.get("template_id"):
+            self.template_id = data["template_id"]
         self._save_to_history()
 
     def increase_font_size(self):
@@ -400,9 +405,64 @@ class ResumeState(rx.State):
             self._history_index = len(self._history) - 1
 
     def _restore_from_history(self):
-        """Restore resume data from history snapshot."""
+        """Restore resume data from history snapshot.
+
+        Does NOT call _save_to_history (that would create duplicate entries).
+        Only restores the data fields + template_id from the snapshot.
+        """
         if 0 <= self._history_index < len(self._history):
-            self.set_resume_data(self._history[self._history_index])
+            data = self._history[self._history_index]
+            # Restore fields directly without calling set_resume_data
+            # (which would call _save_to_history and corrupt the history)
+            personal = data.get("personal", {})
+            self.name_en = personal.get("name_en", "")
+            self.name_ar = personal.get("name_ar", "")
+            self.email = personal.get("email", "")
+            self.phone = personal.get("phone", "")
+            self.location = personal.get("location", "")
+            summary = data.get("summary", {})
+            self.summary_en = summary.get("en", "") if isinstance(summary, dict) else ""
+            self.summary_ar = summary.get("ar", "") if isinstance(summary, dict) else ""
+            
+            # Restore experience
+            self.experience = []
+            for exp in data.get("experience", []):
+                raw_bullets_en = exp.get("bullets_en") or exp.get("bullets") or []
+                raw_bullets_ar = exp.get("bullets_ar") or []
+                bullets_en = [BulletData(text=b if isinstance(b, str) else b.get("text", "")) for b in raw_bullets_en]
+                bullets_ar = [BulletData(text=b if isinstance(b, str) else b.get("text", "")) for b in raw_bullets_ar]
+                self.experience.append(ExperienceData(
+                    title_en=exp.get("title_en", ""),
+                    title_ar=exp.get("title_ar", ""),
+                    company_en=exp.get("company_en", ""),
+                    company_ar=exp.get("company_ar", ""),
+                    start_date=exp.get("start_date", ""),
+                    end_date=exp.get("end_date", ""),
+                    current=exp.get("current", False),
+                    bullets_en=bullets_en,
+                    bullets_ar=bullets_ar,
+                ))
+            
+            # Restore education
+            self.education = []
+            for edu in data.get("education", []):
+                self.education.append(EducationData(
+                    degree_en=edu.get("degree_en", ""),
+                    degree_ar=edu.get("degree_ar", ""),
+                    institution_en=edu.get("institution_en", ""),
+                    institution_ar=edu.get("institution_ar", ""),
+                    year=edu.get("year", ""),
+                    gpa=edu.get("gpa", ""),
+                ))
+            
+            self.skills_en = data.get("skills_en", [])
+            self.skills_ar = data.get("skills_ar", [])
+            self.technical_skills_en = data.get("technical_skills_en", [])
+            self.technical_skills_ar = data.get("technical_skills_ar", [])
+            self.courses = data.get("courses", [])
+            self.languages = [LanguageData(name=l.get("name", ""), level=l.get("level", "")) for l in data.get("languages", [])]
+            if data.get("template_id"):
+                self.template_id = data["template_id"]
 
     # ------------------------------------------------------------------
     # AI Parsing + PDF/DOCX Export — NATIVE (no FastAPI, no httpx)
@@ -414,7 +474,13 @@ class ResumeState(rx.State):
     # Single Source of Truth: the logic lives in app/ and is shared.
 
     def _build_resume_data_dict(self) -> dict:
-        """Build a resume data dict from the current state (for export)."""
+        """Build a resume data dict from the current state (for export).
+
+        CRITICAL: ExperienceData.bullets_en is List[BulletData] where BulletData
+        has a 'text' field. When serialized with model_dump(), bullets become
+        [{"text": "..."}]. But the normalizer expects bullets as List[str].
+        We must convert BulletData objects to plain strings here.
+        """
         return {
             "personal": {
                 "name_en": self.name_en,
@@ -424,14 +490,32 @@ class ResumeState(rx.State):
                 "location": self.location,
             },
             "summary": {"en": self.summary_en, "ar": self.summary_ar},
-            "experience": [e.model_dump() for e in self.experience],
-            "education": [e.model_dump() for e in self.education],
+            "experience": [{
+                "title_en": e.title_en,
+                "title_ar": e.title_ar,
+                "company_en": e.company_en,
+                "company_ar": e.company_ar,
+                "start_date": e.start_date,
+                "end_date": e.end_date,
+                "current": e.current,
+                "bullets_en": [b.text for b in e.bullets_en],
+                "bullets_ar": [b.text for b in e.bullets_ar],
+            } for e in self.experience],
+            "education": [{
+                "degree_en": e.degree_en,
+                "degree_ar": e.degree_ar,
+                "institution_en": e.institution_en,
+                "institution_ar": e.institution_ar,
+                "year": e.year,
+                "gpa": e.gpa,
+            } for e in self.education],
             "skills_en": self.skills_en,
             "skills_ar": self.skills_ar,
             "technical_skills_en": self.technical_skills_en,
             "technical_skills_ar": self.technical_skills_ar,
             "courses": self.courses,
-            "languages": [l.model_dump() for l in self.languages],
+            "languages": [{"name": l.name, "level": l.level} for l in self.languages],
+            "template_id": self.template_id,
         }
 
     def _build_controls_dict(self) -> dict:
