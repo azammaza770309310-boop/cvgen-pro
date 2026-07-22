@@ -99,6 +99,13 @@ class Settings(BaseSettings):
         keys: List[str] = []
         if primary_attr:
             val = getattr(self, primary_attr, "")
+            if val:
+                # Support comma-separated backup keys
+                for k in str(val).split(","):
+                    k = k.strip()
+                    if k:
+                        keys.append(k)
+        return keys
 
 
 @lru_cache
