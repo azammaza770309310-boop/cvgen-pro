@@ -5,24 +5,29 @@ Fixed UI: organized control panel with rx.grid, clean layout.
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 
 import reflex as rx
 from reflex_app.reflex_app.state import ResumeState
 from reflex_app.reflex_app.resume_preview import resume_preview_bilingual
 
 
-def _load_template_css() -> str:
-    """Load templates.css content for injection into the Reflex page.
+def _load_template_css_content() -> str:
+    """Load templates.css content for embedding in the page.
 
-    This is CRITICAL: the Reflex preview uses rx.html(preview_html) to render
-    the resume HTML. Without this CSS being loaded, the preview would be
-    completely unstyled. The CSS is injected via rx.style() in the page
-    component so it applies to the rx.html() content.
+    In Reflex 0.9.7, app.stylesheets doesn't reliably render custom CSS files
+    in the HTML output. Instead, we embed the CSS directly via rx.html() with
+    a <style> tag. This guarantees the CSS is loaded and applied to the
+    rx.html(preview_html) content.
     """
     css_path = Path(__file__).resolve().parent.parent.parent / "app" / "static" / "css" / "templates.css"
     if css_path.exists():
         return css_path.read_text(encoding="utf-8")
     return ""
+
+
+# Load CSS content at import time
+_template_css = _load_template_css_content()
 
 
 def index() -> rx.Component:
@@ -38,8 +43,11 @@ def index() -> rx.Component:
     paste their resume text for AI parsing.
     """
     return rx.box(
-        # ===== CRITICAL: Inject templates.css so rx.html() preview is styled =====
-        rx.style(_load_template_css()),
+        # ===== CRITICAL: Embed templates.css via <style> tag =====
+        # Reflex 0.9.7's app.stylesheets doesn't render custom CSS in the HTML.
+        # We embed it directly via rx.html() with a <style> tag so it applies
+        # to the rx.html(preview_html) content.
+        rx.html(f"<style>{_template_css}</style>"),
 
         # ===== TOOLBAR (dark, organized with grid) =====
         rx.vstack(
@@ -158,7 +166,7 @@ def index() -> rx.Component:
             rx.vstack(
                 rx.text("إعدادات API", color="white", font_weight="bold", font_size="16px"),
                 rx.foreach(
-                    ResumeState.settings["providers"],
+                    ResumeState.providers_list,
                     lambda p: rx.hstack(
                         rx.text(p["name"], color="white", font_size="13px"),
                         rx.text(f"({p['key_count']} مفاتيح)", color="#999", font_size="11px"),
@@ -222,18 +230,26 @@ app = rx.App()
 app.add_page(index, route="/")
 
 # Health check endpoint — required by Render's deployment health check.
-# Reflex's @app.api_route lets us add raw API endpoints alongside the UI.
-@app.api_route("/health", methods=["GET"])
-def health_check():
+# Reflex 0.9.7 doesn't have @app.api_route, so we add a raw Starlette Route
+# to the underlying ASGI application's route list.
+from starlette.routing import Route
+from starlette.responses import JSONResponse
+
+
+async def health_check(request):
     """Render health check endpoint.
 
     Returns a simple JSON 200 response so Render's port scanner confirms
-    the service is up. This replaces the FastAPI /health endpoint.
+    the service is up.
     """
-    from reflex import json_dumps
-    return {
+    return JSONResponse({
         "status": "ok",
         "app": "CVGen Pro",
         "version": "2.0.0",
         "runtime": "reflex",
-    }
+    })
+
+
+# Add the health route to the Reflex app's underlying Starlette application.
+# In Reflex 0.9.7, the internal ASGI app is accessible via app._api.
+app._api.routes.insert(0, Route("/health", health_check, methods=["GET"]))

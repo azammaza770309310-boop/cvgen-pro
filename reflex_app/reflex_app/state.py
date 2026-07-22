@@ -8,7 +8,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 import reflex as rx
-from typing import List
+from typing import Any, List
 
 
 # ---------------------------------------------------------------------------
@@ -88,8 +88,9 @@ class ResumeState(rx.State):
     template_categories: list[dict] = []
 
     # ===== Settings / API Key Management =====
-    settings: dict = {}
-    key_links: dict = {}
+    settings: dict[str, Any] = {}
+    key_links: dict[str, Any] = {}
+    providers_list: list[dict[str, Any]] = []  # Extracted for rx.foreach
 
     # ===== Editor Controls =====
     font_size: float = 9.0
@@ -421,20 +422,20 @@ class ResumeState(rx.State):
             "margin": self.margin,
         }
 
-    async def parse_resume_ai(self, raw_text: str = "", provider: str = "", lang: str = "auto"):
+    async def parse_resume_ai(self):
         """Parse raw resume text using the cloud AI (Gemini).
 
-        Calls app.services.resume_parser.parse_resume_ai() directly
-        (in-process async). Updates the Reflex state with the parsed data.
+        Reads raw_text from state (set by the text_area). Calls
+        app.services.resume_parser.parse_resume_ai() directly (in-process).
         """
         from reflex_app.reflex_app.ai_handler import parse_resume
 
-        text = raw_text or self.raw_text or ""
+        text = self.raw_text or ""
         if not text.strip():
             return rx.toast.error("No text provided")
 
         self.is_generating = True
-        result = await parse_resume(text, provider=provider, lang=lang)
+        result = await parse_resume(text)
         self.is_generating = False
 
         if not result.get("success"):
@@ -577,6 +578,7 @@ class ResumeState(rx.State):
         """Load all settings (providers, keys, links) into state."""
         from reflex_app.reflex_app.settings_handler import get_settings, get_key_links
         self.settings = get_settings()
+        self.providers_list = self.settings.get("providers", [])
         self.key_links = get_key_links().get("links", {})
 
     def add_api_key(self, provider: str, key: str):
