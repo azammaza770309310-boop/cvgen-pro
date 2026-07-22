@@ -57,6 +57,7 @@ def index() -> rx.Component:
                 rx.text("معاينة السيرة الذاتية", color="white", font_weight="bold", font_size="14px"),
                 rx.spacer(),
                 rx.button("القوالب", on_click=ResumeState.toggle_templates, variant="ghost", color="white", size="2"),
+                rx.button("🔑 مفاتيح API", on_click=ResumeState.toggle_api_keys, variant="ghost", color="white", size="2"),
                 rx.button("الإعدادات", on_click=ResumeState.toggle_settings, variant="ghost", color="white", size="2"),
                 rx.button("مساعد الذكاء ✨", on_click=ResumeState.toggle_input, variant="ghost", color="#fbbf24", size="2"),
                 rx.button("↶", on_click=ResumeState.undo, variant="ghost", color="white", size="2"),
@@ -212,6 +213,135 @@ def index() -> rx.Component:
                 bg="#1e1e1e",
                 border="1px solid #3d3d3d",
                 border_radius="8px",
+            ),
+            rx.box(),
+        ),
+
+        # ===== API KEYS MANAGEMENT PANEL (collapsible) =====
+        rx.cond(
+            ResumeState.show_api_keys,
+            rx.vstack(
+                rx.text("🔑 إدارة مفاتيح API", color="white", font_weight="bold", font_size="16px"),
+
+                # --- Provider list with status ---
+                rx.text("المزودون الحاليون:", color="#999", font_size="12px"),
+                rx.foreach(
+                    ResumeState.providers_list,
+                    lambda p: rx.hstack(
+                        rx.text(p["name"], color="white", font_size="13px", min_width="120px"),
+                        rx.text(f"({p['key_count']} مفاتيح)", color="#999", font_size="11px"),
+                        rx.cond(
+                            p["configured"],
+                            rx.text("✓ مفعّل", color="green", font_size="12px"),
+                            rx.text("✗ غير مفعّل", color="red", font_size="12px"),
+                        ),
+                        # Show masked keys
+                        rx.cond(
+                            p["key_count"] > 0,
+                            rx.foreach(
+                                p["keys"],
+                                lambda k: rx.hstack(
+                                    rx.text(k["masked"], color="#666", font_size="10px"),
+                                    rx.text(f"[{k['source']}]", color="#555", font_size="9px"),
+                                    rx.cond(
+                                        k["source"] == "file",
+                                        rx.button(
+                                            "🗑",
+                                            on_click=lambda prov=p["id"], idx=k["index"]: ResumeState.remove_api_key(prov, idx),
+                                            size="1",
+                                            bg="#3d1515",
+                                            color="#ff6666",
+                                        ),
+                                        rx.text(""),
+                                    ),
+                                    spacing="1",
+                                ),
+                            ),
+                            rx.text(""),
+                        ),
+                        spacing="2",
+                        width="100%",
+                        padding="4px 0",
+                        border_bottom="1px solid #333",
+                    ),
+                ),
+
+                # --- Add new key ---
+                rx.divider(border_color="#333"),
+                rx.text("➕ إضافة مفتاح جديد:", color="#fbbf24", font_weight="bold", font_size="13px"),
+                rx.hstack(
+                    rx.select(
+                        ["gemini", "openai", "anthropic", "openrouter", "groq", "deepseek", "mistral", "xai"],
+                        value=ResumeState.new_key_provider,
+                        on_change=ResumeState.set_new_key_provider,
+                        size="2",
+                        bg="#2d2d2d",
+                        color="white",
+                    ),
+                    rx.input(
+                        value=ResumeState.new_key_value,
+                        on_change=ResumeState.set_new_key_value,
+                        placeholder="ألصق المفتاح هنا...",
+                        type="password",
+                        size="2",
+                        bg="#2d2d2d",
+                        color="white",
+                        border="1px solid #555",
+                        flex="1",
+                    ),
+                    rx.button(
+                        "إضافة",
+                        on_click=ResumeState.add_new_api_key,
+                        bg="#f97316",
+                        color="white",
+                        size="2",
+                        font_weight="bold",
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+
+                # --- Test Gemini key ---
+                rx.divider(border_color="#333"),
+                rx.text("🔬 اختبار مفتاح Gemini:", color="#fbbf24", font_weight="bold", font_size="13px"),
+                rx.hstack(
+                    rx.input(
+                        value=ResumeState.test_key_value,
+                        on_change=ResumeState.set_test_key_value,
+                        placeholder="ألصق مفتاح Gemini للاختبار...",
+                        type="password",
+                        size="2",
+                        bg="#2d2d2d",
+                        color="white",
+                        border="1px solid #555",
+                        flex="1",
+                    ),
+                    rx.button(
+                        "اختبار",
+                        on_click=ResumeState.run_test_gemini_key,
+                        bg="#2563eb",
+                        color="white",
+                        size="2",
+                        font_weight="bold",
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+                rx.cond(
+                    ResumeState.test_key_result != "",
+                    rx.text(ResumeState.test_key_result, color="white", font_size="12px", padding="4px 8px"),
+                    rx.text(""),
+                ),
+
+                # --- Close button ---
+                rx.button("إغلاق", on_click=ResumeState.toggle_api_keys, variant="ghost", color="#999", size="2"),
+                width="100%",
+                max_width="550px",
+                padding="20px",
+                bg="#1e1e1e",
+                border="1px solid #3d3d3d",
+                border_radius="8px",
+                spacing="3",
             ),
             rx.box(),
         ),

@@ -110,6 +110,13 @@ class ResumeState(rx.State):
     show_input: bool = False        # Raw text input area
     show_settings: bool = False     # API key settings panel
     show_templates: bool = False    # Template selector panel
+    show_api_keys: bool = False     # API keys management panel
+
+    # ===== API Key Input Fields =====
+    new_key_provider: str = "gemini"
+    new_key_value: str = ""
+    test_key_value: str = ""
+    test_key_result: str = ""
 
     # ===== Undo/Redo History (per-session, NOT class-level mutable) =====
     # In Reflex, each session gets its own State instance, so instance attributes
@@ -371,6 +378,66 @@ class ResumeState(rx.State):
         if not self.show_templates:
             self.load_templates_list()
         self.show_templates = not self.show_templates
+
+    def toggle_api_keys(self):
+        """Toggle the API keys management panel."""
+        if not self.show_api_keys:
+            self.load_settings()
+        self.show_api_keys = not self.show_api_keys
+
+    def set_new_key_provider(self, provider: str = ""):
+        """Set the provider for the new key being added."""
+        self.new_key_provider = provider
+
+    def set_new_key_value(self, value: str = ""):
+        """Set the value of the new key being added."""
+        self.new_key_value = value
+
+    def set_test_key_value(self, value: str = ""):
+        """Set the value of the key being tested."""
+        self.test_key_value = value
+
+    def add_new_api_key(self):
+        """Add the API key from the input fields."""
+        if not self.new_key_provider or not self.new_key_value.strip():
+            return rx.toast.error("اختر مزود وأدخل المفتاح")
+        from reflex_app.reflex_app.settings_handler import add_api_key as _add
+        result = _add(self.new_key_provider, self.new_key_value.strip())
+        if result.get("success"):
+            self.new_key_value = ""  # clear input
+            self.load_settings()  # refresh
+            return rx.toast.success(result.get("message", "تمت إضافة المفتاح"))
+        return rx.toast.error(result.get("error", "فشل الإضافة"))
+
+    def remove_api_key(self, provider: str = "", index: int = 0):
+        """Delete an API key by provider and index."""
+        from reflex_app.reflex_app.settings_handler import delete_api_key as _del
+        result = _del(provider, index)
+        if result.get("success"):
+            self.load_settings()
+            return rx.toast.success(result.get("message", "تم حذف المفتاح"))
+        return rx.toast.error(result.get("error", "فشل الحذف"))
+
+    async def run_test_gemini_key(self):
+        """Test the Gemini key from the input field."""
+        if not self.test_key_value.strip():
+            return rx.toast.error("أدخل المفتاح أولاً")
+        from reflex_app.reflex_app.settings_handler import test_gemini_key as _test
+        result = await _test(self.test_key_value.strip())
+        if result.get("success"):
+            self.test_key_result = f"✅ {result.get('message', 'نجح الاتصال')}"
+            return rx.toast.success(result.get("message", "نجح الاختبار"))
+        else:
+            error_type = result.get("error_type", "unknown")
+            if error_type == "invalid_key":
+                self.test_key_result = "❌ المفتاح غير صالح"
+            elif error_type == "quota_exceeded":
+                self.test_key_result = "⚠️ المفتاح صحيح لكن انتهت الحصة"
+            elif error_type == "network_error":
+                self.test_key_result = "❌ خطأ في الشبكة"
+            else:
+                self.test_key_result = f"❌ {result.get('error', 'فشل')[:80]}"
+            return rx.toast.error(self.test_key_result)
 
     def set_raw_text(self, text: str = ""):
         """Set the raw resume text for AI parsing.
