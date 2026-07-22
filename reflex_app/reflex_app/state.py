@@ -92,6 +92,7 @@ class ResumeState(rx.State):
     key_links: dict[str, Any] = {}
     providers_list: list[dict[str, Any]] = []  # Extracted for rx.foreach
     provider_keys_list: list[dict[str, Any]] = []  # Flattened keys for rx.foreach
+    key_links_list: list[dict[str, Any]] = []  # Provider key links for rx.foreach
 
     # ===== Editor Controls =====
     font_size: float = 9.0
@@ -781,7 +782,13 @@ class ResumeState(rx.State):
                     "index": k.get("index", 0),
                 })
         self.provider_keys_list = flat_keys
-        self.key_links = get_key_links().get("links", {})
+        raw_links = get_key_links().get("links", {})
+        # Flatten links for rx.foreach
+        self.key_links_list = [
+            {"provider": k, "url": v.get("url", ""), "label": v.get("label", "")}
+            for k, v in raw_links.items()
+        ]
+        self.key_links = raw_links
 
     def add_api_key(self, provider: str = "", key: str = ""):
         """Add an API key for a provider."""

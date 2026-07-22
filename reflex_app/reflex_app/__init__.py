@@ -333,6 +333,26 @@ def index() -> rx.Component:
                     rx.text(""),
                 ),
 
+                # --- Key links (how to get API keys) ---
+                rx.divider(border_color="#333"),
+                rx.text("🔗 روابط الحصول على المفاتيح:", color="#fbbf24", font_weight="bold", font_size="13px"),
+                rx.foreach(
+                    ResumeState.key_links_list,
+                    lambda kl: rx.hstack(
+                        rx.text(kl["provider"], color="#ccc", font_size="11px", min_width="80px", text_transform="capitalize"),
+                        rx.link(
+                            kl["label"],
+                            href=kl["url"],
+                            color="#3b82f6",
+                            font_size="11px",
+                            is_external=True,
+                        ),
+                        spacing="2",
+                        width="100%",
+                        padding="2px 0",
+                    ),
+                ),
+
                 # --- Close button ---
                 rx.button("إغلاق", on_click=ResumeState.toggle_api_keys, variant="ghost", color="#999", size="2"),
                 width="100%",
