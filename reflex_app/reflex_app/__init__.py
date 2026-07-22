@@ -235,34 +235,34 @@ def index() -> rx.Component:
                             rx.text("✓ مفعّل", color="green", font_size="12px"),
                             rx.text("✗ غير مفعّل", color="red", font_size="12px"),
                         ),
-                        # Show masked keys
-                        rx.cond(
-                            p["key_count"] > 0,
-                            rx.foreach(
-                                p["keys"],
-                                lambda k: rx.hstack(
-                                    rx.text(k["masked"], color="#666", font_size="10px"),
-                                    rx.text(f"[{k['source']}]", color="#555", font_size="9px"),
-                                    rx.cond(
-                                        k["source"] == "file",
-                                        rx.button(
-                                            "🗑",
-                                            on_click=lambda prov=p["id"], idx=k["index"]: ResumeState.remove_api_key(prov, idx),
-                                            size="1",
-                                            bg="#3d1515",
-                                            color="#ff6666",
-                                        ),
-                                        rx.text(""),
-                                    ),
-                                    spacing="1",
-                                ),
-                            ),
-                            rx.text(""),
-                        ),
                         spacing="2",
                         width="100%",
                         padding="4px 0",
                         border_bottom="1px solid #333",
+                    ),
+                ),
+
+                # --- Key list (flattened for rx.foreach) ---
+                rx.text("المفاتيح المخزنة:", color="#999", font_size="12px"),
+                rx.foreach(
+                    ResumeState.provider_keys_list,
+                    lambda k: rx.hstack(
+                        rx.text(k["provider_name"], color="#ccc", font_size="11px", min_width="80px"),
+                        rx.text(k["masked"], color="#666", font_size="10px"),
+                        rx.text(f"[{k['source']}]", color="#555", font_size="9px"),
+                        rx.cond(
+                            k["source"] == "file",
+                            rx.button(
+                                "🗑",
+                                on_click=lambda prov=k["provider"], idx=k["index"]: ResumeState.remove_api_key(prov, idx),
+                                size="1",
+                                bg="#3d1515",
+                                color="#ff6666",
+                            ),
+                            rx.text("env", color="#555", font_size="9px"),
+                        ),
+                        spacing="2",
+                        width="100%",
                     ),
                 ),
 

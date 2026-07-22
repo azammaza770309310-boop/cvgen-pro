@@ -1,6 +1,6 @@
 FROM python:3.11-bookworm
 
-# WeasyPrint system dependencies + Arabic fonts + Node.js (for Reflex frontend compilation)
+# WeasyPrint system dependencies + Arabic fonts + Node.js 22 (for Reflex frontend compilation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpango-1.0-0 \
@@ -28,8 +28,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Compile the Reflex frontend at build time.
-# reflex init + reflex export must run from the project root (where rxconfig.py lives).
-RUN reflex init
+# --no-interactive: skip prompts (required for Docker non-interactive builds).
+RUN reflex init --no-interactive
 RUN reflex export --frontend-only
 
 # Render sets $PORT at runtime (typically 10000) — this is the PUBLIC port
@@ -37,6 +37,5 @@ RUN reflex export --frontend-only
 EXPOSE 10000
 
 # Single-process production: Reflex ONLY.
-# Runs from /app (project root) where rxconfig.py lives.
-# All AI/PDF/DOCX logic runs natively inside the Reflex state.
-CMD ["sh", "-c", "reflex run --env prod --backend-port ${PORT:-10000}"]
+# REFLEX_ENV=prod tells rxconfig.py to use same-origin api_url (empty string).
+CMD ["sh", "-c", "REFLEX_ENV=prod reflex run --env prod --backend-port ${PORT:-10000}"]

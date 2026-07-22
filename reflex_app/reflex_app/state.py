@@ -91,6 +91,7 @@ class ResumeState(rx.State):
     settings: dict[str, Any] = {}
     key_links: dict[str, Any] = {}
     providers_list: list[dict[str, Any]] = []  # Extracted for rx.foreach
+    provider_keys_list: list[dict[str, Any]] = []  # Flattened keys for rx.foreach
 
     # ===== Editor Controls =====
     font_size: float = 9.0
@@ -768,6 +769,18 @@ class ResumeState(rx.State):
         from reflex_app.reflex_app.settings_handler import get_settings, get_key_links
         self.settings = get_settings()
         self.providers_list = self.settings.get("providers", [])
+        # Flatten keys for rx.foreach (Reflex can't foreach over nested dict items)
+        flat_keys = []
+        for p in self.providers_list:
+            for k in p.get("keys", []):
+                flat_keys.append({
+                    "provider": p["id"],
+                    "provider_name": p["name"],
+                    "masked": k.get("masked", ""),
+                    "source": k.get("source", ""),
+                    "index": k.get("index", 0),
+                })
+        self.provider_keys_list = flat_keys
         self.key_links = get_key_links().get("links", {})
 
     def add_api_key(self, provider: str = "", key: str = ""):
