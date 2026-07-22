@@ -296,26 +296,29 @@
   }
 
   function applyDesignVars() {
-    // STRUCTURAL typography (name, headings, contact, dates) is FIXED in CSS
-    // via --cv-name-size, --cv-heading-size, --cv-contact-size, --cv-date-size.
-    // Only BODY TEXT (p, li, .item) is adjustable via --cv-body-size.
-    // We NEVER set el.style.fontSize inline — that would override the fixed
-    // structural CSS and cause Preview ≠ PDF mismatch.
+    // Apply CSS variables AND inline styles so font size + margin are VISIBLE.
+    // The old UI applied fontSize to ALL elements — this restores that behavior.
     const targets = [$("#a4Page"), $("#a4Content"), $(".a4-page")];
     targets.forEach(el => {
       if (!el) return;
-      // Only set the body-size variable — CSS uses this for p, li, .item only
+      // Set CSS variables (used by templates.css)
       el.style.setProperty("--cv-body-size", state.controls.fontSize + "pt");
       el.style.setProperty("--cv-body-line-height", state.controls.lineHeight);
       el.style.setProperty("--cv-section-spacing", state.controls.sectionSpacing + "pt");
       el.style.setProperty("--cv-column-gap", state.controls.columnDistance + "pt");
       el.style.setProperty("--cv-page-padding", state.controls.margin + "mm");
-      // Do NOT set global fontSize/lineHeight inline — they override structural CSS
+      // Apply font size and line height DIRECTLY for immediate visual effect
+      el.style.fontSize = state.controls.fontSize + "pt";
+      el.style.lineHeight = state.controls.lineHeight;
     });
-    // Apply font family only (does not affect sizes)
+    // Apply font family + font size to ALL children for visible effect
     const content = $("#a4Content");
     if (content) {
       content.style.fontFamily = state.font + ", sans-serif";
+      content.querySelectorAll(".a4-page, .section-row, .section-body, .body-en, .body-ar, .section-headings, .section-heading-en, .section-heading-ar, p, li, h1, h2, .item, .item-title, .contact-bar, .contact-item, .editable").forEach(el => {
+        el.style.fontSize = state.controls.fontSize + "pt";
+        el.style.lineHeight = state.controls.lineHeight;
+      });
     }
   }
 

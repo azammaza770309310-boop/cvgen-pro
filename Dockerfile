@@ -1,6 +1,7 @@
 FROM python:3.11-bookworm
 
-# WeasyPrint system dependencies + Arabic fonts + Node.js 22 (for Reflex frontend compilation)
+# WeasyPrint system dependencies + Arabic fonts
+# (No Node.js / bun needed — FastAPI serves its own Jinja2 + static frontend)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpango-1.0-0 \
@@ -14,12 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-kacst \
     fonts-hosny-amiri \
     curl \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
-
-# Install bun (Reflex uses bun for frontend compilation)
-RUN npm install -g bun
 
 WORKDIR /app
 COPY requirements.txt .
@@ -27,15 +23,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Compile the Reflex frontend at build time.
-# reflex init is NOT needed — rxconfig.py already exists in the repo.
-# reflex export compiles the React frontend from the existing app code.
-RUN reflex export --frontend-only
-
-# Render sets $PORT at runtime (typically 10000) — this is the PUBLIC port
-# that Render's health check scans. Reflex binds to it.
+# Render sets $PORT at runtime (typically 10000).
+# We bind 0.0.0.0 so Render's port scan can detect the open port.
 EXPOSE 10000
 
-# Single-process production: Reflex ONLY.
-# rxconfig.py detects the RENDER env var and uses https://cvgen-pro.onrender.com
-CMD ["sh", "-c", "reflex run --env prod --backend-port ${PORT:-10000}"]
+# Run the FastAPI app directly with uvicorn.
+# (Replaces the broken `reflex run --env prod` which produced a blank page.)
+CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"
