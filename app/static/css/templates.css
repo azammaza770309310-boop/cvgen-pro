@@ -33,19 +33,21 @@
   --cv-tertiary: #4A5565;
   --cv-bg: #FFFFFF;
 
-  /* Fixed font sizes — measured from the reference PDF (scaled to A4).
-   * These are NOT affected by any global font-size control.
-   * Name reduced to 16pt so long names fit on one line.
-   * Arabic name slightly larger (18pt) to visually balance with English
-   * since Latin characters are wider than Arabic script. */
-  --cv-name-size: 16pt;        /* English name — fits one line */
-  --cv-name-size-ar: 18pt;     /* Arabic name — slightly larger to balance EN width */
-  --cv-contact-size: 9pt;      /* Contact bar */
-  --cv-heading-size: 11.5pt;   /* Section headings */
-  --cv-body-size: 11pt;        /* Body text (adjustable via slider) */
-  --cv-date-size: 9pt;         /* Dates */
-  --cv-divider-thick: 1.5pt;   /* Divider thickness */
-  --cv-contact-link: #1a5276;  /* Blue links per user request */
+  /* Fixed font sizes — Arabic fonts render smaller than Latin at the same
+   * point size. To achieve visual parity, Arabic sizes are ~15% larger.
+   * These are NOT affected by any global font-size control. */
+  --cv-name-size: 16pt;          /* English name */
+  --cv-name-size-ar: 18.5pt;     /* Arabic name — +15% for visual parity */
+  --cv-contact-size: 9pt;        /* English contact */
+  --cv-contact-size-ar: 10.5pt;  /* Arabic contact — +15% */
+  --cv-heading-size: 11.5pt;     /* English headings */
+  --cv-heading-size-ar: 13pt;    /* Arabic headings — +13% */
+  --cv-body-size: 11pt;          /* English body (adjustable via slider) */
+  --cv-body-size-ar: 12.5pt;     /* Arabic body — +13% for visual parity */
+  --cv-date-size: 9pt;           /* English dates */
+  --cv-date-size-ar: 10pt;       /* Arabic dates — +11% */
+  --cv-divider-thick: 1.5pt;     /* Divider thickness */
+  --cv-contact-link: #1a5276;    /* Blue links per user request */
 
   /* Adjustable layout variables — set by app.js applyDesignVars().
    * Only affect body text + layout spacing, NOT structural typography. */
@@ -152,15 +154,12 @@
   flex-shrink: 0;
 }
 
-/* ===== Header divider (full content width, solid black) ===== */
+/* ===== Header divider — REMOVED per user request =====
+ * The black horizontal line under contact info was unwanted.
+ * It is now hidden. Section dividers below headings are kept.
+ */
 .header-divider {
-  border: none;
-  border-top: var(--cv-divider-thick) solid var(--cv-black);
-  width: 100%;
-  height: 0;
-  margin: 0 0 3mm 0;
-  padding: 0;
-  display: block;
+  display: none;
 }
 
 /* ===== Section row layout =====
@@ -190,8 +189,8 @@
 }
 .section-heading-ar {
   grid-column: 2;
-  font-size: var(--cv-heading-size);
-  font-weight: 700;  /* bolder to balance Latin uppercase weight */
+  font-size: var(--cv-heading-size-ar);
+  font-weight: 700;
   color: var(--cv-black);
   font-family: Tahoma, "Amiri", "Cairo", Arial, sans-serif;
   text-align: right;
@@ -227,9 +226,17 @@
   text-align: right;
   direction: rtl;
   font-family: Tahoma, "Amiri", "Cairo", Arial, sans-serif;
-  /* Arabic font-weight bumped to 700 to visually balance Latin bold weight.
-   * Arabic glyphs are lighter by default; this equalizes the visual mass. */
   font-weight: 500;
+}
+
+/* Arabic body text uses larger size for visual parity with Latin */
+.body-ar p,
+.body-ar .item,
+.body-ar li {
+  font-size: var(--cv-body-size-ar) !important;
+}
+.body-ar .item-title {
+  font-size: var(--cv-body-size-ar) !important;
 }
 
 /* ===== Body text ===== */

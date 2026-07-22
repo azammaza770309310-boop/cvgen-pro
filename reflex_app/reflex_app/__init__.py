@@ -49,25 +49,26 @@ def index() -> rx.Component:
         # to the rx.html(preview_html) content.
         rx.html(f"<style>{_template_css}</style>"),
 
-        # ===== TOOLBAR (dark, organized with grid) =====
+        # ===== TOOLBAR (dark, responsive) =====
         rx.vstack(
-            # Row 1: BASIC navigation bar — ALWAYS VISIBLE
+            # Row 1: BASIC navigation bar — ALWAYS VISIBLE, wraps on mobile
             rx.flex(
                 rx.button("✕", on_click=rx.redirect("/"), color_scheme="red", size="2"),
                 rx.text("معاينة السيرة الذاتية", color="white", font_weight="bold", font_size="14px"),
                 rx.spacer(),
                 rx.button("القوالب", on_click=ResumeState.toggle_templates, variant="ghost", color="white", size="2"),
-                rx.button("🔑 مفاتيح API", on_click=ResumeState.toggle_api_keys, variant="ghost", color="white", size="2"),
-                rx.button("الإعدادات", on_click=ResumeState.toggle_settings, variant="ghost", color="white", size="2"),
-                rx.button("مساعد الذكاء ✨", on_click=ResumeState.toggle_input, variant="ghost", color="#fbbf24", size="2"),
+                rx.button("🔑 API", on_click=ResumeState.toggle_api_keys, variant="ghost", color="white", size="2"),
+                rx.button("⚙️", on_click=ResumeState.toggle_settings, variant="ghost", color="white", size="2"),
+                rx.button("✨ AI", on_click=ResumeState.toggle_input, variant="ghost", color="#fbbf24", size="2"),
                 rx.button("↶", on_click=ResumeState.undo, variant="ghost", color="white", size="2"),
                 rx.button("↷", on_click=ResumeState.redo, variant="ghost", color="white", size="2"),
-                rx.button("💾 Word", on_click=ResumeState.export_docx, variant="ghost", color="white", size="2"),
-                rx.button("تنزيل PDF", on_click=ResumeState.export_pdf, bg="#f97316", color="white", size="2", font_weight="bold"),
+                rx.button("Word", on_click=ResumeState.export_docx, variant="ghost", color="white", size="2"),
+                rx.button("PDF", on_click=ResumeState.export_pdf, bg="#f97316", color="white", size="2", font_weight="bold"),
                 width="100%",
                 align_items="center",
-                gap="6px",
-                padding="8px 16px",
+                gap="4px",
+                padding="8px 12px",
+                flex_wrap="wrap",
             ),
             # Row 2: Toggle button for advanced controls — ALWAYS VISIBLE
             rx.flex(
