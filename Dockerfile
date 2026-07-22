@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-kacst \
     fonts-hosny-amiri \
     curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,10 +29,8 @@ COPY . .
 
 # Compile the Reflex frontend at build time.
 # reflex init + reflex export must run from the project root (where rxconfig.py lives).
-# --frontend-only: only build the React frontend, not the backend.
-# --no-prerender: skip SSR (avoids /_event URL parse errors during export).
-RUN reflex init || true
-RUN reflex export --frontend-only --no-prerender || reflex export --frontend-only || true
+RUN reflex init
+RUN reflex export --frontend-only
 
 # Render sets $PORT at runtime (typically 10000) — this is the PUBLIC port
 # that Render's health check scans. Reflex binds to it.
