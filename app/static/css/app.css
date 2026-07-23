@@ -486,20 +486,22 @@ button { font-family: inherit; }
 }
 .overflow-warning strong { color: #fff; font-weight: 700; }
 
-/* A4 page wrapper — internal dims preserved, visual scaling via transform.
- * The .a4-wrap centers the page; .a4-scaler scales it to fit the container.
- * padding ensures the page edges aren't clipped by the container. */
+/* A4 page wrapper — centers the page, scales to fit container.
+ * FIX: left-side cropping was caused by overflow + insufficient padding. */
 .a4-wrap {
   display: flex;
   justify-content: center;
-  padding: 10px 20px;
+  align-items: flex-start;
+  padding: 20px 10px;
   width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .a4-scaler {
   transform-origin: top center;
-  /* scale set dynamically by JS based on container width */
   display: inline-block;
+  flex-shrink: 0;
 }
 .a4-page {
   width: 794px;
@@ -956,4 +958,146 @@ button { font-family: inherit; }
   .tb-btn { padding: 6px 10px; font-size: 12px; min-height: 32px; }
   .tb-select { padding: 4px 8px; font-size: 11px; }
   .tb-title { font-size: 12px; }
+}
+
+/* ===== PAGE FILL INDICATOR ===== */
+.page-fill-bar {
+  background: #1e1e1e;
+  padding: 8px 16px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: center;
+}
+.page-fill-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #999;
+  width: 100%;
+  max-width: 600px;
+}
+.page-fill-track {
+  flex: 1;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.page-fill-progress {
+  display: block;
+  height: 100%;
+  background: #22c55e;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+#pageFillText { font-weight: bold; min-width: 40px; text-align: left; }
+
+/* ===== ENLARGED TOOLBAR BUTTONS ===== */
+.tb-btn {
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  transition: background 0.15s;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.1); }
+.tb-btn-orange {
+  background: #f97316;
+  font-weight: bold;
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 15px;
+}
+.tb-btn-orange:hover { background: #ea670c; }
+.tb-btn-gold { color: #fbbf24; }
+.tb-btn-danger { color: #ef4444; }
+.tb-btn-reset { color: #fbbf24; border: 1px solid #f59e0b; }
+
+/* ===== RESPONSIVE TOOLBAR ===== */
+.tb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tb-row-nav { gap: 6px; }
+.tb-row-controls { gap: 12px; }
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 768px) {
+  .tb-row-nav {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tb-btn {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .tb-btn-orange {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  .editor-preview-area {
+    padding: 8px;
+  }
+  .a4-wrap {
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tb-row-nav {
+    gap: 2px;
+  }
+  .tb-btn {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .tb-btn-orange {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .editor-toolbar {
+    padding: 4px 8px;
+  }
+  .page-fill-info {
+    font-size: 10px;
+    gap: 8px;
+  }
+}
+
+/* ===== ADD SECTION BUTTON ===== */
+.add-section-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #2d2d2d;
+  border: 2px dashed #555;
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.add-section-btn:hover {
+  border-color: #fbbf24;
+  background: #333;
 }

@@ -339,6 +339,7 @@
       attachInlineEditors();
       await sleep(50);
       updatePageCount();
+      fitA4ToContainer(); // re-scale + update page fill
     } catch (e) { console.error("preview error", e); }
   }
 
@@ -706,14 +707,41 @@
     const area = $(".editor-preview-area");
     const scaler = $("#a4Scaler");
     if (!area || !scaler) return;
-    // Account for container padding (20px each side = 40px) + some breathing room
-    const availWidth = area.clientWidth - 60;
+    // Use most of the available width, keeping small margins for shadow
+    const availWidth = area.clientWidth - 40;
     const A4_WIDTH = 794;
     const scale = Math.min(1, availWidth / A4_WIDTH);
     scaler.style.transform = `scale(${scale})`;
     scaler.style.transformOrigin = "top center";
     scaler.style.width = A4_WIDTH + "px";
-    scaler.style.height = (1123 * scale) + "px";
+    // Set scaler height to scaled A4 height so container scrolls correctly
+    const a4Page = $(".a4-page");
+    const a4Height = a4Page ? a4Page.scrollHeight : 1123;
+    scaler.style.height = (a4Height * scale) + "px";
+    updatePageFill();
+  }
+
+  // ---------------- Page Fill Indicator ----------------
+  function updatePageFill() {
+    const a4Page = $(".a4-page");
+    const fillBar = $("#pageFillBar");
+    const fillText = $("#pageFillText");
+    const pageInfo = $("#pageInfoText");
+    if (!a4Page || !fillBar) return;
+    const contentHeight = a4Page.scrollHeight;
+    const pageHeight = 1123; // A4 at 96dpi
+    const pct = Math.min(100, Math.round((contentHeight / pageHeight) * 100));
+    const pages = Math.max(1, Math.ceil(contentHeight / pageHeight));
+    fillBar.style.width = pct + "%";
+    if (pct > 90) {
+      fillBar.style.background = "#ef4444";
+    } else if (pct > 75) {
+      fillBar.style.background = "#f59e0b";
+    } else {
+      fillBar.style.background = "#22c55e";
+    }
+    if (fillText) fillText.textContent = pct + "%";
+    if (pageInfo) pageInfo.textContent = `صفحة 1 من ${pages}`;
   }
 
   // ---------------- Export ----------------

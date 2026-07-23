@@ -6,7 +6,7 @@
 <title>{{ app_name }} — منشئ السير الذاتية بالذكاء الاصطناعي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/templates.css">
 </head>
@@ -96,7 +96,7 @@
   <!-- ============ EDITOR TOOLBAR (dark, RTL, 7 rows) ============ -->
   <div class="editor-toolbar" id="editorToolbar" dir="rtl">
 
-    <!-- ===== ROW 1: Nav bar ===== -->
+    <!-- ===== ROW 1: Nav bar (enlarged buttons, no Word button) ===== -->
     <div class="tb-row tb-row-nav">
       <div class="tb-right">
         <button class="tb-btn tb-btn-danger" id="btnCloseEditor" aria-label="إغلاق">✕</button>
@@ -104,19 +104,18 @@
       </div>
       <div class="tb-center">
         <button class="tb-btn" data-tab="templates">القوالب</button>
-        <button class="tb-btn" data-tab="colors">الألوان</button>
-        <button class="tb-btn" data-tab="content">تعديل المحتوى</button>
         <button class="tb-btn tb-btn-gold" data-tab="ai">مساعد الذكاء ✨</button>
         <button class="tb-btn" id="btnUndo" title="تراجع">↶</button>
         <button class="tb-btn" id="btnRedo" title="إعادة">↷</button>
-        <button class="tb-btn" id="btnSave" title="حفظ">💾 حفظ</button>
+        <button class="tb-btn" id="btnSettings" title="إعدادات API">⚙ الإعدادات</button>
+        <button class="tb-btn" id="btnDocx" title="تنزيل Word" style="display:none">💾 Word</button>
       </div>
       <div class="tb-left">
         <button class="tb-btn tb-btn-orange" id="btnPdf">تنزيل PDF</button>
       </div>
     </div>
 
-    <!-- ===== ROW 2: Steppers (font size, line height, section spacing) ===== -->
+    <!-- ===== ROW 2: Design controls (font size, margins, reset) ===== -->
     <div class="tb-row tb-row-controls">
       <div class="tb-control-group">
         <label class="tb-label">حجم الخط</label>
@@ -135,26 +134,6 @@
         </div>
       </div>
       <div class="tb-control-group">
-        <label class="tb-label">تباعد الأقسام</label>
-        <div class="stepper-mini" data-control="sectionSpacing">
-          <button class="s-btn s-minus" aria-label="تقليل">−</button>
-          <span class="s-value">6</span>
-          <button class="s-btn s-plus" aria-label="زيادة">+</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== ROW 3: Column distance, margins, heading align, reset ===== -->
-    <div class="tb-row tb-row-controls">
-      <div class="tb-control-group">
-        <label class="tb-label">بُعد العمودين</label>
-        <div class="stepper-mini" data-control="columnDistance">
-          <button class="s-btn s-minus" aria-label="تقليل">−</button>
-          <span class="s-value">16</span>
-          <button class="s-btn s-plus" aria-label="زيادة">+</button>
-        </div>
-      </div>
-      <div class="tb-control-group">
         <label class="tb-label">الهوامش</label>
         <div class="stepper-mini" data-control="margin">
           <button class="s-btn s-minus" aria-label="تقليل">−</button>
@@ -163,162 +142,24 @@
         </div>
       </div>
       <div class="tb-control-group">
-        <label class="tb-label">محاذاة العناوين</label>
-        <select class="tb-select" id="selHeadingAlign">
-          <option value="default">حسب القالب</option>
-          <option value="left">يسار</option>
-          <option value="center">وسط</option>
-          <option value="right">يمين</option>
+        <label class="tb-label">خط السيرة</label>
+        <select class="tb-select" id="fontSelect">
+          <option value="Cairo">القاهرة • Cairo</option>
+          <option value="Tajawal">تجوال • Tajawal</option>
+          <option value="Amiri">أميري • Amiri</option>
+          <option value="Noto Kufi Arabic">نوتو كوفي</option>
+          <option value="Noto Sans Arabic">نوتو نسخ</option>
+          <option value="IBM Plex Sans Arabic">IBM Plex عربي</option>
+          <option value="Inter">Inter</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Open Sans">Open Sans</option>
+          <option value="Lato">Lato</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Source Sans 3">Source Sans 3</option>
         </select>
       </div>
       <div class="tb-spacer"></div>
       <button class="tb-btn tb-btn-reset" id="btnResetAll" title="إعادة ضبط">↺ إعادة ضبط</button>
-    </div>
-
-    <!-- ===== ROW 4: Quick options ===== -->
-    <div class="tb-row tb-row-controls">
-      <div class="tb-control-group">
-        <label class="tb-label">محاذاة الاسم</label>
-        <select class="tb-select" id="selNameAlign">
-          <option value="default">حسب القالب</option>
-          <option value="left">يسار</option>
-          <option value="center">وسط</option>
-          <option value="right">يمين</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">الاسم</label>
-        <select class="tb-select" id="selNameMode">
-          <option value="bilingual">ثنائي</option>
-          <option value="en">إنجليزي فقط</option>
-          <option value="ar">عربي فقط</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">محاذاة البيانات</label>
-        <select class="tb-select" id="selDataAlign">
-          <option value="default">حسب القالب</option>
-          <option value="left">يسار</option>
-          <option value="center">وسط</option>
-          <option value="right">يمين</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">البيانات</label>
-        <select class="tb-select" id="selDataMode">
-          <option value="default">حسب القالب</option>
-          <option value="center">وسط</option>
-          <option value="left">يسار</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">لون الزينة</label>
-        <select class="tb-select" id="selAccentColor">
-          <option value="default">حسب القالب</option>
-          <option value="#2c3e50">كحلي</option>
-          <option value="#000000">أسود</option>
-          <option value="#1a5276">أزرق داكن</option>
-          <option value="#7d3c98">بنفسجي</option>
-          <option value="#196f3d">أخضر</option>
-          <option value="#922b21">أحمر</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ===== ROW 5: Icons & language rating ===== -->
-    <div class="tb-row tb-row-controls">
-      <div class="tb-control-group">
-        <label class="tb-label">مكتبة الأيقونات</label>
-        <select class="tb-select" id="selIconLib">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-          <option value="emoji">إيموجي</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">الأيقونات</label>
-        <select class="tb-select" id="selIcons">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-          <option value="show">إظهار</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">شكل التقييم</label>
-        <select class="tb-select" id="selRatingStyle">
-          <option value="default">حسب القالب</option>
-          <option value="text">نص</option>
-          <option value="stars">نجوم</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">تقييم اللغات</label>
-        <select class="tb-select" id="selLangRating">
-          <option value="default">حسب القالب</option>
-          <option value="stars">نجوم</option>
-          <option value="text">نص</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ===== ROW 6: Section dividers & bullets ===== -->
-    <div class="tb-row tb-row-controls">
-      <div class="tb-control-group">
-        <label class="tb-label">فواصل الأقسام</label>
-        <select class="tb-select" id="selSectionDividers">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-          <option value="line">خط</option>
-          <option value="dots">نقاط</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">فاصل الأقسام</label>
-        <select class="tb-select" id="selDividerStyle">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-          <option value="solid">مستقيم</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">التعداد النقطي</label>
-        <select class="tb-select" id="selBulletStyle">
-          <option value="default">حسب القالب</option>
-          <option value="disc">نقطة</option>
-          <option value="dash">شرطة</option>
-          <option value="none">بدون</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">التعداد</label>
-        <select class="tb-select" id="selBullets">
-          <option value="default">حسب القالب</option>
-          <option value="disc">●</option>
-          <option value="dash">–</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ===== ROW 7: Heading icons ===== -->
-    <div class="tb-row tb-row-controls">
-      <div class="tb-control-group">
-        <label class="tb-label">أيقونات العناوين</label>
-        <select class="tb-select" id="selHeadingIcons">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-          <option value="show">إظهار</option>
-        </select>
-      </div>
-      <div class="tb-control-group">
-        <label class="tb-label">أيقونات العناوين</label>
-        <select class="tb-select" id="selHeadingIconStyle">
-          <option value="default">حسب القالب</option>
-          <option value="none">بدون</option>
-        </select>
-      </div>
-      <div class="tb-spacer"></div>
-      <div class="page-info" id="pageInfo">صفحة 1 من 1</div>
-      <button class="tb-btn" id="btnDocx" title="تنزيل Word">تنزيل Word</button>
     </div>
   </div>
 
@@ -358,6 +199,17 @@
           <div class="page1-badge">نهاية الصفحة 1 ⬅</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- PAGE FILL INDICATOR -->
+  <div class="page-fill-bar" id="pageFillContainer">
+    <div class="page-fill-info">
+      <span id="pageInfoText">صفحة 1 من 1</span>
+      <span class="page-fill-track">
+        <span class="page-fill-progress" id="pageFillBar" style="width:0%"></span>
+      </span>
+      <span id="pageFillText">0%</span>
     </div>
   </div>
 </div>
