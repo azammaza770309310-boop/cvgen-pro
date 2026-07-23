@@ -17,6 +17,8 @@ from app.templates_render import (
     render_official_bilingual_master,
     render_english_single_column,
     render_arabic_single_column,
+    render_executive_ar,
+    render_executive_en,
 )
 
 
@@ -71,6 +73,30 @@ REGISTRY: List[TemplateDef] = [
         supported_languages=["ar"],
         accent="#000000",
         render=render_arabic_single_column,
+    ),
+    TemplateDef(
+        id="executive_ar",
+        name="Executive Arabic",
+        name_ar="تنفيذي عربي",
+        description="Formal executive template (Arabic RTL) with Tajawal font — clean centered header, pipe-separated contact, HR divider.",
+        description_ar="قالب تنفيذي رسمي (عربي RTL) بخط Tajawal — رأس مركزي أنيق، اتصال بفواصل، خط فاصل.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["ar"],
+        accent="#222222",
+        render=render_executive_ar,
+    ),
+    TemplateDef(
+        id="executive_en",
+        name="Executive English",
+        name_ar="تنفيذي إنجليزي",
+        description="Formal executive template (English LTR) with Helvetica font — clean centered header, pipe-separated contact, HR divider.",
+        description_ar="قالب تنفيذي رسمي (إنجليزي LTR) بخط Helvetica — رأس مركزي أنيق، اتصال بفواصل، خط فاصل.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["en"],
+        accent="#222222",
+        render=render_executive_en,
     ),
 ]
 

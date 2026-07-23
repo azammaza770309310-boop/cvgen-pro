@@ -316,3 +316,174 @@ def render_arabic_single_column(resume: ResumeData) -> str:
     parts.append('</div>')
     parts.append('</div>')
     return "".join(parts)
+
+
+# ===========================================================================
+# TEMPLATE 4: Executive Arabic (executive_ar)
+# Clean RTL executive layout with Tajawal font.
+# Implements the EXACT HTML structure provided by the user:
+#   - Centered name (26px, #111) + centered contact line (14px, #444, pipe-separated)
+#   - HR (2px solid #222)
+#   - Fixed section order: الهدف الوظيفي → التعليم → الخبرات المهنية → المهارات والدورات
+#   - Education: list-style:none, padding-right:0
+#   - Experience/Skills: list-style:square, padding-right:20px
+# ===========================================================================
+
+def render_executive_ar(resume: ResumeData) -> str:
+    """Executive Arabic template — RTL, Tajawal font, formal clean layout."""
+    name = resume.personal.name_ar or resume.personal.name_en or resume.personal.name or ""
+    email = resume.personal.email or ""
+    phone = resume.personal.phone or ""
+    location = resume.personal.location or ""
+    summary = resume.summary_text("ar") or resume.summary_text("en") or ""
+
+    # Build contact line: email | phone | location (pipe-separated)
+    contact_parts = []
+    if email:
+        contact_parts.append(f'<span class="editable" data-field="email" dir="ltr">{esc(email)}</span>')
+    if phone:
+        contact_parts.append(f'<span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span>')
+    if location:
+        contact_parts.append(f'<span class="editable" data-field="location">{esc(location)}</span>')
+    contact_line = " | ".join(contact_parts)
+
+    # Education items (list-style:none, padding-right:0)
+    edu_items = ""
+    if resume.education:
+        for edu in resume.education:
+            degree = edu.degree_ar or edu.degree_en or edu.degree or ""
+            institution = edu.institution_ar or edu.institution_en or edu.institution or ""
+            edu_items += f'<li style="margin-bottom: 5px;"><strong class="editable" data-field="degree">{esc(degree)}</strong> - <span class="editable" data-field="institution">{esc(institution)}</span></li>'
+
+    # Experience items (list-style:square, padding-right:20px)
+    exp_items = ""
+    if resume.experience:
+        for exp in resume.experience:
+            title = exp.title_ar or exp.title_en or exp.title or ""
+            description = exp.description or ""
+            if not description and exp.bullets_ar:
+                description = " ".join(exp.bullets_ar)
+            elif not description and exp.bullets_en:
+                description = " ".join(exp.bullets_en)
+            elif not description and exp.bullets:
+                description = " ".join(exp.bullets)
+            exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
+
+    # Skills & Courses (combined, list-style:square, padding-right:20px)
+    skill_items = ""
+    skills_and_courses = []
+    for s in resume.skills:
+        if s:
+            skills_and_courses.append(s)
+    for c in resume.courses:
+        if c:
+            skills_and_courses.append(c)
+    if skills_and_courses:
+        for sk in skills_and_courses:
+            skill_items += f'<li class="editable">{esc(sk)}</li>'
+
+    return f'''<div dir="rtl" style="font-family: 'Tajawal', sans-serif; text-align: right; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
+    <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_ar">{esc(name)}</h1>
+    <p style="text-align: center; font-size: 14px; color: #444; margin-top: 0;">{contact_line}</p>
+    <hr style="border: 0; border-top: 2px solid #222; margin: 15px 0;">
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">الهدف الوظيفي</h3>
+    <p style="font-size: 14px; margin-top: 0;" class="editable" data-field="summary_ar">{esc(summary)}</p>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">التعليم</h3>
+    <ul style="font-size: 14px; list-style-type: none; padding-right: 0; margin-top: 0;">
+        {edu_items}
+    </ul>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">الخبرات المهنية</h3>
+    <ul style="font-size: 14px; list-style-type: square; padding-right: 20px; margin-top: 0;">
+        {exp_items}
+    </ul>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">المهارات والدورات</h3>
+    <ul style="font-size: 14px; list-style-type: square; padding-right: 20px; margin-top: 0;">
+        {skill_items}
+    </ul>
+</div>'''
+
+
+# ===========================================================================
+# TEMPLATE 5: Executive English (executive_en)
+# Clean LTR executive layout with Helvetica font.
+# Implements the EXACT HTML structure provided by the user.
+# ===========================================================================
+
+def render_executive_en(resume: ResumeData) -> str:
+    """Executive English template — LTR, Helvetica font, formal clean layout."""
+    name = resume.personal.name_en or resume.personal.name or ""
+    email = resume.personal.email or ""
+    phone = resume.personal.phone or ""
+    location = resume.personal.location or ""
+    summary = resume.summary_text("en") or ""
+
+    # Build contact line: email | phone | location (pipe-separated)
+    contact_parts = []
+    if email:
+        contact_parts.append(f'<span class="editable" data-field="email" dir="ltr">{esc(email)}</span>')
+    if phone:
+        contact_parts.append(f'<span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span>')
+    if location:
+        contact_parts.append(f'<span class="editable" data-field="location">{esc(location)}</span>')
+    contact_line = " | ".join(contact_parts)
+
+    # Education items (list-style:none, padding-left:0)
+    edu_items = ""
+    if resume.education:
+        for edu in resume.education:
+            degree = edu.degree_en or edu.degree or ""
+            institution = edu.institution_en or edu.institution or ""
+            edu_items += f'<li style="margin-bottom: 5px;"><strong class="editable" data-field="degree">{esc(degree)}</strong> - <span class="editable" data-field="institution">{esc(institution)}</span></li>'
+
+    # Experience items (list-style:square, padding-left:20px)
+    exp_items = ""
+    if resume.experience:
+        for exp in resume.experience:
+            title = exp.title_en or exp.title or ""
+            description = exp.description or ""
+            if not description and exp.bullets_en:
+                description = " ".join(exp.bullets_en)
+            elif not description and exp.bullets:
+                description = " ".join(exp.bullets)
+            exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
+
+    # Skills & Courses (combined, list-style:square, padding-left:20px)
+    skill_items = ""
+    skills_and_courses = []
+    for s in resume.skills:
+        if s:
+            skills_and_courses.append(s)
+    for c in resume.courses:
+        if c:
+            skills_and_courses.append(c)
+    if skills_and_courses:
+        for sk in skills_and_courses:
+            skill_items += f'<li class="editable">{esc(sk)}</li>'
+
+    return f'''<div dir="ltr" style="font-family: 'Helvetica', 'Arial', sans-serif; text-align: left; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
+    <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_en">{esc(name)}</h1>
+    <p style="text-align: center; font-size: 14px; color: #444; margin-top: 0;">{contact_line}</p>
+    <hr style="border: 0; border-top: 2px solid #222; margin: 15px 0;">
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">CAREER OBJECTIVE</h3>
+    <p style="font-size: 14px; margin-top: 0;" class="editable" data-field="summary_en">{esc(summary)}</p>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">EDUCATION</h3>
+    <ul style="font-size: 14px; list-style-type: none; padding-left: 0; margin-top: 0;">
+        {edu_items}
+    </ul>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">EXPERIENCE</h3>
+    <ul style="font-size: 14px; list-style-type: square; padding-left: 20px; margin-top: 0;">
+        {exp_items}
+    </ul>
+
+    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">SKILLS &amp; COURSES</h3>
+    <ul style="font-size: 14px; list-style-type: square; padding-left: 20px; margin-top: 0;">
+        {skill_items}
+    </ul>
+</div>'''

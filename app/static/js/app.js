@@ -10,6 +10,8 @@
   const state = {
     data: emptyResume(),
     templateId: "official_bilingual_master",
+    templates: [],
+    templateIndex: 0,
     font: "Cairo",
     displayLang: "bilingual",
     providers: [],
@@ -90,10 +92,34 @@
     try {
       const res = await api("/api/templates/");
       const count = res.count;
+      state.templates = res.templates || [];
       const fb = $("#featureBadges");
       fb.innerHTML = `<span class="feature-badge">${count} <span>قالب رسمي</span></span><span class="feature-badge">متوافق ATS</span><span class="feature-badge">عربي + إنجليزي</span><span class="feature-badge">تحرير مباشر</span>`;
-      $("#tpName").textContent = res.templates[0]?.name_ar || "—";
+      // Show the currently selected template's name (or the first one)
+      const current = state.templates.find(t => t.id === state.templateId) || state.templates[0];
+      if (current) {
+        state.templateId = current.id;
+        state.templateIndex = state.templates.indexOf(current);
+        $("#tpName").textContent = current.name_ar || current.name || "—";
+      }
     } catch (e) { toast("فشل تحميل القوالب: " + e.message, "error"); }
+  }
+
+  // Cycle to the next template and re-render the preview
+  function cycleTemplate() {
+    if (!state.templates || state.templates.length === 0) {
+      toast("لا توجد قوالب متاحة", "info");
+      return;
+    }
+    state.templateIndex = (state.templateIndex + 1) % state.templates.length;
+    const next = state.templates[state.templateIndex];
+    state.templateId = next.id;
+    $("#tpName").textContent = next.name_ar || next.name || "—";
+    toast(`تم التبديل إلى: ${next.name_ar || next.name}`, "success");
+    // Re-render the preview if we're in editor mode and have data
+    if ($("#editorView").style.display !== "none" && state.data && state.data.personal) {
+      renderPreview();
+    }
   }
 
   // ---------------- Providers ----------------
@@ -831,7 +857,7 @@
   $("#btnErrorSettings").addEventListener("click", () => { $("#settingsModal").style.display = "flex"; });
   $("#closeSettings").addEventListener("click", () => { $("#settingsModal").style.display = "none"; });
   $("#settingsModal").addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal").style.display = "none"; });
-  $("#templatePick").addEventListener("click", () => { toast("القالب الرسمي الوحيد مُفعّل", "info"); });
+  $("#templatePick").addEventListener("click", cycleTemplate);
   $("#fontSelect").addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); });
 
   // Reset all design controls to defaults
