@@ -495,13 +495,13 @@ button { font-family: inherit; }
   padding: 20px 10px;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
 }
 .a4-scaler {
   transform-origin: top center;
   display: inline-block;
   flex-shrink: 0;
+  margin: 0 auto;
 }
 .a4-page {
   width: 794px;

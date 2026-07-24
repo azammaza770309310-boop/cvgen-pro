@@ -746,23 +746,19 @@
     const availWidth = Math.max(200, area.clientWidth - 40);
     // Scale to fit — never exceed 1.0, always fit the container
     const scale = Math.min(1, availWidth / A4_WIDTH);
-    // Apply transform
+    // Apply transform — transformOrigin MUST be "top left" so the scaled
+    // element doesn't overflow to the left (which caused the clipping).
     scaler.style.transform = `scale(${scale})`;
-    scaler.style.transformOrigin = "top center";
+    scaler.style.transformOrigin = "top left";
     scaler.style.width = A4_WIDTH + "px";
-    // Center horizontally to prevent left-side clipping
-    scaler.style.marginLeft = "auto";
-    scaler.style.marginRight = "auto";
-    // On very narrow screens, allow horizontal scroll as fallback
-    const isMobile = area.clientWidth < 700;
-    if (isMobile) {
-      // Ensure the wrap allows horizontal scroll if scale doesn't fully fit
-      const wrap = $(".a4-wrap");
-      if (wrap) {
-        wrap.style.overflowX = "auto";
-        wrap.style.maxWidth = "100%";
-      }
-    }
+    // CRITICAL: After scaling, the element still occupies 794px in layout.
+    // We must set the visual width to the scaled width so flexbox can center it.
+    // Use marginLeft/Right = negative to collapse the layout width to scaled width.
+    const scaledWidth = A4_WIDTH * scale;
+    const extraWidth = A4_WIDTH - scaledWidth;
+    // Center: split the extra width equally on both sides
+    scaler.style.marginLeft = (-extraWidth / 2) + "px";
+    scaler.style.marginRight = (-extraWidth / 2) + "px";
     // Set scaler height to scaled A4 height so container scrolls correctly
     const a4Page = $(".a4-page");
     const a4Height = a4Page ? a4Page.scrollHeight : 1123;
@@ -851,6 +847,7 @@
     // Also save ALL editable elements (in case some were edited but not blurred)
     const content = $("#a4Content");
     if (content) {
+      // 1. Save all data-field elements (name, email, phone, location, summary)
       content.querySelectorAll("[data-field]").forEach(el => {
         const text = el.textContent.trim();
         const field = el.getAttribute("data-field");
@@ -870,7 +867,7 @@
           }
         }
       });
-      // Save list items (skills, courses, languages)
+      // 2. Save list items (skills, technical_skills, courses, languages)
       content.querySelectorAll("ul.editable-list li").forEach(li => {
         const text = li.textContent.trim();
         const section = li.closest(".section");
@@ -883,41 +880,64 @@
             if (heading.includes("SKILLS") || heading.includes("المهارات")) {
               if (heading.includes("TECHNICAL") || heading.includes("التقنية")) {
                 if (idx < state.data.technical_skills.length) state.data.technical_skills[idx] = text;
+                else state.data.technical_skills.push(text);
               } else {
                 if (idx < state.data.skills.length) state.data.skills[idx] = text;
+                else state.data.skills.push(text);
               }
             } else if (heading.includes("COURSES") || heading.includes("الدورات")) {
               if (idx < state.data.courses.length) state.data.courses[idx] = text;
-            }
-          }
-        }
-      });
-      // Save item titles (experience, education)
-      content.querySelectorAll(".item-title").forEach(el => {
-        const text = el.textContent.trim();
-        const section = el.closest(".section");
-        if (section) {
-          const heading = section.querySelector("h2")?.textContent || "";
-          const item = el.closest(".item");
-          if (item) {
-            const items = Array.from(section.querySelectorAll(".item"));
-            const idx = items.indexOf(item);
-            if (heading.includes("EXPERIENCE") || heading.includes("الخبرة")) {
-              if (idx < state.data.experience.length) {
-                state.data.experience[idx].title = text;
-              }
-            } else if (heading.includes("EDUCATION") || heading.includes("المؤهلات") || heading.includes("التعليم")) {
-              if (idx < state.data.education.length) {
-                state.data.education[idx].degree = text;
+              else state.data.courses.push(text);
+            } else if (heading.includes("LANGUAGES") || heading.includes("اللغات")) {
+              if (idx < state.data.languages.length) {
+                const old = state.data.languages[idx];
+                state.data.languages[idx] = { name: text.replace(/\s*\(.*\)$/, ""), level: old?.level || "" };
               }
             }
           }
         }
       });
-      // Remove contenteditable and data-editable attributes (editor-only UI)
+      // 3. Save experience items (title, company, description, bullets)
+      content.querySelectorAll(".item").forEach(item => {
+        const section = item.closest(".section");
+        if (!section) return;
+        const heading = section.querySelector("h2")?.textContent || "";
+        const items = Array.from(section.querySelectorAll(".item"));
+        const idx = items.indexOf(item);
+        if (heading.includes("EXPERIENCE") || heading.includes("الخبرة")) {
+          if (idx < state.data.experience.length) {
+            const exp = state.data.experience[idx];
+            // Save title
+            const titleEl = item.querySelector(".item-title");
+            if (titleEl) exp.title = titleEl.textContent.trim();
+            // Save description (paragraphs)
+            const descEls = item.querySelectorAll("p:not(.item-title)");
+            if (descEls.length > 0) {
+              exp.description = Array.from(descEls).map(p => p.textContent.trim()).join(" ");
+            }
+            // Save bullets
+            const bulletLis = item.querySelectorAll("ul li");
+            if (bulletLis.length > 0) {
+              exp.bullets = Array.from(bulletLis).map(li => li.textContent.trim());
+            }
+          }
+        } else if (heading.includes("EDUCATION") || heading.includes("المؤهلات") || heading.includes("التعليم")) {
+          if (idx < state.data.education.length) {
+            const edu = state.data.education[idx];
+            const titleEl = item.querySelector(".item-title");
+            if (titleEl) edu.degree = titleEl.textContent.trim();
+            // Save institution (usually in a sub div or paragraph)
+            const subEls = item.querySelectorAll("p:not(.item-title), .sub");
+            if (subEls.length > 0) {
+              edu.institution = subEls[0].textContent.trim();
+            }
+          }
+        }
+      });
+      // 4. Remove contenteditable and data-editable attributes (editor-only UI)
       content.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
       content.querySelectorAll("[data-editable]").forEach(el => el.removeAttribute("data-editable"));
-      // Remove selection classes (editor-only UI)
+      // 5. Remove selection classes (editor-only UI)
       content.querySelectorAll(".selected-item, .selected-section").forEach(el => {
         el.classList.remove("selected-item", "selected-section");
       });
