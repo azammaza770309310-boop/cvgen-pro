@@ -486,26 +486,26 @@ button { font-family: inherit; }
 }
 .overflow-warning strong { color: #fff; font-weight: 700; }
 
-/* A4 page wrapper — centers the page, allows horizontal scroll on mobile.
- * FIX: use display:block + text-align:center + min-width:min-content so the
- * full A4 paper is always visible (scrollable) and never clipped on the left. */
+/* A4 page wrapper — centers the page, responsive width.
+ * FIX: removed transform:scale() approach which caused left-side clipping.
+ * Now uses width:100% + max-width:794px + margin:0 auto for proper centering. */
 .a4-wrap {
   display: block;
   padding: 20px 10px;
   width: 100%;
-  min-width: min-content;
+  max-width: 834px;
+  margin: 0 auto;
   box-sizing: border-box;
-  text-align: center;
   overflow: visible;
 }
 .a4-scaler {
-  transform-origin: top center;
-  display: inline-block;
-  flex-shrink: 0;
+  display: block;
+  width: 100%;
   margin: 0 auto;
 }
 .a4-page {
-  width: 794px;
+  width: 100%;
+  max-width: 794px;
   min-height: 1123px;
   background: #fff;
   box-shadow: 0 4px 24px rgba(0,0,0,0.3);
@@ -726,15 +726,14 @@ button { font-family: inherit; }
 .editor-preview-area .a4-wrap {
   display: block;
   width: 100%;
-  min-width: min-content;
+  max-width: 834px; /* 794px + 40px padding for shadow */
+  margin: 0 auto;
   box-sizing: border-box;
-  text-align: center;
   -webkit-overflow-scrolling: touch;
 }
 .a4-scaler {
-  transform-origin: top center;
-  display: inline-block;
-  flex-shrink: 0;
+  display: block;
+  width: 100%;
   margin: 0 auto;
 }
 

@@ -737,26 +737,20 @@
   }
 
   function fitA4ToContainer() {
-    const area = $(".editor-preview-area");
+    // No longer uses transform:scale() — the .a4-page is now responsive
+    // (width:100%, max-width:794px, margin:0 auto) which naturally fits
+    // any container without clipping or scaling artifacts.
+    // Just update the page fill indicator.
     const scaler = $("#a4Scaler");
-    if (!area || !scaler) return;
-    // A4 width in pixels at 96 DPI = 210mm * 3.7795 ≈ 794px
-    const A4_WIDTH = 794;
-    // Available width inside the preview area (minus padding)
-    const availWidth = Math.max(200, area.clientWidth - 40);
-    // Scale to fit the container — never exceed 1.0
-    const scale = Math.min(1, availWidth / A4_WIDTH);
-    // Apply transform — use top center so the paper scales symmetrically
-    scaler.style.transform = `scale(${scale})`;
-    scaler.style.transformOrigin = "top center";
-    scaler.style.width = A4_WIDTH + "px";
-    // Reset margins — centering is handled by text-align:center on .a4-wrap
-    scaler.style.marginLeft = "auto";
-    scaler.style.marginRight = "auto";
-    // Set scaler height to scaled A4 height so container scrolls correctly
-    const a4Page = $(".a4-page");
-    const a4Height = a4Page ? a4Page.scrollHeight : 1123;
-    scaler.style.height = (a4Height * scale) + "px";
+    if (scaler) {
+      // Clear any leftover transform from previous versions
+      scaler.style.transform = "";
+      scaler.style.transformOrigin = "";
+      scaler.style.width = "";
+      scaler.style.height = "";
+      scaler.style.marginLeft = "";
+      scaler.style.marginRight = "";
+    }
     updatePageFill();
   }
 

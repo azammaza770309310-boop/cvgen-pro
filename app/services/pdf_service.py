@@ -27,18 +27,23 @@ def _load_css() -> str:
 
 
 def _build_design_vars_css(controls=None, font_family=None) -> str:
-    """Build CSS variable overrides from design controls (font_size, etc.).
+    """Build CSS overrides from design controls.
+
+    CRITICAL: WeasyPrint does NOT fully support CSS custom properties (variables).
+    So we MUST apply font-size, line-height, padding, etc. as DIRECT CSS rules
+    targeting actual elements — NOT just as :root variables.
 
     This ensures the PDF matches what the user sees in the preview, where they
     may have adjusted the font size, line height, spacing, etc. via the steppers.
-    Also applies the font family selected by the user.
     """
-    overrides = []
-    # Font family override (applied to body + all text)
+    parts = []
+    # Font family override
     ff = font_family
     if not ff and controls and hasattr(controls, "fontFamily") and controls.fontFamily:
         ff = controls.fontFamily
-    # Map the frontend control names to CSS variable names
+
+    # Build CSS variable overrides (for browsers that support them)
+    overrides = []
     if controls:
         if hasattr(controls, "fontSize") and controls.fontSize:
             overrides.append(f"--cv-body-size: {controls.fontSize}pt")
@@ -50,19 +55,63 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
             overrides.append(f"--cv-column-gap: {controls.columnDistance}pt")
         if hasattr(controls, "margin") and controls.margin:
             overrides.append(f"--cv-page-padding: {controls.margin}mm")
-    if not overrides and not ff:
-        return ""
-    parts = []
     if overrides:
         parts.append(":root {\n  " + ";\n  ".join(overrides) + ";\n}")
+
+    # CRITICAL: Also apply DIRECT CSS rules (WeasyPrint doesn't fully support vars)
+    if controls:
+        direct_rules = []
+        # Font size + line height on ALL text elements
+        if hasattr(controls, "fontSize") and controls.fontSize:
+            direct_rules.append(
+                f".a4-page, .cv-root, .section, .section-row, .section-body, "
+                f".section-headings, .body-en, .body-ar, .item, .item-title, "
+                f".contact-bar, .contact-item, .editable, p, li, h1, h2, h3, span, div {{\n"
+                f"  font-size: {controls.fontSize}pt !important;\n"
+                f"}}"
+            )
+        if hasattr(controls, "lineHeight") and controls.lineHeight:
+            direct_rules.append(
+                f".a4-page, .cv-root, .section, .section-row, .section-body, "
+                f".body-en, .body-ar, .item, p, li {{\n"
+                f"  line-height: {controls.lineHeight} !important;\n"
+                f"}}"
+            )
+        # Padding (margin) on the A4 page
+        if hasattr(controls, "margin") and controls.margin:
+            direct_rules.append(
+                f".a4-page {{\n"
+                f"  padding: {controls.margin}mm !important;\n"
+                f"}}"
+            )
+        # Section spacing
+        if hasattr(controls, "sectionSpacing") and controls.sectionSpacing is not None:
+            direct_rules.append(
+                f".section, .section-row {{\n"
+                f"  margin-bottom: {controls.sectionSpacing}pt !important;\n"
+                f"}}"
+            )
+        # Column gap (for bilingual templates)
+        if hasattr(controls, "columnDistance") and controls.columnDistance is not None:
+            direct_rules.append(
+                f".obm-columns, .columns {{\n"
+                f"  gap: {controls.columnDistance}pt !important;\n"
+                f"}}"
+            )
+        if direct_rules:
+            parts.append("\n".join(direct_rules))
+
+    # Font family on ALL elements
     if ff:
-        # Apply font family to ALL text elements + load from Google Fonts
         parts.append(f"""body, .a4-page, .cv-root, .section, .section-row, .section-body,
 .section-headings, .section-heading-en, .section-heading-ar,
 .body-en, .body-ar, .item, .item-title, .contact-bar, .contact-item,
 .editable, p, li, h1, h2, h3, span, div {{
   font-family: '{ff}', Arial, sans-serif !important;
 }}""")
+
+    if not parts:
+        return ""
     return "\n".join(parts) + "\n"
 
 
