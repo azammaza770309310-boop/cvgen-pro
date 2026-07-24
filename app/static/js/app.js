@@ -743,22 +743,35 @@
     // A4 width in pixels at 96 DPI = 210mm * 3.7795 ≈ 794px
     const A4_WIDTH = 794;
     // Available width inside the preview area (minus padding)
-    const availWidth = Math.max(200, area.clientWidth - 40);
-    // Scale to fit — never exceed 1.0, always fit the container
-    const scale = Math.min(1, availWidth / A4_WIDTH);
-    // Apply transform — transformOrigin MUST be "top left" so the scaled
-    // element doesn't overflow to the left (which caused the clipping).
+    const availWidth = Math.max(200, area.clientWidth - 20);
+    // MINIMUM scale of 0.85 so the page stays readable on mobile.
+    // If the container is narrower than 85% of A4, allow horizontal scroll.
+    const scale = Math.max(0.85, Math.min(1, availWidth / A4_WIDTH));
+    // Apply transform
     scaler.style.transform = `scale(${scale})`;
     scaler.style.transformOrigin = "top left";
     scaler.style.width = A4_WIDTH + "px";
-    // CRITICAL: After scaling, the element still occupies 794px in layout.
-    // We must set the visual width to the scaled width so flexbox can center it.
-    // Use marginLeft/Right = negative to collapse the layout width to scaled width.
+    // After scaling, collapse layout width to scaled width for centering
     const scaledWidth = A4_WIDTH * scale;
     const extraWidth = A4_WIDTH - scaledWidth;
-    // Center: split the extra width equally on both sides
     scaler.style.marginLeft = (-extraWidth / 2) + "px";
     scaler.style.marginRight = (-extraWidth / 2) + "px";
+    // If scaled page is wider than container, enable horizontal scroll
+    if (scaledWidth > availWidth) {
+      area.style.overflowX = "auto";
+      const wrap = $(".a4-wrap");
+      if (wrap) {
+        wrap.style.overflowX = "auto";
+        wrap.style.justifyContent = "flex-start";
+      }
+    } else {
+      area.style.overflowX = "auto";
+      const wrap = $(".a4-wrap");
+      if (wrap) {
+        wrap.style.overflowX = "visible";
+        wrap.style.justifyContent = "center";
+      }
+    }
     // Set scaler height to scaled A4 height so container scrolls correctly
     const a4Page = $(".a4-page");
     const a4Height = a4Page ? a4Page.scrollHeight : 1123;
@@ -794,22 +807,39 @@
     const btn = $("#btnPdf");
     btn.disabled = true; btn.textContent = "...";
     try {
-      // CRITICAL: captureInlineStyles MUST run before building the export body.
-      // It saves ALL inline edits (text changes) from the preview DOM into
-      // state.data so the PDF receives the EXACT current state.
-      captureInlineStyles();
-      state.data.lang = state.displayLang;
-      // Merge font family into controls so the PDF uses the same font as preview
-      const controlsWithFont = Object.assign({}, state.controls, { fontFamily: state.font });
+      // CRITICAL: Blur any active editor first so its text is committed to the DOM
+      if (state.selectedElement) {
+        state.selectedElement.blur();
+        state.selectedElement = null;
+      }
+      // Get the ACTUAL HTML from the preview DOM — this is what the user sees
+      const content = $("#a4Content");
+      if (!content) { toast("لا يوجد محتوى للتصدير", "error"); return; }
+      // Clone the content and strip editor-only attributes (contenteditable, data-editable, selection classes)
+      const clone = content.cloneNode(true);
+      clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+      clone.querySelectorAll("[data-editable]").forEach(el => el.removeAttribute("data-editable"));
+      clone.querySelectorAll(".selected-item, .selected-section").forEach(el => {
+        el.classList.remove("selected-item", "selected-section");
+      });
+      const htmlContent = clone.innerHTML;
+      // Build CSS variables string (same as applyDesignVars sets)
+      const cssVars = `:root {
+  --cv-body-size: ${state.controls.fontSize}pt;
+  --cv-body-line-height: ${state.controls.lineHeight};
+  --cv-section-spacing: ${state.controls.sectionSpacing}pt;
+  --cv-column-gap: ${state.controls.columnDistance}pt;
+  --cv-page-padding: ${state.controls.margin}mm;
+}`;
+      // Send the ACTUAL preview HTML to the backend for PDF rendering
+      // This guarantees 1:1 match between preview and PDF
       const body = {
-        data: state.data,
-        template_id: state.templateId,
-        lang: state.displayLang,
-        filename: state.data.personal.name_en || state.data.personal.name || "resume",
-        controls: controlsWithFont,
-        font: state.font
+        html: htmlContent,
+        css_vars: cssVars,
+        font_family: state.font,
+        filename: state.data.personal.name_en || state.data.personal.name || "resume"
       };
-      const blob = await api("/api/export/pdf", { method: "POST", body: body });
+      const blob = await api("/api/export/pdf-from-html", { method: "POST", body: body });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".pdf", "application/pdf");
       toast("تم تنزيل PDF", "success");
     } catch (e) { toast("فشل PDF: " + e.message, "error"); }
