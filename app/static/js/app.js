@@ -7,6 +7,13 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
+  // Null-safe helpers for assignments (?. cannot be used on left side of =)
+  function showEl(el, display) { if (el) el.style.display = display || "flex"; }
+  function hideEl(el) { if (el) el.style.display = "none"; }
+  function setText(el, text) { if (el) el.textContent = text; }
+
+
+
   const state = {
     data: emptyResume(),
     templateId: "official_bilingual_master",
@@ -128,20 +135,20 @@
       const res = await api("/api/settings/");
       state.providers = res.providers || [];
       const anyConfigured = state.providers.some(p => p.configured);
-      $("#aiStatusDot").className = "status-dot" + (anyConfigured ? "" : " off");
-      $("#aiStatusText").textContent = anyConfigured ? "الذكاء الاصطناعي السحابي جاهز" : "لم يتم إعداد مزود — يلزم مفتاح API";
+      const dot = $("#aiStatusDot"); if (dot) dot.className = "status-dot" + (anyConfigured ? "" : " off");
+      setText($("#aiStatusText"), anyConfigured ? "الذكاء الاصطناعي السحابي جاهز" : "لم يتم إعداد مزود — يلزم مفتاح API");
       const sel = $("#providerSelect");
-      sel.innerHTML = "";
+      if (sel) sel.innerHTML = "";
       const autoOpt = document.createElement("option");
       autoOpt.value = "";
       autoOpt.textContent = "تلقائي — حسب ترتيب المزودين";
-      sel.appendChild(autoOpt);
+      if (sel) sel.appendChild(autoOpt);
       state.providers.forEach(p => {
         const opt = document.createElement("option");
         opt.value = p.id;
         opt.textContent = `${p.name} ${p.configured ? "✓" : "✗"}`;
         if (!p.configured) opt.disabled = true;
-        sel.appendChild(opt);
+        if (sel) sel.appendChild(opt);
       });
       renderKeyManagementUI();
     } catch (e) { toast("فشل تحميل المزودين: " + e.message, "error"); }
@@ -260,7 +267,7 @@
     const anyConfigured = state.providers.some(p => p.configured);
     if (!anyConfigured) {
       showErrorBanner("لم يتم إعداد مزود ذكاء اصطناعي. يرجى إعداد مفتاح API من الإعدادات.");
-      $("#settingsModal")?.style.display = "flex";
+      showEl($("#settingsModal"), "flex");
       return;
     }
     hideErrorBanner();
@@ -279,7 +286,7 @@
         toast("تم توليد السيرة بنجاح", "success");
       } else if (res.code === "ai_provider_not_configured") {
         showErrorBanner(res.error);
-        $("#settingsModal")?.style.display = "flex";
+        showEl($("#settingsModal"), "flex");
       } else {
         toast(res.error || "فشل التوليد", "error");
       }
@@ -289,10 +296,10 @@
     $("#ctaText").textContent = "توليد ومعاينة السيرة الذاتية";
   }
 
-  function showErrorBanner(msg) { $("#errorBannerText")?.textContent = msg; $("#errorBanner")?.style.display = "flex"; }
-  function hideErrorBanner() { $("#errorBanner")?.style.display = "none"; }
-  function showEditor() { $("#landingView")?.style.display = "none"; $("#editorView")?.style.display = "flex"; }
-  function hideEditor() { $("#editorView")?.style.display = "none"; $("#landingView")?.style.display = "flex"; }
+  function showErrorBanner(msg) { setText($("#errorBannerText"), msg); showEl($("#errorBanner"), "flex"); }
+  function hideErrorBanner() { hideEl($("#errorBanner")); }
+  function showEditor() { hideEl($("#landingView")); showEl($("#editorView"), "flex"); }
+  function hideEditor() { hideEl($("#editorView")); showEl($("#landingView"), "flex"); }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   // ---------------- Design steppers ----------------
@@ -478,7 +485,7 @@
       state.selectedSection.classList.remove("selected-section");
       state.selectedSection = null;
     }
-    $("#contextBar")?.style.display = "none";
+    hideEl($("#contextBar"));
   }
 
   function getElementLabel(el) {
@@ -858,10 +865,10 @@
   $("#btnSave")?.addEventListener("click", save);
   $("#btnCloseEditor")?.addEventListener("click", hideEditor);
   // Attach to ALL btnSettings elements (there are 2: landing + editor toolbar)
-  $$("#btnSettings").forEach(btn => btn.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; }));
-  $("#btnErrorSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; });
-  $("#closeSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "none"; });
-  $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal")?.style.display = "none"; });
+  $$("#btnSettings").forEach(btn => btn.addEventListener("click", () => { showEl($("#settingsModal"), "flex"); }));
+  $("#btnErrorSettings")?.addEventListener("click", () => { showEl($("#settingsModal"), "flex"); });
+  $("#closeSettings")?.addEventListener("click", () => { hideEl($("#settingsModal")); });
+  $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") hideEl($("#settingsModal")); });
   $("#templatePick")?.addEventListener("click", cycleTemplate);
   // Attach to ALL fontSelect elements (there are 2: config + toolbar)
   $$("#fontSelect").forEach(sel => sel.addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); }));
@@ -899,7 +906,7 @@
   // Escape closes modals + deselects
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      $("#settingsModal")?.style.display = "none";
+      hideEl($("#settingsModal"));
       deselectAll();
     }
   });
