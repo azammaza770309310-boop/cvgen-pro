@@ -54,7 +54,7 @@
     const el = document.createElement("div");
     el.className = "toast " + type;
     el.textContent = msg;
-    $("#toastContainer").appendChild(el);
+    $("#toastContainer")?.appendChild(el);
     setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 0.3s"; setTimeout(() => el.remove(), 300); }, 3500);
   }
 
@@ -117,7 +117,7 @@
     $("#tpName").textContent = next.name_ar || next.name || "—";
     toast(`تم التبديل إلى: ${next.name_ar || next.name}`, "success");
     // Re-render the preview if we're in editor mode and have data
-    if ($("#editorView").style.display !== "none" && state.data && state.data.personal) {
+    if ($("#editorView")?.style.display !== "none" && state.data && state.data.personal) {
       renderPreview();
     }
   }
@@ -260,7 +260,7 @@
     const anyConfigured = state.providers.some(p => p.configured);
     if (!anyConfigured) {
       showErrorBanner("لم يتم إعداد مزود ذكاء اصطناعي. يرجى إعداد مفتاح API من الإعدادات.");
-      $("#settingsModal").style.display = "flex";
+      $("#settingsModal")?.style.display = "flex";
       return;
     }
     hideErrorBanner();
@@ -279,7 +279,7 @@
         toast("تم توليد السيرة بنجاح", "success");
       } else if (res.code === "ai_provider_not_configured") {
         showErrorBanner(res.error);
-        $("#settingsModal").style.display = "flex";
+        $("#settingsModal")?.style.display = "flex";
       } else {
         toast(res.error || "فشل التوليد", "error");
       }
@@ -289,10 +289,10 @@
     $("#ctaText").textContent = "توليد ومعاينة السيرة الذاتية";
   }
 
-  function showErrorBanner(msg) { $("#errorBannerText").textContent = msg; $("#errorBanner").style.display = "flex"; }
-  function hideErrorBanner() { $("#errorBanner").style.display = "none"; }
-  function showEditor() { $("#landingView").style.display = "none"; $("#editorView").style.display = "flex"; }
-  function hideEditor() { $("#editorView").style.display = "none"; $("#landingView").style.display = "flex"; }
+  function showErrorBanner(msg) { $("#errorBannerText")?.textContent = msg; $("#errorBanner")?.style.display = "flex"; }
+  function hideErrorBanner() { $("#errorBanner")?.style.display = "none"; }
+  function showEditor() { $("#landingView")?.style.display = "none"; $("#editorView")?.style.display = "flex"; }
+  function hideEditor() { $("#editorView")?.style.display = "none"; $("#landingView")?.style.display = "flex"; }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   // ---------------- Design steppers ----------------
@@ -441,7 +441,7 @@
     // Show context bar with color picker
     const contextBar = $("#contextBar");
     const contextLabel = $("#contextLabel");
-    contextBar.style.display = "flex";
+    if (contextBar) contextBar.style.display = "flex";
     // Determine what this element is
     const label = getElementLabel(el);
     contextLabel.textContent = "تحرير: " + label;
@@ -464,7 +464,7 @@
     const contextBar = $("#contextBar");
     const heading = sec.querySelector("h2")?.textContent || "قسم";
     $("#contextLabel").textContent = "قسم: " + heading;
-    contextBar.style.display = "flex";
+    if (contextBar) contextBar.style.display = "flex";
     const cs = window.getComputedStyle(sec.querySelector("h2") || sec);
     $("#contextColorPicker").value = rgbToHex(cs.color);
   }
@@ -478,7 +478,7 @@
       state.selectedSection.classList.remove("selected-section");
       state.selectedSection = null;
     }
-    $("#contextBar").style.display = "none";
+    $("#contextBar")?.style.display = "none";
   }
 
   function getElementLabel(el) {
@@ -861,7 +861,7 @@
   $$("#btnSettings").forEach(btn => btn.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; }));
   $("#btnErrorSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; });
   $("#closeSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "none"; });
-  $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal").style.display = "none"; });
+  $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal")?.style.display = "none"; });
   $("#templatePick")?.addEventListener("click", cycleTemplate);
   // Attach to ALL fontSelect elements (there are 2: config + toolbar)
   $$("#fontSelect").forEach(sel => sel.addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); }));
@@ -899,7 +899,7 @@
   // Escape closes modals + deselects
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      $("#settingsModal").style.display = "none";
+      $("#settingsModal")?.style.display = "none";
       deselectAll();
     }
   });
