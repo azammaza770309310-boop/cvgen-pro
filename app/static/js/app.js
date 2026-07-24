@@ -747,6 +747,9 @@
     scaler.style.transform = `scale(${scale})`;
     scaler.style.transformOrigin = "top center";
     scaler.style.width = A4_WIDTH + "px";
+    // Center the scaler horizontally to prevent left-side clipping
+    scaler.style.marginLeft = "auto";
+    scaler.style.marginRight = "auto";
     // Set scaler height to scaled A4 height so container scrolls correctly
     const a4Page = $(".a4-page");
     const a4Height = a4Page ? a4Page.scrollHeight : 1123;
@@ -804,8 +807,15 @@
     const btn = $("#btnDocx");
     btn.disabled = true; btn.textContent = "...";
     try {
+      captureInlineStyles();
       state.data.lang = state.displayLang;
-      const blob = await api("/api/export/docx", { method: "POST", body: { data: state.data, lang: state.displayLang, filename: state.data.personal.name_en || state.data.personal.name || "resume" } });
+      const blob = await api("/api/export/docx", { method: "POST", body: {
+        data: state.data,
+        template_id: state.templateId,
+        lang: state.displayLang,
+        filename: state.data.personal.name_en || state.data.personal.name || "resume",
+        controls: state.controls
+      } });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
       toast("تم تنزيل Word", "success");
     } catch (e) { toast("فشل Word: " + e.message, "error"); }
@@ -813,19 +823,86 @@
   }
 
   function captureInlineStyles() {
-    // Before export: blur any active editor and strip editing-only attributes
+    // Before export: blur any active editor and SAVE its text to state.data
     if (state.selectedElement) {
+      saveEditFromElement(state.selectedElement);
       state.selectedElement.blur();
+      state.selectedElement = null;
     }
+    // Also save ALL editable elements (in case some were edited but not blurred)
     const content = $("#a4Content");
-    if (!content) return;
-    // Remove contenteditable and data-editable attributes (editor-only UI)
-    content.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
-    content.querySelectorAll("[data-editable]").forEach(el => el.removeAttribute("data-editable"));
-    // Remove selection classes (editor-only UI)
-    content.querySelectorAll(".selected-item, .selected-section").forEach(el => {
-      el.classList.remove("selected-item", "selected-section");
-    });
+    if (content) {
+      content.querySelectorAll("[data-field]").forEach(el => {
+        const text = el.textContent.trim();
+        const field = el.getAttribute("data-field");
+        if (field && text) {
+          if (field === "name_en") state.data.personal.name_en = text;
+          else if (field === "name_ar") state.data.personal.name_ar = text;
+          else if (field === "email") state.data.personal.email = text;
+          else if (field === "phone") state.data.personal.phone = text;
+          else if (field === "location") state.data.personal.location = text;
+          else if (field === "summary_en") {
+            if (!state.data.summary) state.data.summary = {};
+            state.data.summary.en = text;
+          }
+          else if (field === "summary_ar") {
+            if (!state.data.summary) state.data.summary = {};
+            state.data.summary.ar = text;
+          }
+        }
+      });
+      // Save list items (skills, courses, languages)
+      content.querySelectorAll("ul.editable-list li").forEach(li => {
+        const text = li.textContent.trim();
+        const section = li.closest(".section");
+        if (section) {
+          const heading = section.querySelector("h2")?.textContent || "";
+          const list = li.closest("ul.editable-list");
+          if (list) {
+            const items = Array.from(list.querySelectorAll("li"));
+            const idx = items.indexOf(li);
+            if (heading.includes("SKILLS") || heading.includes("المهارات")) {
+              if (heading.includes("TECHNICAL") || heading.includes("التقنية")) {
+                if (idx < state.data.technical_skills.length) state.data.technical_skills[idx] = text;
+              } else {
+                if (idx < state.data.skills.length) state.data.skills[idx] = text;
+              }
+            } else if (heading.includes("COURSES") || heading.includes("الدورات")) {
+              if (idx < state.data.courses.length) state.data.courses[idx] = text;
+            }
+          }
+        }
+      });
+      // Save item titles (experience, education)
+      content.querySelectorAll(".item-title").forEach(el => {
+        const text = el.textContent.trim();
+        const section = el.closest(".section");
+        if (section) {
+          const heading = section.querySelector("h2")?.textContent || "";
+          const item = el.closest(".item");
+          if (item) {
+            const items = Array.from(section.querySelectorAll(".item"));
+            const idx = items.indexOf(item);
+            if (heading.includes("EXPERIENCE") || heading.includes("الخبرة")) {
+              if (idx < state.data.experience.length) {
+                state.data.experience[idx].title = text;
+              }
+            } else if (heading.includes("EDUCATION") || heading.includes("المؤهلات") || heading.includes("التعليم")) {
+              if (idx < state.data.education.length) {
+                state.data.education[idx].degree = text;
+              }
+            }
+          }
+        }
+      });
+      // Remove contenteditable and data-editable attributes (editor-only UI)
+      content.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+      content.querySelectorAll("[data-editable]").forEach(el => el.removeAttribute("data-editable"));
+      // Remove selection classes (editor-only UI)
+      content.querySelectorAll(".selected-item, .selected-section").forEach(el => {
+        el.classList.remove("selected-item", "selected-section");
+      });
+    }
   }
 
   function downloadBlob(blob, filename, type) {
@@ -907,11 +984,86 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       hideEl($("#settingsModal"));
+      hideEl($("#addSectionModal"));
       deselectAll();
     }
   });
 
   window.addEventListener("resize", fitA4ToContainer);
+
+  // ---------------- Add Section Feature ----------------
+  function openAddSectionModal() {
+    showEl($("#addSectionModal"));
+    // Clear previous inputs
+    const titleInput = $("#newSectionTitle");
+    const contentInput = $("#newSectionContent");
+    if (titleInput) titleInput.value = "";
+    if (contentInput) contentInput.value = "";
+    if (titleInput) titleInput.focus();
+  }
+
+  function confirmAddSection() {
+    const type = $("#newSectionType")?.value || "custom";
+    const title = ($("#newSectionTitle")?.value || "").trim();
+    const content = ($("#newSectionContent")?.value || "").trim();
+
+    if (!title && type === "custom") {
+      toast("أدخل عنوان القسم", "warn");
+      return;
+    }
+
+    // Add to state.data based on type
+    if (type === "experience") {
+      if (!state.data.experience) state.data.experience = [];
+      state.data.experience.push({
+        title: title || "وظيفة جديدة",
+        company: "",
+        description: content || "",
+        bullets: []
+      });
+    } else if (type === "education") {
+      if (!state.data.education) state.data.education = [];
+      state.data.education.push({
+        degree: title || "شهادة جديدة",
+        institution: content || "",
+        year: ""
+      });
+    } else if (type === "skill") {
+      if (!state.data.skills) state.data.skills = [];
+      state.data.skills.push(title || content || "مهارة جديدة");
+    } else if (type === "course") {
+      if (!state.data.courses) state.data.courses = [];
+      state.data.courses.push(title || content || "دورة جديدة");
+    } else if (type === "language") {
+      if (!state.data.languages) state.data.languages = [];
+      state.data.languages.push({
+        name: title || "لغة جديدة",
+        level: content || ""
+      });
+    } else if (type === "project") {
+      if (!state.data.projects) state.data.projects = [];
+      state.data.projects.push({
+        name: title || "مشروع جديد",
+        description: content || ""
+      });
+    } else {
+      // custom section — add as a bullet to skills with title prefix
+      if (!state.data.skills) state.data.skills = [];
+      state.data.skills.push(title + (content ? ": " + content : ""));
+    }
+
+    hideEl($("#addSectionModal"));
+    toast("✅ تم إضافة القسم: " + (title || type), "success");
+    // Re-render preview
+    renderPreview();
+  }
+
+  $("#btnAddSection")?.addEventListener("click", openAddSectionModal);
+  $("#closeAddSection")?.addEventListener("click", () => { hideEl($("#addSectionModal")); });
+  $("#btnConfirmAddSection")?.addEventListener("click", confirmAddSection);
+  $("#addSectionModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "addSectionModal") hideEl($("#addSectionModal"));
+  });
 
   // ---------------- Init ----------------
   initSteppers();

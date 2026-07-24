@@ -107,6 +107,7 @@
       <div class="tb-center">
         <button class="tb-btn" data-tab="templates">القوالب</button>
         <button class="tb-btn tb-btn-gold" data-tab="ai">مساعد الذكاء ✨</button>
+        <button class="tb-btn tb-btn-green" id="btnAddSection" title="إضافة قسم جديد">➕ إضافة قسم</button>
         <button class="tb-btn" id="btnUndo" title="تراجع">↶</button>
         <button class="tb-btn" id="btnRedo" title="إعادة">↷</button>
         <button class="tb-btn" id="btnSettings" title="إعدادات API">⚙ الإعدادات</button>
@@ -231,6 +232,39 @@
         يمكنك إضافة عدة مفاتيح لكل مزود، وإذا انتهت حصة مفتاح ينتقل تلقائياً للتالي.
       </p>
       <div id="providerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD SECTION MODAL ============ -->
+<div class="modal-overlay" id="addSectionModal" style="display:none">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <h2>➕ إضافة قسم جديد</h2>
+      <button class="modal-close" id="closeAddSection" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-field">
+        <label>نوع القسم</label>
+        <select id="newSectionType" class="tb-select" style="width:100%;padding:8px">
+          <option value="custom">قسم مخصص (عنوان + نص)</option>
+          <option value="experience">خبرة وظيفية</option>
+          <option value="education">تعليم</option>
+          <option value="skill">مهارة</option>
+          <option value="course">دورة تدريبية</option>
+          <option value="language">لغة</option>
+          <option value="project">مشروع</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>عنوان القسم</label>
+        <input type="text" id="newSectionTitle" placeholder="مثال: الشهادات، الأنشطة، المراجع..." style="width:100%;padding:8px" dir="auto">
+      </div>
+      <div class="config-field" id="newSectionContentField">
+        <label>المحتوى</label>
+        <textarea id="newSectionContent" placeholder="اكتب محتوى القسم هنا..." style="width:100%;padding:8px;min-height:80px" dir="auto"></textarea>
+      </div>
+      <button class="tb-btn tb-btn-green" id="btnConfirmAddSection" style="width:100%;padding:10px;margin-top:8px">✅ إضافة القسم</button>
     </div>
   </div>
 </div>
