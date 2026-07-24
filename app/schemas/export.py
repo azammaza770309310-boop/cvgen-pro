@@ -14,6 +14,7 @@ class DesignControls(BaseModel):
     sectionSpacing: float = 2.0
     columnDistance: float = 4.0
     margin: float = 15.0
+    fontFamily: Optional[str] = None
 
 
 class ExportRequest(BaseModel):
@@ -22,3 +23,4 @@ class ExportRequest(BaseModel):
     lang: str = "en"
     filename: Optional[str] = None
     controls: Optional[DesignControls] = None
+    font: Optional[str] = None

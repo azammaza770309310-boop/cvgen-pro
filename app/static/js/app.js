@@ -740,16 +740,29 @@
     const area = $(".editor-preview-area");
     const scaler = $("#a4Scaler");
     if (!area || !scaler) return;
-    // Use most of the available width, keeping small margins for shadow
-    const availWidth = area.clientWidth - 40;
+    // A4 width in pixels at 96 DPI = 210mm * 3.7795 ≈ 794px
     const A4_WIDTH = 794;
+    // Available width inside the preview area (minus padding)
+    const availWidth = Math.max(200, area.clientWidth - 40);
+    // Scale to fit — never exceed 1.0, always fit the container
     const scale = Math.min(1, availWidth / A4_WIDTH);
+    // Apply transform
     scaler.style.transform = `scale(${scale})`;
     scaler.style.transformOrigin = "top center";
     scaler.style.width = A4_WIDTH + "px";
-    // Center the scaler horizontally to prevent left-side clipping
+    // Center horizontally to prevent left-side clipping
     scaler.style.marginLeft = "auto";
     scaler.style.marginRight = "auto";
+    // On very narrow screens, allow horizontal scroll as fallback
+    const isMobile = area.clientWidth < 700;
+    if (isMobile) {
+      // Ensure the wrap allows horizontal scroll if scale doesn't fully fit
+      const wrap = $(".a4-wrap");
+      if (wrap) {
+        wrap.style.overflowX = "auto";
+        wrap.style.maxWidth = "100%";
+      }
+    }
     // Set scaler height to scaled A4 height so container scrolls correctly
     const a4Page = $(".a4-page");
     const a4Height = a4Page ? a4Page.scrollHeight : 1123;
@@ -785,16 +798,20 @@
     const btn = $("#btnPdf");
     btn.disabled = true; btn.textContent = "...";
     try {
-      // Apply inline color edits to data before export
+      // CRITICAL: captureInlineStyles MUST run before building the export body.
+      // It saves ALL inline edits (text changes) from the preview DOM into
+      // state.data so the PDF receives the EXACT current state.
       captureInlineStyles();
       state.data.lang = state.displayLang;
-      // Send design controls so PDF matches preview exactly
+      // Merge font family into controls so the PDF uses the same font as preview
+      const controlsWithFont = Object.assign({}, state.controls, { fontFamily: state.font });
       const body = {
         data: state.data,
         template_id: state.templateId,
         lang: state.displayLang,
         filename: state.data.personal.name_en || state.data.personal.name || "resume",
-        controls: state.controls
+        controls: controlsWithFont,
+        font: state.font
       };
       const blob = await api("/api/export/pdf", { method: "POST", body: body });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".pdf", "application/pdf");
@@ -809,12 +826,14 @@
     try {
       captureInlineStyles();
       state.data.lang = state.displayLang;
+      const controlsWithFont = Object.assign({}, state.controls, { fontFamily: state.font });
       const blob = await api("/api/export/docx", { method: "POST", body: {
         data: state.data,
         template_id: state.templateId,
         lang: state.displayLang,
         filename: state.data.personal.name_en || state.data.personal.name || "resume",
-        controls: state.controls
+        controls: controlsWithFont,
+        font: state.font
       } });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
       toast("تم تنزيل Word", "success");

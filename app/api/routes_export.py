@@ -39,11 +39,16 @@ async def export_pdf_route(req: ExportRequest, engine: str = Query("weasyprint",
         if req.lang:
             resume.lang = req.lang
 
+        # Determine the font family to use for PDF (from req.font or controls.fontFamily)
+        font_family = req.font
+        if not font_family and req.controls and hasattr(req.controls, "fontFamily") and req.controls.fontFamily:
+            font_family = req.controls.fontFamily
+
         if engine == "chromium":
             from app.services.chromium_pdf_service import export_pdf_chromium
             pdf_bytes = export_pdf_chromium(resume, req.template_id, controls=req.controls)
         else:
-            pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls)
+            pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls, font_family=font_family)
 
         filename = _safe_filename(req.filename or resume.personal.name or "resume", "pdf")
         return Response(

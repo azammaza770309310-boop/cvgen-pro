@@ -728,6 +728,8 @@ button { font-family: inherit; }
   justify-content: center;
   width: 100%;
   max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .a4-scaler {
   transform-origin: top center;
@@ -1066,10 +1068,15 @@ button { font-family: inherit; }
     font-size: 14px;
   }
   .editor-preview-area {
-    padding: 8px;
+    padding: 4px;
+    overflow-x: auto;
   }
   .a4-wrap {
-    padding: 8px 4px;
+    padding: 4px 0;
+    overflow-x: auto;
+  }
+  .a4-scaler {
+    transform-origin: top left;
   }
 }
 
