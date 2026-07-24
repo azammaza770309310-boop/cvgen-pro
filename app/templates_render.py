@@ -211,14 +211,80 @@ def render_official_bilingual_master(resume: ResumeData) -> str:
             parts.append(_section_row("COURSES & CERTIFICATIONS", "الدورات والشهادات", body_en, body_ar))
 
     # 6. LANGUAGES / اللغات
+    # CRITICAL: Strictly separate languages by language.
+    # English column: ONLY English names + English levels
+    # Arabic column: ONLY Arabic names + Arabic levels
     if resume.languages:
-        lang_items_en = [f"{l.name} ({l.level})" if l.level else l.name for l in resume.languages]
-        # For the Arabic column, translate the language name if an Arabic name
-        # is available; otherwise keep it (language names are often universal).
+        # English level translations
+        LEVEL_EN = {
+            "native": "Native", "fluent": "Fluent", "advanced": "Advanced",
+            "intermediate": "Intermediate", "beginner": "Beginner",
+            "مبتدئ": "Beginner", "متوسط": "Intermediate", "متقدم": "Advanced",
+            "بطلاقة": "Fluent", "اللغة الأم": "Native", "بطلاقة تامة": "Native",
+        }
+        # Arabic level translations
+        LEVEL_AR = {
+            "native": "اللغة الأم", "fluent": "بطلاقة", "advanced": "متقدم",
+            "intermediate": "متوسط", "beginner": "مبتدئ",
+            "Native": "اللغة الأم", "Fluent": "بطلاقة", "Advanced": "متقدم",
+            "Intermediate": "متوسط", "Beginner": "مبتدئ",
+        }
+        # Arabic name translations for common languages
+        LANG_NAME_AR = {
+            "arabic": "العربية", "english": "الإنجليزية", "french": "الفرنسية",
+            "german": "الألمانية", "spanish": "الإسبانية", "italian": "الإيطالية",
+            "chinese": "الصينية", "japanese": "اليابانية", "korean": "الكورية",
+            "russian": "الروسية", "turkish": "التركية", "hindi": "الهندية",
+            "العربية": "العربية", "الإنجليزية": "الإنجليزية",
+        }
+        # English name translations for common languages
+        LANG_NAME_EN = {
+            "العربية": "Arabic", "الإنجليزية": "English", "الفرنسية": "French",
+            "الألمانية": "German", "الإسبانية": "Spanish",
+            "arabic": "Arabic", "english": "English", "french": "French",
+            "german": "German", "spanish": "Spanish",
+        }
+
+        lang_items_en = []
         lang_items_ar = []
         for l in resume.languages:
-            nm = l.name_ar or l.name
-            lang_items_ar.append(f"{nm} ({l.level})" if l.level else nm)
+            # --- English column: ONLY English ---
+            # Use name_en if available, else translate from Arabic, else use name
+            nm_en = l.name_en
+            if not nm_en:
+                # If name is Arabic, translate it; if English, keep it
+                if contains_arabic(l.name):
+                    nm_en = LANG_NAME_EN.get(l.name.lower(), LANG_NAME_EN.get(l.name, l.name))
+                else:
+                    nm_en = l.name
+            # English level
+            lvl_en = ""
+            if l.level:
+                lvl_lower = l.level.lower().strip()
+                lvl_en = LEVEL_EN.get(lvl_lower, LEVEL_EN.get(l.level, l.level))
+                # If the level is Arabic, translate to English
+                if contains_arabic(lvl_en):
+                    lvl_en = LEVEL_EN.get(lvl_en, l.level)
+            lang_items_en.append(f"{nm_en} ({lvl_en})" if lvl_en else nm_en)
+
+            # --- Arabic column: ONLY Arabic ---
+            # Use name_ar if available, else translate from English, else use name
+            nm_ar = l.name_ar
+            if not nm_ar:
+                if contains_arabic(l.name):
+                    nm_ar = l.name  # Already Arabic
+                else:
+                    nm_ar = LANG_NAME_AR.get(l.name.lower(), LANG_NAME_AR.get(l.name, l.name))
+            # Arabic level
+            lvl_ar = ""
+            if l.level:
+                lvl_lower = l.level.lower().strip()
+                lvl_ar = LEVEL_AR.get(lvl_lower, LEVEL_AR.get(l.level, l.level))
+                # If the level is English, translate to Arabic
+                if not contains_arabic(lvl_ar) and lvl_lower in LEVEL_AR:
+                    lvl_ar = LEVEL_AR[lvl_lower]
+            lang_items_ar.append(f"{nm_ar} ({lvl_ar})" if lvl_ar else nm_ar)
+
         body_en = _bullet_list(lang_items_en)
         body_ar = _bullet_list(lang_items_ar)
         if body_en or body_ar:

@@ -486,14 +486,15 @@ button { font-family: inherit; }
 }
 .overflow-warning strong { color: #fff; font-weight: 700; }
 
-/* A4 page wrapper — centers the page, responsive width.
- * FIX: removed transform:scale() approach which caused left-side clipping.
- * Now uses width:100% + max-width:794px + margin:0 auto for proper centering. */
+/* A4 page wrapper — centers the page with flexbox.
+ * Dark background on parent ensures white paper stands out.
+ * Flexbox centering ensures SYMMETRICAL margins (no left clipping). */
 .a4-wrap {
-  display: block;
-  padding: 20px 10px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
   width: 100%;
-  max-width: 834px;
   margin: 0 auto;
   box-sizing: border-box;
   overflow: visible;
@@ -501,6 +502,7 @@ button { font-family: inherit; }
 .a4-scaler {
   display: block;
   width: 100%;
+  max-width: 794px;
   margin: 0 auto;
 }
 .a4-page {
@@ -718,22 +720,27 @@ button { font-family: inherit; }
 .editor-preview-area {
   flex: 1;
   overflow: auto;
-  background: #2a2a2a;
-  padding: 20px;
-  display: block;
+  background: #1a1a1a;
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   -webkit-overflow-scrolling: touch;
 }
 .editor-preview-area .a4-wrap {
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
-  max-width: 834px; /* 794px + 40px padding for shadow */
   margin: 0 auto;
+  padding: 0;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
 }
 .a4-scaler {
   display: block;
   width: 100%;
+  max-width: 794px;
   margin: 0 auto;
 }
 
