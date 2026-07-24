@@ -486,15 +486,16 @@ button { font-family: inherit; }
 }
 .overflow-warning strong { color: #fff; font-weight: 700; }
 
-/* A4 page wrapper — centers the page, scales to fit container.
- * FIX: left-side cropping was caused by overflow + insufficient padding. */
+/* A4 page wrapper — centers the page, allows horizontal scroll on mobile.
+ * FIX: use display:block + text-align:center + min-width:min-content so the
+ * full A4 paper is always visible (scrollable) and never clipped on the left. */
 .a4-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  display: block;
   padding: 20px 10px;
   width: 100%;
+  min-width: min-content;
   box-sizing: border-box;
+  text-align: center;
   overflow: visible;
 }
 .a4-scaler {
@@ -719,16 +720,15 @@ button { font-family: inherit; }
   overflow: auto;
   background: #2a2a2a;
   padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  display: block;
+  -webkit-overflow-scrolling: touch;
 }
 .editor-preview-area .a4-wrap {
-  display: flex;
-  justify-content: center;
+  display: block;
   width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
+  min-width: min-content;
+  box-sizing: border-box;
+  text-align: center;
   -webkit-overflow-scrolling: touch;
 }
 .a4-scaler {
