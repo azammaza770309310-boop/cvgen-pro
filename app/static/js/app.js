@@ -839,8 +839,12 @@
   }
 
   // ---------------- Wire up ----------------
-  $("#btnGenerate").addEventListener("click", generate);
-  $("#btnLoadSample").addEventListener("click", async () => {
+  // IMPORTANT: Use optional chaining (?.) on ALL addEventListener calls.
+  // If any element is missing, the TypeError would crash the entire IIFE
+  // and ALL subsequent event handlers + init calls would never run.
+  // This was the root cause of the "جاري التحقق..." frozen UI bug.
+  $("#btnGenerate")?.addEventListener("click", generate);
+  $("#btnLoadSample")?.addEventListener("click", async () => {
     try {
       const res = await api("/api/resume/sample?lang=bilingual");
       state.data = res;
@@ -849,16 +853,18 @@
       toast("تم تحميل النموذج — اضغط على أي نص لتعديله", "success");
     } catch (e) { toast("فشل تحميل النموذج: " + e.message, "error"); }
   });
-  $("#btnPdf").addEventListener("click", exportPDF);
-  $("#btnDocx").addEventListener("click", exportDOCX);
-  $("#btnSave").addEventListener("click", save);
-  $("#btnCloseEditor").addEventListener("click", hideEditor);
-  $("#btnSettings").addEventListener("click", () => { $("#settingsModal").style.display = "flex"; });
-  $("#btnErrorSettings").addEventListener("click", () => { $("#settingsModal").style.display = "flex"; });
-  $("#closeSettings").addEventListener("click", () => { $("#settingsModal").style.display = "none"; });
-  $("#settingsModal").addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal").style.display = "none"; });
-  $("#templatePick").addEventListener("click", cycleTemplate);
-  $("#fontSelect").addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); });
+  $("#btnPdf")?.addEventListener("click", exportPDF);
+  $("#btnDocx")?.addEventListener("click", exportDOCX);
+  $("#btnSave")?.addEventListener("click", save);
+  $("#btnCloseEditor")?.addEventListener("click", hideEditor);
+  // Attach to ALL btnSettings elements (there are 2: landing + editor toolbar)
+  $$("#btnSettings").forEach(btn => btn.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; }));
+  $("#btnErrorSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "flex"; });
+  $("#closeSettings")?.addEventListener("click", () => { $("#settingsModal")?.style.display = "none"; });
+  $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") $("#settingsModal").style.display = "none"; });
+  $("#templatePick")?.addEventListener("click", cycleTemplate);
+  // Attach to ALL fontSelect elements (there are 2: config + toolbar)
+  $$("#fontSelect").forEach(sel => sel.addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); }));
 
   // Reset all design controls to defaults
   $("#btnResetAll")?.addEventListener("click", function() {
