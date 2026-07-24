@@ -348,7 +348,7 @@ button { font-family: inherit; }
 .tag-cat { background: #e0e7ff; color: #4338ca; }
 
 /* ============ Editor (Image 3) ============ */
-.editor-shell { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+.editor-shell { display: flex; flex-direction: column; height: 100vh; background: #ffffff; }
 
 .editor-toolbar {
   background: var(--bg-card);
@@ -657,7 +657,7 @@ button { font-family: inherit; }
 .kpc-add button:hover { background: var(--accent-hover); }
 
 /* ============ NEW EDITOR LAYOUT: toolbar on top + preview below ============ */
-.editor-shell { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+.editor-shell { display: flex; flex-direction: column; height: 100vh; background: #ffffff; }
 
 .editor-toolbar {
   background: var(--bg-card);
@@ -720,7 +720,7 @@ button { font-family: inherit; }
 .editor-preview-area {
   flex: 1;
   overflow: auto;
-  background: #1a1a1a;
+  background: #ffffff;
   padding: 24px 16px;
   display: flex;
   justify-content: center;
