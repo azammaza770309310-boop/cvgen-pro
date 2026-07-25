@@ -269,6 +269,35 @@
   </div>
 </div>
 
+<!-- ============ TEMPLATE GALLERY MODAL ============ -->
+<div class="modal-overlay tg-overlay" id="templateGalleryModal" style="display:none">
+  <div class="modal tg-modal">
+    <!-- Header -->
+    <div class="tg-header">
+      <div class="tg-header-text">
+        <h2 class="tg-title"><span class="tg-icon">⊞</span> معرض القوالب <span class="tg-count" id="tgCount">— قالب</span></h2>
+        <p class="tg-subtitle">قوالب احترافية تدعم العربية والإنجليزية — متوافقة مع أنظمة ATS والإبداعية</p>
+      </div>
+      <button class="tg-close-btn" id="closeTemplateGallery" aria-label="إغلاق">✕</button>
+    </div>
+    <!-- Filter tabs -->
+    <div class="tg-filters">
+      <button class="tg-filter-btn active" data-filter="all">الكل</button>
+      <button class="tg-filter-btn" data-filter="ats">ATS</button>
+      <button class="tg-filter-btn" data-filter="bilingual">ثنائي لغة</button>
+      <button class="tg-filter-btn" data-filter="creative">إبداعية</button>
+    </div>
+    <!-- Grid -->
+    <div class="tg-grid" id="templateGrid">
+      <!-- Cards populated by JS -->
+    </div>
+    <!-- Footer -->
+    <div class="tg-footer">
+      <button class="tg-footer-close" id="btnCloseGallery">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="/static/js/app.js"></script>

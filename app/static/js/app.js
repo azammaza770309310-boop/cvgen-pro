@@ -998,9 +998,105 @@
   $("#btnErrorSettings")?.addEventListener("click", () => { showEl($("#settingsModal"), "flex"); });
   $("#closeSettings")?.addEventListener("click", () => { hideEl($("#settingsModal")); });
   $("#settingsModal")?.addEventListener("click", (e) => { if (e.target.id === "settingsModal") hideEl($("#settingsModal")); });
-  $("#templatePick")?.addEventListener("click", cycleTemplate);
+  $("#templatePick")?.addEventListener("click", openTemplateGallery);
   // Attach to ALL fontSelect elements (there are 2: config + toolbar)
   $$("#fontSelect").forEach(sel => sel.addEventListener("change", (e) => { state.font = e.target.value; applyDesignVars(); }));
+
+  // ---------------- Template Gallery ----------------
+  function openTemplateGallery() {
+    showEl($("#templateGalleryModal"), "flex");
+    renderTemplateGallery("all");
+  }
+
+  function closeTemplateGallery() {
+    hideEl($("#templateGalleryModal"));
+  }
+
+  function renderTemplateGallery(filter) {
+    const grid = $("#templateGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    if (!state.templates || state.templates.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#888;padding:40px">لا توجد قوالب متاحة</div>';
+      return;
+    }
+    // Update count in header
+    setText($("#tgCount"), state.templates.length + " قالب");
+
+    let visibleCount = 0;
+    state.templates.forEach(t => {
+      const cat = t.category || "ats";
+      let show = false;
+      if (filter === "all") show = true;
+      else if (filter === "ats") show = (cat === "ats");
+      else if (filter === "bilingual") show = (cat === "bilingual");
+      else if (filter === "creative") show = (cat === "creative" || cat === "bilingual");
+      if (!show) return;
+      visibleCount++;
+
+      const isSelected = (t.id === state.templateId);
+      const card = document.createElement("div");
+      card.className = "tg-card" + (isSelected ? " selected" : "");
+      card.dataset.templateId = t.id;
+
+      // Build thumbnail preview (colored lines simulating a resume)
+      const accent = t.accent || "#888";
+      const thumbLines = `
+        <div class="tg-thumb-line tg-accent" style="width:55%;--thumb-accent:${accent}"></div>
+        <div class="tg-thumb-line" style="width:75%"></div>
+        <div class="tg-thumb-line" style="width:65%"></div>
+        <div class="tg-thumb-line tg-accent" style="width:45%;--thumb-accent:${accent}"></div>
+        <div class="tg-thumb-line" style="width:70%"></div>
+        <div class="tg-thumb-line" style="width:60%"></div>
+        <div class="tg-thumb-line" style="width:80%"></div>
+        <div class="tg-thumb-line tg-accent" style="width:40%;--thumb-accent:${accent}"></div>
+        <div class="tg-thumb-line" style="width:65%"></div>
+        <div class="tg-thumb-line" style="width:55%"></div>
+      `;
+
+      card.innerHTML = `
+        <div class="tg-check">✓</div>
+        <div class="tg-thumb">${thumbLines}</div>
+        <div class="tg-labels">
+          <div class="tg-name-ar">${esc(t.name_ar || t.name)}</div>
+          <div class="tg-name-en">${esc(t.name || t.id)}</div>
+        </div>
+      `;
+      card.addEventListener("click", () => selectTemplateFromGallery(t.id));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectTemplateFromGallery(templateId) {
+    state.templateId = templateId;
+    const t = state.templates.find(x => x.id === templateId);
+    if (t) {
+      state.templateIndex = state.templates.indexOf(t);
+      setText($("#tpName"), t.name_ar || t.name || "—");
+      toast("تم اختيار القالب: " + (t.name_ar || t.name), "success");
+    }
+    // Close gallery immediately
+    closeTemplateGallery();
+    // Re-render preview if in editor mode
+    if ($("#editorView") && $("#editorView").style.display !== "none" && state.data && state.data.personal) {
+      renderPreview();
+    }
+  }
+
+  // Wire up gallery close buttons
+  $("#closeTemplateGallery")?.addEventListener("click", closeTemplateGallery);
+  $("#btnCloseGallery")?.addEventListener("click", closeTemplateGallery);
+  $("#templateGalleryModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "templateGalleryModal") closeTemplateGallery();
+  });
+  // Wire up filter tabs
+  $$(".tg-filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $$(".tg-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderTemplateGallery(btn.dataset.filter);
+    });
+  });
 
   // Reset all design controls to defaults
   $("#btnResetAll")?.addEventListener("click", function() {
