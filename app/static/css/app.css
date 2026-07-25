@@ -717,11 +717,12 @@ button { font-family: inherit; }
 .context-bar #contextLabel { color: var(--accent); font-weight: 600; }
 
 /* Preview area — directly below toolbar */
+/* White background + SYMMETRICAL padding for perfect centering */
 .editor-preview-area {
   flex: 1;
   overflow: auto;
   background: #ffffff;
-  padding: 24px 16px;
+  padding: 24px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -732,6 +733,7 @@ button { font-family: inherit; }
   justify-content: center;
   align-items: flex-start;
   width: 100%;
+  max-width: 794px;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;

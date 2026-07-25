@@ -67,15 +67,17 @@
 
 /* ===== A4 Page ===== */
 .a4-page {
-  width: 210mm;
+  width: 100%;
+  max-width: 210mm;
   min-height: 297mm;
-  max-height: 297mm;
   background-color: var(--cv-bg);
   padding: var(--cv-page-padding);
   color: var(--cv-body);
   font-family: Arial, Tahoma, "Helvetica Neue", sans-serif;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 /* ===== Header ===== */
