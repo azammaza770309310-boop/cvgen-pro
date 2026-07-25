@@ -330,27 +330,38 @@
 
   function applyDesignVars() {
     // Apply CSS variables AND inline styles so font size + margin are VISIBLE.
-    // The old UI applied fontSize to ALL elements — this restores that behavior.
-    const targets = [$("#a4Page"), $("#a4Content"), $(".a4-page")];
+    // CRITICAL: Update BOTH --cv-body-size (English) AND --cv-body-size-ar (Arabic)
+    // so that both languages scale together when the user changes the font size.
+    // The Arabic body uses --cv-body-size-ar with !important in templates.css,
+    // so we MUST update that variable (not just set inline font-size).
+    const fontSize = state.controls.fontSize;
+    // Arabic body is +13% larger for visual parity (per templates.css comment)
+    const fontSizeAr = (fontSize * 1.13).toFixed(1);
+
+    const targets = [$("#a4Page"), $("#a4Content"), $(".a4-page"), document.documentElement];
     targets.forEach(el => {
       if (!el) return;
       // Set CSS variables (used by templates.css)
-      el.style.setProperty("--cv-body-size", state.controls.fontSize + "pt");
+      el.style.setProperty("--cv-body-size", fontSize + "pt");
+      el.style.setProperty("--cv-body-size-ar", fontSizeAr + "pt");  // CRITICAL: Arabic body
       el.style.setProperty("--cv-body-line-height", state.controls.lineHeight);
       el.style.setProperty("--cv-section-spacing", state.controls.sectionSpacing + "pt");
       el.style.setProperty("--cv-column-gap", state.controls.columnDistance + "pt");
       el.style.setProperty("--cv-page-padding", state.controls.margin + "mm");
-      // Apply font size and line height DIRECTLY for immediate visual effect
-      el.style.fontSize = state.controls.fontSize + "pt";
-      el.style.lineHeight = state.controls.lineHeight;
     });
-    // Apply font family + font size to ALL children for visible effect
+    // Apply font size + line height DIRECTLY to ALL text elements for immediate effect
+    // This overrides the !important in templates.css because inline styles with
+    // !important win over stylesheet !important.
     const content = $("#a4Content");
     if (content) {
       content.style.fontFamily = state.font + ", sans-serif";
       content.querySelectorAll(".a4-page, .section-row, .section-body, .body-en, .body-ar, .section-headings, .section-heading-en, .section-heading-ar, p, li, h1, h2, .item, .item-title, .contact-bar, .contact-item, .editable").forEach(el => {
-        el.style.fontSize = state.controls.fontSize + "pt";
-        el.style.lineHeight = state.controls.lineHeight;
+        el.style.setProperty("font-size", fontSize + "pt", "important");
+        el.style.setProperty("line-height", state.controls.lineHeight, "important");
+      });
+      // Also set on body-ar elements specifically (they have !important in CSS)
+      content.querySelectorAll(".body-ar, .body-ar .item, .body-ar li, .body-ar .item-title").forEach(el => {
+        el.style.setProperty("font-size", fontSizeAr + "pt", "important");
       });
     }
   }
@@ -761,10 +772,24 @@
     const fillText = $("#pageFillText");
     const pageInfo = $("#pageInfoText");
     if (!a4Page || !fillBar) return;
-    const contentHeight = a4Page.scrollHeight;
-    const pageHeight = 1123; // A4 at 96dpi
-    const pct = Math.min(100, Math.round((contentHeight / pageHeight) * 100));
-    const pages = Math.max(1, Math.ceil(contentHeight / pageHeight));
+    // A4 height at 96 DPI = 297mm * 3.7795 ≈ 1123px
+    // But the USABLE content height = page height - 2 * padding (top + bottom margin)
+    const A4_HEIGHT_PX = 1123;
+    const marginPx = (state.controls.margin || 15) * 3.7795; // mm → px
+    const usableHeight = A4_HEIGHT_PX - (2 * marginPx);
+    // Measure the ACTUAL content height (not scrollHeight which includes padding)
+    // Use the #a4Content element's offsetHeight for accuracy
+    const contentEl = $("#a4Content");
+    let contentHeight = 0;
+    if (contentEl) {
+      contentHeight = contentEl.offsetHeight;
+    } else {
+      contentHeight = a4Page.scrollHeight - (2 * marginPx);
+    }
+    // Calculate percentage of usable area filled
+    const pct = Math.min(100, Math.round((contentHeight / usableHeight) * 100));
+    // Calculate number of pages (content height / usable height per page)
+    const pages = Math.max(1, Math.ceil(contentHeight / usableHeight));
     fillBar.style.width = pct + "%";
     if (pct > 90) {
       fillBar.style.background = "#ef4444";
@@ -774,7 +799,7 @@
       fillBar.style.background = "#22c55e";
     }
     if (fillText) fillText.textContent = pct + "%";
-    if (pageInfo) pageInfo.textContent = `صفحة 1 من ${pages}`;
+    if (pageInfo) pageInfo.textContent = pages === 1 ? "صفحة 1" : `صفحة 1 من ${pages}`;
   }
 
   // ---------------- Export ----------------

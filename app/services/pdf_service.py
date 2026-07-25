@@ -47,6 +47,12 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
     if controls:
         if hasattr(controls, "fontSize") and controls.fontSize:
             overrides.append(f"--cv-body-size: {controls.fontSize}pt")
+            # CRITICAL: Also set the Arabic body size variable.
+            # templates.css uses --cv-body-size-ar (with !important) for Arabic text.
+            # If we don't update it, Arabic text stays at the default 12.5pt even
+            # when the user reduces the font size, causing 2-page PDFs.
+            font_size_ar = round(float(controls.fontSize) * 1.13, 1)  # +13% for Arabic
+            overrides.append(f"--cv-body-size-ar: {font_size_ar}pt")
         if hasattr(controls, "lineHeight") and controls.lineHeight:
             overrides.append(f"--cv-body-line-height: {controls.lineHeight}")
         if hasattr(controls, "sectionSpacing") and controls.sectionSpacing is not None:
@@ -61,13 +67,25 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
     # CRITICAL: Also apply DIRECT CSS rules (WeasyPrint doesn't fully support vars)
     if controls:
         direct_rules = []
-        # Font size + line height on ALL text elements
+        # Font size + line height on ALL text elements (English baseline)
         if hasattr(controls, "fontSize") and controls.fontSize:
+            font_size = float(controls.fontSize)
+            font_size_ar = round(font_size * 1.13, 1)  # Arabic +13% for visual parity
+            # English + generic elements: use the base font size
             direct_rules.append(
                 f".a4-page, .cv-root, .section, .section-row, .section-body, "
-                f".section-headings, .body-en, .body-ar, .item, .item-title, "
+                f".section-headings, .body-en, .item, .item-title, "
                 f".contact-bar, .contact-item, .editable, p, li, h1, h2, h3, span, div {{\n"
-                f"  font-size: {controls.fontSize}pt !important;\n"
+                f"  font-size: {font_size}pt !important;\n"
+                f"}}"
+            )
+            # CRITICAL: Arabic body elements use a slightly larger font (+13%)
+            # This rule MUST come AFTER the generic rule above to override it.
+            # It targets .body-ar and its children which have !important in templates.css.
+            direct_rules.append(
+                f".body-ar, .body-ar .item, .body-ar li, .body-ar .item-title, "
+                f".body-ar p, .body-ar span, .body-ar div {{\n"
+                f"  font-size: {font_size_ar}pt !important;\n"
                 f"}}"
             )
         if hasattr(controls, "lineHeight") and controls.lineHeight:
