@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - {{ name }}</title>
+    <style>
+        body { background-color: #f4f4f9; font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #000; }
+        .cv-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; margin-bottom: 5px; font-size: 28px; text-transform: uppercase; }
+        .contact-info { text-align: center; font-size: 14px; color: #555; margin-bottom: 25px; }
+        .section-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid #000; margin-top: 20px; margin-bottom: 10px; padding-bottom: 3px; text-transform: uppercase; }
+        .content { font-size: 14px; line-height: 1.6; text-align: justify; }
+        .bold-text { font-weight: bold; }
+        ul { margin-top: 5px; margin-bottom: 5px; padding-left: 20px; }
+        .skills-container { display: flex; justify-content: space-between; }
+        .skills-column { width: 48%; }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <h1>{{ name }}</h1>
+        <div class="contact-info">{{ email }} | {{ phone }} | {{ location }}</div>
+
+        <div class="section-title">CAREER OBJECTIVE</div>
+        <div class="content">{{ objective }}</div>
+
+        <div class="section-title">EDUCATION</div>
+        <div class="content">
+            {% for edu in education %}
+            <span class="bold-text">{{ edu.degree }}</span> - {{ edu.institution }}<br>
+            {% endfor %}
+        </div>
+
+        <div class="section-title">EXPERIENCE</div>
+        <div class="content">
+            {% for exp in experience %}
+            <span class="bold-text">{{ exp.title }}</span> - {{ exp.company }}
+            {% if exp.description %}<ul><li>{{ exp.description }}</li></ul>{% endif %}
+            {% if exp.bullets %}<ul>{% for bullet in exp.bullets %}<li>{{ bullet }}</li>{% endfor %}</ul>{% endif %}
+            {% endfor %}
+        </div>
+
+        {% if courses %}
+        <div class="section-title">COURSES</div>
+        <div class="content"><ul>{% for course in courses %}<li>{{ course }}</li>{% endfor %}</ul></div>
+        {% endif %}
+
+        <div class="skills-container">
+            <div class="skills-column">
+                <div class="section-title">SKILLS</div>
+                <div class="content"><ul>{% for skill in skills %}<li>{{ skill }}</li>{% endfor %}</ul></div>
+            </div>
+            {% if technical_skills %}
+            <div class="skills-column">
+                <div class="section-title">TECHNICAL SKILLS</div>
+                <div class="content"><ul>{% for skill in technical_skills %}<li>{{ skill }}</li>{% endfor %}</ul></div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if languages %}
+        <div class="section-title">LANGUAGES</div>
+        <div class="content"><ul>{% for lang in languages %}<li>{{ lang }}</li>{% endfor %}</ul></div>
+        {% endif %}
+    </div>
+</body>
+</html>

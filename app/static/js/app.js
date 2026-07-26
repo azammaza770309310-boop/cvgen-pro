@@ -1188,6 +1188,40 @@
           <div class="te-line w60"></div>
         </div>`;
 
+      case "professional_classic":
+        // Professional Classic: centered name, section titles with borders, two-column skills
+        return `<div class="thumb-pro-classic" style="--ta:${accent}">
+          <div class="tpc-name">John Smith</div>
+          <div class="tpc-contact">email@ex.com | +123 | NYC</div>
+          <div class="tpc-h">CAREER OBJECTIVE</div>
+          <div class="tpc-line w90"></div>
+          <div class="tpc-line w75"></div>
+          <div class="tpc-h">EDUCATION</div>
+          <div class="tpc-line w80"></div>
+          <div class="tpc-h">EXPERIENCE</div>
+          <div class="tpc-line w85"></div>
+          <div class="tpc-line w60"></div>
+          <div class="tpc-h">COURSES</div>
+          <div class="tpc-line w50"></div>
+          <div class="tpc-skills-row">
+            <div class="tpc-skills-col">
+              <div class="tpc-h">SKILLS</div>
+              <div class="tpc-line w70"></div>
+              <div class="tpc-line w60"></div>
+              <div class="tpc-line w65"></div>
+            </div>
+            <div class="tpc-skills-col">
+              <div class="tpc-h">TECHNICAL</div>
+              <div class="tpc-line w70"></div>
+              <div class="tpc-line w60"></div>
+              <div class="tpc-line w65"></div>
+            </div>
+          </div>
+          <div class="tpc-h">LANGUAGES</div>
+          <div class="tpc-line w50"></div>
+          <div class="tpc-line w45"></div>
+        </div>`;
+
       default:
         // Generic fallback
         return `<div class="thumb-generic" style="--ta:${accent}">

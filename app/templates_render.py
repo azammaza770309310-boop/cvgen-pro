@@ -553,3 +553,79 @@ def render_executive_en(resume: ResumeData) -> str:
         {skill_items}
     </ul>
 </div>'''
+
+
+# ===========================================================================
+# TEMPLATE 6: Professional Classic (Jinja2 HTML template)
+# Single-column English with two-column skills, centered header
+# ===========================================================================
+
+def render_professional_classic(resume: ResumeData) -> str:
+    """Professional Classic template — clean single-column with two-column skills."""
+    from jinja2 import Template
+    from pathlib import Path
+
+    template_path = Path(__file__).parent / "templates" / "professional_classic.html"
+    if not template_path.exists():
+        return render_english_single_column(resume)  # fallback
+
+    template_content = template_path.read_text(encoding="utf-8")
+    template = Template(template_content)
+
+    p = resume.personal
+    name = p.name_en or p.name or ""
+    email = p.email or ""
+    phone = p.phone or ""
+    location = p.location or ""
+    objective = resume.summary_text("en") or resume.objective_text("en") or ""
+
+    # Education
+    education = []
+    for edu in resume.education:
+        education.append({
+            "degree": edu.degree_en or edu.degree or "",
+            "institution": edu.institution_en or edu.institution or "",
+        })
+
+    # Experience
+    experience = []
+    for exp in resume.experience:
+        bullets = exp.bullets_en or exp.bullets or []
+        experience.append({
+            "title": exp.title_en or exp.title or "",
+            "company": exp.company_en or exp.company or "",
+            "description": exp.description or "",
+            "bullets": bullets,
+        })
+
+    # Skills (split: non-Arabic go to skills, Arabic also included)
+    skills = [s for s in resume.skills if s] if resume.skills else []
+    # Technical skills (separate column)
+    technical_skills = [s for s in resume.technical_skills if s] if resume.technical_skills else []
+
+    # Courses
+    courses = [c for c in resume.courses if c] if resume.courses else []
+
+    # Languages
+    languages = []
+    for lang in resume.languages:
+        nm = lang.name_en or lang.name or ""
+        lvl = lang.level or ""
+        entry = f"{nm} ({lvl})" if lvl else nm
+        if entry:
+            languages.append(entry)
+
+    html = template.render(
+        name=name,
+        email=email,
+        phone=phone,
+        location=location,
+        objective=objective,
+        education=education,
+        experience=experience,
+        skills=skills,
+        technical_skills=technical_skills,
+        courses=courses,
+        languages=languages,
+    )
+    return html

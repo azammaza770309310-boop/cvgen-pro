@@ -14,6 +14,7 @@ from typing import Callable, Dict, List
 
 from app.models.resume import ResumeData
 from app.templates_render import (
+    render_professional_classic,
     render_official_bilingual_master,
     render_english_single_column,
     render_arabic_single_column,
@@ -97,6 +98,18 @@ REGISTRY: List[TemplateDef] = [
         supported_languages=["en"],
         accent="#222222",
         render=render_executive_en,
+    ),
+    TemplateDef(
+        id="professional_classic",
+        name="Professional Classic",
+        name_ar="كلاسيكي احترافي",
+        description="Clean single-column with two-column skills layout.",
+        description_ar="تصميم عمود واحد أنيق مع مهارات في عمودين.",
+        category="ats",
+        ats_level="high",
+        supported_languages=["en"],
+        accent="#000000",
+        render=render_professional_classic,
     ),
 ]
 
