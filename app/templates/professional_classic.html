@@ -1,68 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV - {{ name }}</title>
-    <style>
-        body { background-color: #f4f4f9; font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #000; }
-        .cv-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; margin-bottom: 5px; font-size: 28px; text-transform: uppercase; }
-        .contact-info { text-align: center; font-size: 14px; color: #555; margin-bottom: 25px; }
-        .section-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid #000; margin-top: 20px; margin-bottom: 10px; padding-bottom: 3px; text-transform: uppercase; }
-        .content { font-size: 14px; line-height: 1.6; text-align: justify; }
-        .bold-text { font-weight: bold; }
-        ul { margin-top: 5px; margin-bottom: 5px; padding-left: 20px; }
-        .skills-container { display: flex; justify-content: space-between; }
-        .skills-column { width: 48%; }
-    </style>
-</head>
-<body>
-    <div class="cv-container">
-        <h1>{{ name }}</h1>
-        <div class="contact-info">{{ email }} | {{ phone }} | {{ location }}</div>
+<div class="a4-page" id="resume-document" dir="auto" style="font-family: 'Noto Kufi Arabic', 'Noto Sans', Arial, sans-serif; background: #fff; padding: 40px; color: #000; max-width: 800px; margin: 0 auto; box-sizing: border-box;">
+    <h1 style="text-align: center; margin-bottom: 5px; font-size: 28px; text-transform: uppercase;" class="editable" data-field="name_en">{{ name }}</h1>
+    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 25px; unicode-bidi: plaintext;">
+        {{ email }} | {{ phone }} | {{ location }}
+    </div>
 
-        <div class="section-title">CAREER OBJECTIVE</div>
-        <div class="content">{{ objective }}</div>
+    <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">CAREER OBJECTIVE</div>
+    <div style="font-size: 14px; line-height: 1.6; text-align: start;" class="editable" data-field="summary_en" dir="auto">{{ objective }}</div>
 
-        <div class="section-title">EDUCATION</div>
-        <div class="content">
-            {% for edu in education %}
-            <span class="bold-text">{{ edu.degree }}</span> - {{ edu.institution }}<br>
-            {% endfor %}
-        </div>
+    <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">EDUCATION</div>
+    <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+        {% for edu in education %}
+        <span style="font-weight: bold;" class="editable" data-field="degree" dir="auto">{{ edu.degree }}</span> - <span class="editable" data-field="institution" dir="auto">{{ edu.institution }}</span><br>
+        {% endfor %}
+    </div>
 
-        <div class="section-title">EXPERIENCE</div>
-        <div class="content">
-            {% for exp in experience %}
-            <span class="bold-text">{{ exp.title }}</span> - {{ exp.company }}
-            {% if exp.description %}<ul><li>{{ exp.description }}</li></ul>{% endif %}
-            {% if exp.bullets %}<ul>{% for bullet in exp.bullets %}<li>{{ bullet }}</li>{% endfor %}</ul>{% endif %}
-            {% endfor %}
-        </div>
-
-        {% if courses %}
-        <div class="section-title">COURSES</div>
-        <div class="content"><ul>{% for course in courses %}<li>{{ course }}</li>{% endfor %}</ul></div>
+    <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">EXPERIENCE</div>
+    <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+        {% for exp in experience %}
+        <span style="font-weight: bold;" class="editable" data-field="title" dir="auto">{{ exp.title }}</span> - <span dir="auto">{{ exp.company }}</span>
+        {% if exp.description %}
+        <div dir="auto" class="editable" data-field="description">{{ exp.description }}</div>
         {% endif %}
+        {% if exp.bullets %}
+        <ul style="margin: 5px 0; padding-inline-start: 20px;">
+            {% for bullet in exp.bullets %}
+            <li dir="auto" style="unicode-bidi: plaintext; text-align: start;">{{ bullet }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endfor %}
+    </div>
 
-        <div class="skills-container">
-            <div class="skills-column">
-                <div class="section-title">SKILLS</div>
-                <div class="content"><ul>{% for skill in skills %}<li>{{ skill }}</li>{% endfor %}</ul></div>
+    {% if courses %}
+    <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">COURSES</div>
+    <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+        <ul style="margin: 5px 0; padding-inline-start: 20px;">
+            {% for course in courses %}
+            <li dir="auto" style="unicode-bidi: plaintext; text-align: start;">{{ course }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 10px;">
+        <div style="width: 48%;">
+            <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">SKILLS</div>
+            <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+                <ul style="margin: 5px 0; padding-inline-start: 20px;">
+                    {% for skill in skills %}
+                    <li dir="auto" style="unicode-bidi: plaintext; text-align: start;">{{ skill }}</li>
+                    {% endfor %}
+                </ul>
             </div>
-            {% if technical_skills %}
-            <div class="skills-column">
-                <div class="section-title">TECHNICAL SKILLS</div>
-                <div class="content"><ul>{% for skill in technical_skills %}<li>{{ skill }}</li>{% endfor %}</ul></div>
-            </div>
-            {% endif %}
         </div>
-
-        {% if languages %}
-        <div class="section-title">LANGUAGES</div>
-        <div class="content"><ul>{% for lang in languages %}<li>{{ lang }}</li>{% endfor %}</ul></div>
+        {% if technical_skills %}
+        <div style="width: 48%;">
+            <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">TECHNICAL SKILLS</div>
+            <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+                <ul style="margin: 5px 0; padding-inline-start: 20px;">
+                    {% for skill in technical_skills %}
+                    <li dir="auto" style="unicode-bidi: plaintext; text-align: start;">{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
         {% endif %}
     </div>
-</body>
-</html>
+
+    {% if languages %}
+    <div style="font-size: 16px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 5px; margin-bottom: 10px; text-transform: uppercase; text-align: start;">LANGUAGES</div>
+    <div style="font-size: 14px; line-height: 1.6; text-align: start;">
+        <ul style="margin: 5px 0; padding-inline-start: 20px;">
+            {% for lang in languages %}
+            <li dir="auto" style="unicode-bidi: plaintext; text-align: start;">{{ lang }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

@@ -325,10 +325,27 @@ def render_english_single_column(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("COURSES", _bullet_list(resume.courses)))
     from app.utils.arabic import contains_arabic as _has_ar
-    en_skills = [s for s in resume.skills if not _has_ar(s)]
+    # Gather English skills from ALL sources — filter OUT Arabic
+    en_skills = []
+    for s in (resume.skills_en or []):
+        if s and not _has_ar(s) and s not in en_skills:
+            en_skills.append(s)
+    for s in (resume.skills or []):
+        if s and not _has_ar(s) and s not in en_skills:
+            en_skills.append(s)
+    for s in (resume.soft_skills or []):
+        if s and not _has_ar(s) and s not in en_skills:
+            en_skills.append(s)
     if en_skills:
         parts.append(_section("SKILLS", _bullet_list(en_skills)))
-    en_tech = [s for s in resume.technical_skills if not _has_ar(s)]
+    # Technical skills (universal — include regardless of language)
+    en_tech = []
+    for s in (resume.technical_skills_en or []):
+        if s and s not in en_tech:
+            en_tech.append(s)
+    for s in (resume.technical_skills or []):
+        if s and s not in en_tech:
+            en_tech.append(s)
     if en_tech:
         parts.append(_section("TECHNICAL SKILLS", _bullet_list(en_tech)))
     if resume.languages:
@@ -370,10 +387,30 @@ def render_arabic_single_column(resume: ResumeData) -> str:
     if resume.courses:
         parts.append(_section("الدورات", _bullet_list(resume.courses)))
     from app.utils.arabic import contains_arabic as _has_ar
-    ar_skills = [s for s in resume.skills if _has_ar(s)] or resume.skills
+    # Gather Arabic skills from ALL sources (skills, skills_ar, technical_skills_ar)
+    ar_skills = []
+    for s in (resume.skills_ar or []):
+        if s and s not in ar_skills:
+            ar_skills.append(s)
+    for s in (resume.skills or []):
+        if s and _has_ar(s) and s not in ar_skills:
+            ar_skills.append(s)
+    for s in (resume.soft_skills or []):
+        if s and _has_ar(s) and s not in ar_skills:
+            ar_skills.append(s)
+    # If no Arabic skills found, show all skills (fallback)
+    if not ar_skills:
+        ar_skills = [s for s in resume.skills if s]
     if ar_skills:
         parts.append(_section("المهارات", _bullet_list(ar_skills)))
-    ar_tech = [s for s in resume.technical_skills if _has_ar(s)] or resume.technical_skills
+    # Technical skills (universal — include regardless of language)
+    ar_tech = []
+    for s in (resume.technical_skills_ar or []):
+        if s and s not in ar_tech:
+            ar_tech.append(s)
+    for s in (resume.technical_skills or []):
+        if s and s not in ar_tech:
+            ar_tech.append(s)
     if ar_tech:
         parts.append(_section("المهارات التقنية", _bullet_list(ar_tech)))
     if resume.languages:
@@ -435,18 +472,19 @@ def render_executive_ar(resume: ResumeData) -> str:
                 description = " ".join(exp.bullets)
             exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
 
-    # Skills & Courses (combined, list-style:square, padding-right:20px)
+    # Skills & Courses (combined) — gather from ALL sources
     skill_items = ""
     skills_and_courses = []
-    for s in resume.skills:
-        if s:
-            skills_and_courses.append(s)
+    for source in [resume.skills, resume.skills_ar, resume.technical_skills, resume.technical_skills_ar, resume.soft_skills]:
+        for s in (source or []):
+            if s and s not in skills_and_courses:
+                skills_and_courses.append(s)
     for c in resume.courses:
-        if c:
+        if c and c not in skills_and_courses:
             skills_and_courses.append(c)
     if skills_and_courses:
         for sk in skills_and_courses:
-            skill_items += f'<li class="editable">{esc(sk)}</li>'
+            skill_items += f'<li class="editable" dir="auto" style="unicode-bidi: plaintext;">{esc(sk)}</li>'
 
     return f'''<div dir="rtl" style="font-family: 'Tajawal', sans-serif; text-align: right; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
     <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_ar">{esc(name)}</h1>
@@ -517,18 +555,19 @@ def render_executive_en(resume: ResumeData) -> str:
                 description = " ".join(exp.bullets)
             exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
 
-    # Skills & Courses (combined, list-style:square, padding-left:20px)
+    # Skills & Courses (combined) — gather from ALL sources
     skill_items = ""
     skills_and_courses = []
-    for s in resume.skills:
-        if s:
-            skills_and_courses.append(s)
+    for source in [resume.skills, resume.skills_en, resume.technical_skills, resume.technical_skills_en, resume.soft_skills]:
+        for s in (source or []):
+            if s and s not in skills_and_courses:
+                skills_and_courses.append(s)
     for c in resume.courses:
-        if c:
+        if c and c not in skills_and_courses:
             skills_and_courses.append(c)
     if skills_and_courses:
         for sk in skills_and_courses:
-            skill_items += f'<li class="editable">{esc(sk)}</li>'
+            skill_items += f'<li class="editable" dir="auto" style="unicode-bidi: plaintext;">{esc(sk)}</li>'
 
     return f'''<div dir="ltr" style="font-family: 'Helvetica', 'Arial', sans-serif; text-align: left; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
     <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_en">{esc(name)}</h1>
@@ -598,10 +637,18 @@ def render_professional_classic(resume: ResumeData) -> str:
             "bullets": bullets,
         })
 
-    # Skills (split: non-Arabic go to skills, Arabic also included)
-    skills = [s for s in resume.skills if s] if resume.skills else []
-    # Technical skills (separate column)
-    technical_skills = [s for s in resume.technical_skills if s] if resume.technical_skills else []
+    # Skills — gather from ALL sources (skills, skills_en, skills_ar, soft_skills)
+    skills = []
+    for source in [resume.skills, resume.skills_en, resume.skills_ar, resume.soft_skills]:
+        for s in (source or []):
+            if s and s not in skills:
+                skills.append(s)
+    # Technical skills (separate column) — gather from all sources
+    technical_skills = []
+    for source in [resume.technical_skills, resume.technical_skills_en, resume.technical_skills_ar]:
+        for s in (source or []):
+            if s and s not in technical_skills:
+                technical_skills.append(s)
 
     # Courses
     courses = [c for c in resume.courses if c] if resume.courses else []
