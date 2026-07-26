@@ -1023,7 +1023,6 @@
     // Update count in header
     setText($("#tgCount"), state.templates.length + " قالب");
 
-    let visibleCount = 0;
     state.templates.forEach(t => {
       const cat = t.category || "ats";
       let show = false;
@@ -1032,31 +1031,18 @@
       else if (filter === "bilingual") show = (cat === "bilingual");
       else if (filter === "creative") show = (cat === "creative" || cat === "bilingual");
       if (!show) return;
-      visibleCount++;
 
       const isSelected = (t.id === state.templateId);
       const card = document.createElement("div");
       card.className = "tg-card" + (isSelected ? " selected" : "");
       card.dataset.templateId = t.id;
 
-      // Build thumbnail preview (colored lines simulating a resume)
-      const accent = t.accent || "#888";
-      const thumbLines = `
-        <div class="tg-thumb-line tg-accent" style="width:55%;--thumb-accent:${accent}"></div>
-        <div class="tg-thumb-line" style="width:75%"></div>
-        <div class="tg-thumb-line" style="width:65%"></div>
-        <div class="tg-thumb-line tg-accent" style="width:45%;--thumb-accent:${accent}"></div>
-        <div class="tg-thumb-line" style="width:70%"></div>
-        <div class="tg-thumb-line" style="width:60%"></div>
-        <div class="tg-thumb-line" style="width:80%"></div>
-        <div class="tg-thumb-line tg-accent" style="width:40%;--thumb-accent:${accent}"></div>
-        <div class="tg-thumb-line" style="width:65%"></div>
-        <div class="tg-thumb-line" style="width:55%"></div>
-      `;
+      // Build REAL thumbnail that mimics the actual template layout
+      const thumbHtml = buildTemplateThumbnail(t.id, t.accent || "#000");
 
       card.innerHTML = `
         <div class="tg-check">✓</div>
-        <div class="tg-thumb">${thumbLines}</div>
+        <div class="tg-thumb">${thumbHtml}</div>
         <div class="tg-labels">
           <div class="tg-name-ar">${esc(t.name_ar || t.name)}</div>
           <div class="tg-name-en">${esc(t.name || t.id)}</div>
@@ -1065,6 +1051,153 @@
       card.addEventListener("click", () => selectTemplateFromGallery(t.id));
       grid.appendChild(card);
     });
+  }
+
+  // Build a mini HTML preview that mimics each template's actual layout
+  function buildTemplateThumbnail(templateId, accent) {
+    switch (templateId) {
+      case "official_bilingual_master":
+        // Two-column bilingual: EN left, AR right, with section rows
+        return `<div class="thumb-bilingual" style="--ta:${accent}">
+          <div class="tb-header">
+            <div class="tb-name">John Smith</div>
+            <div class="tb-contact">email@ex.com | +123</div>
+          </div>
+          <div class="tb-divider"></div>
+          <div class="tb-row">
+            <div class="tb-col">
+              <div class="tb-h">OBJECTIVE</div>
+              <div class="tb-line w90"></div>
+              <div class="tb-line w70"></div>
+            </div>
+            <div class="tb-col">
+              <div class="tb-h">الهدف</div>
+              <div class="tb-line w90"></div>
+              <div class="tb-line w70"></div>
+            </div>
+          </div>
+          <div class="tb-divider"></div>
+          <div class="tb-row">
+            <div class="tb-col">
+              <div class="tb-h">EXPERIENCE</div>
+              <div class="tb-line w80"></div>
+              <div class="tb-line w60"></div>
+              <div class="tb-line w75"></div>
+            </div>
+            <div class="tb-col">
+              <div class="tb-h">الخبرة</div>
+              <div class="tb-line w80"></div>
+              <div class="tb-line w60"></div>
+              <div class="tb-line w75"></div>
+            </div>
+          </div>
+          <div class="tb-divider"></div>
+          <div class="tb-row">
+            <div class="tb-col">
+              <div class="tb-h">SKILLS</div>
+              <div class="tb-line w50"></div>
+              <div class="tb-line w65"></div>
+            </div>
+            <div class="tb-col">
+              <div class="tb-h">المهارات</div>
+              <div class="tb-line w50"></div>
+              <div class="tb-line w65"></div>
+            </div>
+          </div>
+        </div>`;
+
+      case "official_english_single":
+        // Single-column English, centered header with blue accent
+        return `<div class="thumb-single-en" style="--ta:${accent}">
+          <div class="ts-name">John Smith</div>
+          <div class="ts-contact">email@ex.com | +123 | NYC</div>
+          <div class="ts-divider"></div>
+          <div class="ts-h">OBJECTIVE</div>
+          <div class="ts-line w90"></div>
+          <div class="ts-line w75"></div>
+          <div class="ts-h">EXPERIENCE</div>
+          <div class="ts-line w80"></div>
+          <div class="ts-line w60"></div>
+          <div class="ts-line w70"></div>
+          <div class="ts-h">EDUCATION</div>
+          <div class="ts-line w85"></div>
+          <div class="ts-h">SKILLS</div>
+          <div class="ts-line w50"></div>
+          <div class="ts-line w65"></div>
+        </div>`;
+
+      case "official_arabic_single":
+        // Single-column Arabic, RTL, centered header
+        return `<div class="thumb-single-ar" style="--ta:${accent}" dir="rtl">
+          <div class="ts-name">أحمد محمد</div>
+          <div class="ts-contact">email@ex.com | +123 | الرياض</div>
+          <div class="ts-divider"></div>
+          <div class="ts-h">الهدف الوظيفي</div>
+          <div class="ts-line w90"></div>
+          <div class="ts-line w75"></div>
+          <div class="ts-h">الخبرات</div>
+          <div class="ts-line w80"></div>
+          <div class="ts-line w60"></div>
+          <div class="ts-line w70"></div>
+          <div class="ts-h">التعليم</div>
+          <div class="ts-line w85"></div>
+          <div class="ts-h">المهارات</div>
+          <div class="ts-line w50"></div>
+          <div class="ts-line w65"></div>
+        </div>`;
+
+      case "executive_ar":
+        // Executive Arabic: centered name, HR, pipe-separated contact
+        return `<div class="thumb-exec-ar" style="--ta:${accent}" dir="rtl">
+          <div class="te-name">أحمد محمد</div>
+          <div class="te-contact">email | هاتف | موقع</div>
+          <div class="te-hr"></div>
+          <div class="te-h">الهدف الوظيفي</div>
+          <div class="te-line w90"></div>
+          <div class="te-line w70"></div>
+          <div class="te-h">التعليم</div>
+          <div class="te-line w80"></div>
+          <div class="te-line w60"></div>
+          <div class="te-h">الخبرات المهنية</div>
+          <div class="te-line w85"></div>
+          <div class="te-line w65"></div>
+          <div class="te-line w75"></div>
+          <div class="te-h">المهارات والدورات</div>
+          <div class="te-line w50"></div>
+          <div class="te-line w60"></div>
+        </div>`;
+
+      case "executive_en":
+        // Executive English: centered name, HR, pipe-separated contact
+        return `<div class="thumb-exec-en" style="--ta:${accent}">
+          <div class="te-name">John Smith</div>
+          <div class="te-contact">email | phone | location</div>
+          <div class="te-hr"></div>
+          <div class="te-h">CAREER OBJECTIVE</div>
+          <div class="te-line w90"></div>
+          <div class="te-line w70"></div>
+          <div class="te-h">EDUCATION</div>
+          <div class="te-line w80"></div>
+          <div class="te-line w60"></div>
+          <div class="te-h">EXPERIENCE</div>
+          <div class="te-line w85"></div>
+          <div class="te-line w65"></div>
+          <div class="te-line w75"></div>
+          <div class="te-h">SKILLS & COURSES</div>
+          <div class="te-line w50"></div>
+          <div class="te-line w60"></div>
+        </div>`;
+
+      default:
+        // Generic fallback
+        return `<div class="thumb-generic" style="--ta:${accent}">
+          <div class="tg-name">Template</div>
+          <div class="tg-divider"></div>
+          <div class="tg-line w80"></div>
+          <div class="tg-line w60"></div>
+          <div class="tg-line w70"></div>
+        </div>`;
+    }
   }
 
   function selectTemplateFromGallery(templateId) {

@@ -1344,3 +1344,77 @@ button { font-family: inherit; }
   color: #fff;
   border-color: #666;
 }
+
+/* ============ TEMPLATE THUMBNAIL PREVIEWS ============ */
+/* Each thumbnail mimics the actual template layout */
+
+/* Shared thumbnail container */
+.tg-thumb {
+  background: #fff !important;
+  padding: 8px !important;
+  gap: 0 !important;
+}
+
+/* Width helpers */
+.w40 { width: 40% !important; }
+.w45 { width: 45% !important; }
+.w50 { width: 50% !important; }
+.w55 { width: 55% !important; }
+.w60 { width: 60% !important; }
+.w65 { width: 65% !important; }
+.w70 { width: 70% !important; }
+.w75 { width: 75% !important; }
+.w80 { width: 80% !important; }
+.w85 { width: 85% !important; }
+.w90 { width: 90% !important; }
+
+/* --- Bilingual thumbnail (two columns) --- */
+.thumb-bilingual {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0;
+}
+.tb-header { text-align: center; padding: 2px 0; }
+.tb-name { font-size: 7px; font-weight: 700; color: #111; margin-bottom: 1px; }
+.tb-contact { font-size: 5px; color: #666; }
+.tb-divider { height: 1px; background: var(--ta, #000); margin: 2px 0; }
+.tb-row { display: flex; gap: 4px; }
+.tb-col { flex: 1; display: flex; flex-direction: column; gap: 1.5px; }
+.tb-h { font-size: 5px; font-weight: 700; color: var(--ta, #000); text-transform: uppercase; margin-bottom: 1px; }
+.tb-line { height: 2px; background: #bbb; border-radius: 1px; }
+
+/* --- Single column (English/Arabic) --- */
+.thumb-single-en, .thumb-single-ar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ts-name { font-size: 8px; font-weight: 700; color: var(--ta, #1a5276); text-align: center; }
+.ts-contact { font-size: 5px; color: #666; text-align: center; margin-bottom: 2px; }
+.ts-divider { height: 1.5px; background: var(--ta, #1a5276); margin: 2px 0; }
+.ts-h { font-size: 5px; font-weight: 700; color: var(--ta, #1a5276); text-transform: uppercase; margin-top: 3px; margin-bottom: 1px; }
+.ts-line { height: 2px; background: #bbb; border-radius: 1px; margin-bottom: 1px; }
+
+/* --- Executive (Arabic/English) --- */
+.thumb-exec-ar, .thumb-exec-en {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.te-name { font-size: 8px; font-weight: 700; color: #111; text-align: center; }
+.te-contact { font-size: 5px; color: #444; text-align: center; }
+.te-hr { height: 1.5px; background: #222; margin: 2px 0; border: 0; }
+.te-h { font-size: 5px; font-weight: 700; color: #222; margin-top: 3px; margin-bottom: 1px; }
+.te-line { height: 2px; background: #bbb; border-radius: 1px; margin-bottom: 1px; }
+
+/* --- Generic fallback --- */
+.thumb-generic {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+}
+.thumb-generic .tg-name { font-size: 7px; font-weight: 700; text-align: center; color: #111; }
+.thumb-generic .tg-divider { height: 1px; background: var(--ta, #888); margin: 2px 0; }
+.thumb-generic .tg-line { height: 2px; background: #bbb; border-radius: 1px; }
