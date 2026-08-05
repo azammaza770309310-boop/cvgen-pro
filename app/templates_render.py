@@ -556,3 +556,145 @@ def render_professional_classic(resume: ResumeData) -> str:
 
     {"<div " + st + ">LANGUAGES</div><div " + ct + ">" + langs_html + "</div>" if langs_html else ""}
 </div>'''
+
+
+# ===========================================================================
+# TEMPLATE 7: Arabic Classic (كلاسيكي عربي)
+# Same clean layout as professional_classic but in Arabic (RTL):
+# - dir="rtl", Arabic section titles, Arabic-only skills
+# - All sections editable + blue email/phone hyperlinks
+# - Two-column skills layout (المهارات + المهارات التقنية)
+# ===========================================================================
+
+def render_arabic_classic(resume: ResumeData) -> str:
+    """Arabic Classic template — RTL, all sections editable, blue hyperlinks."""
+    from app.utils.arabic import contains_arabic as _has_ar
+
+    p = resume.personal
+    name = p.name_ar or p.name or ""
+    email = p.email or ""
+    phone = p.phone or ""
+    location = p.location or ""
+    objective = resume.summary_text("ar") or resume.summary_text("en") or ""
+
+    # Build contact line with BLUE clickable links for email + phone
+    contact_parts = []
+    if email:
+        contact_parts.append(f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="color:#2563eb;text-decoration:none;">{esc(email)}</a>')
+    if phone:
+        contact_parts.append(f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="color:#2563eb;text-decoration:none;">{esc(phone)}</a>')
+    if location:
+        contact_parts.append(f'<span class="editable" data-field="location" dir="auto">{esc(location)}</span>')
+    contact_line = ' | '.join(contact_parts)
+
+    # Education (each field editable)
+    edu_html = ""
+    for edu in resume.education:
+        degree = edu.degree_ar or edu.degree or ""
+        institution = edu.institution_ar or edu.institution or ""
+        edu_html += f'<div style="margin-bottom:5px;"><strong class="editable" data-field="degree" dir="auto">{esc(degree)}</strong> - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span></div>'
+
+    # Experience (each field editable, including bullets)
+    exp_html = ""
+    for exp in resume.experience:
+        title = exp.title_ar or exp.title or ""
+        company = exp.company_ar or exp.company or ""
+        desc = exp.description or ""
+        bullets = exp.bullets_ar or exp.bullets or []
+        exp_html += f'<div style="margin-bottom:10px;"><strong class="editable" data-field="title" dir="auto">{esc(title)}</strong>'
+        if company:
+            exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
+        exp_html += '</div>'
+        if desc:
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="margin-bottom:4px;">{esc(desc)}</div>'
+        if bullets:
+            exp_html += '<ul style="margin:5px 0;padding-inline-start:20px;">'
+            for b in bullets:
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(b)}</li>'
+            exp_html += '</ul>'
+
+    # Courses (each editable)
+    courses_html = ""
+    if resume.courses:
+        courses_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for c in resume.courses:
+            if c:
+                courses_html += f'<li class="editable" data-field="course" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
+        courses_html += '</ul>'
+
+    # Skills — ARABIC ONLY (filter out English)
+    skills = []
+    for s in (resume.skills_ar or []):
+        if s and s not in skills:
+            skills.append(s)
+    for s in (resume.skills or []):
+        if s and _has_ar(s) and s not in skills:
+            skills.append(s)
+    for s in (resume.soft_skills or []):
+        if s and _has_ar(s) and s not in skills:
+            skills.append(s)
+    # Fallback: if no Arabic skills, show all skills
+    if not skills:
+        skills = [s for s in (resume.skills or []) if s]
+    skills_html = ""
+    if skills:
+        skills_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for s in skills:
+            skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+        skills_html += '</ul>'
+
+    # Technical skills (universal — include all)
+    tech_skills = []
+    for s in (resume.technical_skills_ar or []):
+        if s and s not in tech_skills:
+            tech_skills.append(s)
+    for s in (resume.technical_skills or []):
+        if s and s not in tech_skills:
+            tech_skills.append(s)
+    tech_html = ""
+    if tech_skills:
+        tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for s in tech_skills:
+            tech_html += f'<li class="editable" data-field="technical_skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+        tech_html += '</ul>'
+
+    # Languages (each editable)
+    langs_html = ""
+    if resume.languages:
+        langs_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for lang in resume.languages:
+            nm = lang.name_ar or lang.name or ""
+            lvl = lang.level or ""
+            entry = f"{nm} ({lvl})" if lvl else nm
+            langs_html += f'<li class="editable" data-field="language" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(entry)}</li>'
+        langs_html += '</ul>'
+
+    # Section title style (border-top, Arabic titles)
+    st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-align:start;"'
+    ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
+
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
+    <h1 style="text-align:center;margin-bottom:5px;font-size:31px;" class="editable" data-field="name_ar">{esc(name)}</h1>
+    <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
+
+    <div {st}>الهدف الوظيفي</div>
+    <div class="editable" data-field="summary_ar" dir="auto" {ct}>{esc(objective)}</div>
+
+    <div {st}>المؤهلات العلمية</div>
+    <div {ct}>{edu_html}</div>
+
+    <div {st}>الخبرات المهنية</div>
+    <div {ct}>{exp_html}</div>
+
+    {"<div " + st + ">الدورات</div><div " + ct + ">" + courses_html + "</div>" if courses_html else ""}
+
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:10px;">
+        <div style="width:48%;">
+            <div {st}>المهارات</div>
+            <div {ct}>{skills_html}</div>
+        </div>
+        {"<div style='width:48%;'><div " + st + ">المهارات التقنية</div><div " + ct + ">" + tech_html + "</div></div>" if tech_html else ""}
+    </div>
+
+    {"<div " + st + ">اللغات</div><div " + ct + ">" + langs_html + "</div>" if langs_html else ""}
+</div>'''

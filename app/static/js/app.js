@@ -1180,6 +1180,40 @@
           <div class="tpc-line w45"></div>
         </div>`;
 
+      case "arabic_classic":
+        // Arabic Classic: same layout as professional_classic but RTL + Arabic titles
+        return `<div class="thumb-ar-classic" style="--ta:${accent}" dir="rtl">
+          <div class="tac-name">أحمد محمد</div>
+          <div class="tac-contact">بريد | هاتف | الرياض</div>
+          <div class="tac-h">الهدف الوظيفي</div>
+          <div class="tac-line w90"></div>
+          <div class="tac-line w75"></div>
+          <div class="tac-h">المؤهلات العلمية</div>
+          <div class="tac-line w80"></div>
+          <div class="tac-h">الخبرات المهنية</div>
+          <div class="tac-line w85"></div>
+          <div class="tac-line w60"></div>
+          <div class="tac-h">الدورات</div>
+          <div class="tac-line w50"></div>
+          <div class="tac-skills-row">
+            <div class="tac-skills-col">
+              <div class="tac-h">المهارات</div>
+              <div class="tac-line w70"></div>
+              <div class="tac-line w60"></div>
+              <div class="tac-line w65"></div>
+            </div>
+            <div class="tac-skills-col">
+              <div class="tac-h">المهارات التقنية</div>
+              <div class="tac-line w70"></div>
+              <div class="tac-line w60"></div>
+              <div class="tac-line w65"></div>
+            </div>
+          </div>
+          <div class="tac-h">اللغات</div>
+          <div class="tac-line w50"></div>
+          <div class="tac-line w45"></div>
+        </div>`;
+
       default:
         // Generic fallback
         return `<div class="thumb-generic" style="--ta:${accent}">
