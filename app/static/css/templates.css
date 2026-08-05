@@ -47,7 +47,7 @@
   --cv-date-size: 9pt;           /* English dates */
   --cv-date-size-ar: 10pt;       /* Arabic dates — +11% */
   --cv-divider-thick: 1.5pt;     /* Divider thickness */
-  --cv-contact-link: #1a5276;    /* Blue links per user request */
+  --cv-contact-link: #2563eb;    /* Blue links per user request */
 
   /* Adjustable layout variables — set by app.js applyDesignVars().
    * Only affect body text + layout spacing, NOT structural typography. */

@@ -422,194 +422,14 @@ def render_arabic_single_column(resume: ResumeData) -> str:
 
 
 # ===========================================================================
-# TEMPLATE 4: Executive Arabic (executive_ar)
-# Clean RTL executive layout with Tajawal font.
-# Implements the EXACT HTML structure provided by the user:
-#   - Centered name (26px, #111) + centered contact line (14px, #444, pipe-separated)
-#   - HR (2px solid #222)
-#   - Fixed section order: الهدف الوظيفي → التعليم → الخبرات المهنية → المهارات والدورات
-#   - Education: list-style:none, padding-right:0
-#   - Experience/Skills: list-style:square, padding-right:20px
-# ===========================================================================
-
-def render_executive_ar(resume: ResumeData) -> str:
-    """Executive Arabic template — RTL, Tajawal font, formal clean layout."""
-    name = resume.personal.name_ar or resume.personal.name_en or resume.personal.name or ""
-    email = resume.personal.email or ""
-    phone = resume.personal.phone or ""
-    location = resume.personal.location or ""
-    summary = resume.summary_text("ar") or resume.summary_text("en") or ""
-
-    # Build contact line: email | phone | location (pipe-separated)
-    contact_parts = []
-    if email:
-        contact_parts.append(f'<span class="editable" data-field="email" dir="ltr">{esc(email)}</span>')
-    if phone:
-        contact_parts.append(f'<span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span>')
-    if location:
-        contact_parts.append(f'<span class="editable" data-field="location">{esc(location)}</span>')
-    contact_line = " | ".join(contact_parts)
-
-    # Education items (list-style:none, padding-right:0)
-    edu_items = ""
-    if resume.education:
-        for edu in resume.education:
-            degree = edu.degree_ar or edu.degree_en or edu.degree or ""
-            institution = edu.institution_ar or edu.institution_en or edu.institution or ""
-            edu_items += f'<li style="margin-bottom: 5px;"><strong class="editable" data-field="degree">{esc(degree)}</strong> - <span class="editable" data-field="institution">{esc(institution)}</span></li>'
-
-    # Experience items (list-style:square, padding-right:20px)
-    exp_items = ""
-    if resume.experience:
-        for exp in resume.experience:
-            title = exp.title_ar or exp.title_en or exp.title or ""
-            description = exp.description or ""
-            if not description and exp.bullets_ar:
-                description = " ".join(exp.bullets_ar)
-            elif not description and exp.bullets_en:
-                description = " ".join(exp.bullets_en)
-            elif not description and exp.bullets:
-                description = " ".join(exp.bullets)
-            exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
-
-    # Skills & Courses (combined) — gather from ALL sources
-    skill_items = ""
-    skills_and_courses = []
-    for source in [resume.skills, resume.skills_ar, resume.technical_skills, resume.technical_skills_ar, resume.soft_skills]:
-        for s in (source or []):
-            if s and s not in skills_and_courses:
-                skills_and_courses.append(s)
-    for c in resume.courses:
-        if c and c not in skills_and_courses:
-            skills_and_courses.append(c)
-    if skills_and_courses:
-        for sk in skills_and_courses:
-            skill_items += f'<li class="editable" dir="auto" style="unicode-bidi: plaintext;">{esc(sk)}</li>'
-
-    return f'''<div dir="rtl" style="font-family: 'Tajawal', sans-serif; text-align: right; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
-    <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_ar">{esc(name)}</h1>
-    <p style="text-align: center; font-size: 14px; color: #444; margin-top: 0;">{contact_line}</p>
-    <hr style="border: 0; border-top: 2px solid #222; margin: 15px 0;">
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">الهدف الوظيفي</h3>
-    <p style="font-size: 14px; margin-top: 0;" class="editable" data-field="summary_ar">{esc(summary)}</p>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">التعليم</h3>
-    <ul style="font-size: 14px; list-style-type: none; padding-right: 0; margin-top: 0;">
-        {edu_items}
-    </ul>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">الخبرات المهنية</h3>
-    <ul style="font-size: 14px; list-style-type: square; padding-right: 20px; margin-top: 0;">
-        {exp_items}
-    </ul>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">المهارات والدورات</h3>
-    <ul style="font-size: 14px; list-style-type: square; padding-right: 20px; margin-top: 0;">
-        {skill_items}
-    </ul>
-</div>'''
-
-
-# ===========================================================================
-# TEMPLATE 5: Executive English (executive_en)
-# Clean LTR executive layout with Helvetica font.
-# Implements the EXACT HTML structure provided by the user.
-# ===========================================================================
-
-def render_executive_en(resume: ResumeData) -> str:
-    """Executive English template — LTR, Helvetica font, formal clean layout."""
-    name = resume.personal.name_en or resume.personal.name or ""
-    email = resume.personal.email or ""
-    phone = resume.personal.phone or ""
-    location = resume.personal.location or ""
-    summary = resume.summary_text("en") or ""
-
-    # Build contact line: email | phone | location (pipe-separated)
-    contact_parts = []
-    if email:
-        contact_parts.append(f'<span class="editable" data-field="email" dir="ltr">{esc(email)}</span>')
-    if phone:
-        contact_parts.append(f'<span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span>')
-    if location:
-        contact_parts.append(f'<span class="editable" data-field="location">{esc(location)}</span>')
-    contact_line = " | ".join(contact_parts)
-
-    # Education items (list-style:none, padding-left:0)
-    edu_items = ""
-    if resume.education:
-        for edu in resume.education:
-            degree = edu.degree_en or edu.degree or ""
-            institution = edu.institution_en or edu.institution or ""
-            edu_items += f'<li style="margin-bottom: 5px;"><strong class="editable" data-field="degree">{esc(degree)}</strong> - <span class="editable" data-field="institution">{esc(institution)}</span></li>'
-
-    # Experience items (list-style:square, padding-left:20px)
-    exp_items = ""
-    if resume.experience:
-        for exp in resume.experience:
-            title = exp.title_en or exp.title or ""
-            description = exp.description or ""
-            if not description and exp.bullets_en:
-                description = " ".join(exp.bullets_en)
-            elif not description and exp.bullets:
-                description = " ".join(exp.bullets)
-            exp_items += f'<li style="margin-bottom: 10px;"><strong class="editable" data-field="title">{esc(title)}</strong><br><span class="editable" data-field="description">{esc(description)}</span></li>'
-
-    # Skills & Courses (combined) — gather from ALL sources
-    skill_items = ""
-    skills_and_courses = []
-    for source in [resume.skills, resume.skills_en, resume.technical_skills, resume.technical_skills_en, resume.soft_skills]:
-        for s in (source or []):
-            if s and s not in skills_and_courses:
-                skills_and_courses.append(s)
-    for c in resume.courses:
-        if c and c not in skills_and_courses:
-            skills_and_courses.append(c)
-    if skills_and_courses:
-        for sk in skills_and_courses:
-            skill_items += f'<li class="editable" dir="auto" style="unicode-bidi: plaintext;">{esc(sk)}</li>'
-
-    return f'''<div dir="ltr" style="font-family: 'Helvetica', 'Arial', sans-serif; text-align: left; color: #000; padding: 30px; line-height: 1.7;" class="a4-page" id="resume-document">
-    <h1 style="text-align: center; color: #111; margin-bottom: 5px; font-size: 26px;" class="editable" data-field="name_en">{esc(name)}</h1>
-    <p style="text-align: center; font-size: 14px; color: #444; margin-top: 0;">{contact_line}</p>
-    <hr style="border: 0; border-top: 2px solid #222; margin: 15px 0;">
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">CAREER OBJECTIVE</h3>
-    <p style="font-size: 14px; margin-top: 0;" class="editable" data-field="summary_en">{esc(summary)}</p>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">EDUCATION</h3>
-    <ul style="font-size: 14px; list-style-type: none; padding-left: 0; margin-top: 0;">
-        {edu_items}
-    </ul>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">EXPERIENCE</h3>
-    <ul style="font-size: 14px; list-style-type: square; padding-left: 20px; margin-top: 0;">
-        {exp_items}
-    </ul>
-
-    <h3 style="color: #222; font-size: 18px; margin-bottom: 5px;">SKILLS &amp; COURSES</h3>
-    <ul style="font-size: 14px; list-style-type: square; padding-left: 20px; margin-top: 0;">
-        {skill_items}
-    </ul>
-</div>'''
-
-
-# ===========================================================================
-# TEMPLATE 6: Professional Classic (Jinja2 HTML template)
+# TEMPLATE 6: Professional Classic (direct HTML render)
 # Single-column English with two-column skills, centered header
+# All sections editable + email/phone as blue clickable links
 # ===========================================================================
 
 def render_professional_classic(resume: ResumeData) -> str:
-    """Professional Classic template — clean single-column with two-column skills."""
-    from jinja2 import Template
-    from pathlib import Path
-
-    template_path = Path(__file__).parent / "templates" / "professional_classic.html"
-    if not template_path.exists():
-        return render_english_single_column(resume)  # fallback
-
-    template_content = template_path.read_text(encoding="utf-8")
-    template = Template(template_content)
+    """Professional Classic — English-only, all sections editable, blue hyperlinks."""
+    from app.utils.arabic import contains_arabic as _has_ar
 
     p = resume.personal
     name = p.name_en or p.name or ""
@@ -618,61 +438,122 @@ def render_professional_classic(resume: ResumeData) -> str:
     location = p.location or ""
     objective = resume.summary_text("en") or resume.objective_text("en") or ""
 
-    # Education
-    education = []
+    # Build contact line with BLUE clickable links for email + phone
+    contact_parts = []
+    if email:
+        contact_parts.append(f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="color: #2563eb; text-decoration: none;">{esc(email)}</a>')
+    if phone:
+        contact_parts.append(f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="color: #2563eb; text-decoration: none;">{esc(phone)}</a>')
+    if location:
+        contact_parts.append(f'<span class="editable" data-field="location" dir="auto">{esc(location)}</span>')
+    contact_line = ' | '.join(contact_parts)
+
+    # Education (editable)
+    edu_html = ""
     for edu in resume.education:
-        education.append({
-            "degree": edu.degree_en or edu.degree or "",
-            "institution": edu.institution_en or edu.institution or "",
-        })
+        degree = edu.degree_en or edu.degree or ""
+        institution = edu.institution_en or edu.institution or ""
+        edu_html += f'<div style="margin-bottom:5px;"><strong class="editable" data-field="degree" dir="auto">{esc(degree)}</strong> - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span></div>'
 
-    # Experience
-    experience = []
+    # Experience (editable)
+    exp_html = ""
     for exp in resume.experience:
+        title = exp.title_en or exp.title or ""
+        company = exp.company_en or exp.company or ""
+        desc = exp.description or ""
         bullets = exp.bullets_en or exp.bullets or []
-        experience.append({
-            "title": exp.title_en or exp.title or "",
-            "company": exp.company_en or exp.company or "",
-            "description": exp.description or "",
-            "bullets": bullets,
-        })
+        exp_html += f'<div style="margin-bottom:10px;"><strong class="editable" data-field="title" dir="auto">{esc(title)}</strong>'
+        if company:
+            exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
+        exp_html += '</div>'
+        if desc:
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="margin-bottom:4px;">{esc(desc)}</div>'
+        if bullets:
+            exp_html += '<ul style="margin:5px 0;padding-inline-start:20px;">'
+            for b in bullets:
+                exp_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(b)}</li>'
+            exp_html += '</ul>'
 
-    # Skills — gather from ALL sources (skills, skills_en, skills_ar, soft_skills)
+    # Courses (editable)
+    courses_html = ""
+    if resume.courses:
+        courses_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for c in resume.courses:
+            if c:
+                courses_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
+        courses_html += '</ul>'
+
+    # Skills — ENGLISH ONLY (filter out Arabic)
     skills = []
-    for source in [resume.skills, resume.skills_en, resume.skills_ar, resume.soft_skills]:
-        for s in (source or []):
-            if s and s not in skills:
-                skills.append(s)
-    # Technical skills (separate column) — gather from all sources
-    technical_skills = []
-    for source in [resume.technical_skills, resume.technical_skills_en, resume.technical_skills_ar]:
-        for s in (source or []):
-            if s and s not in technical_skills:
-                technical_skills.append(s)
+    for s in (resume.skills_en or []):
+        if s and not _has_ar(s) and s not in skills:
+            skills.append(s)
+    for s in (resume.skills or []):
+        if s and not _has_ar(s) and s not in skills:
+            skills.append(s)
+    for s in (resume.soft_skills or []):
+        if s and not _has_ar(s) and s not in skills:
+            skills.append(s)
+    skills_html = ""
+    if skills:
+        skills_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for s in skills:
+            skills_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+        skills_html += '</ul>'
 
-    # Courses
-    courses = [c for c in resume.courses if c] if resume.courses else []
+    # Technical skills (universal — include all)
+    tech_skills = []
+    for s in (resume.technical_skills_en or []):
+        if s and s not in tech_skills:
+            tech_skills.append(s)
+    for s in (resume.technical_skills or []):
+        if s and s not in tech_skills:
+            tech_skills.append(s)
+    tech_html = ""
+    if tech_skills:
+        tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for s in tech_skills:
+            tech_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+        tech_html += '</ul>'
 
-    # Languages
-    languages = []
-    for lang in resume.languages:
-        nm = lang.name_en or lang.name or ""
-        lvl = lang.level or ""
-        entry = f"{nm} ({lvl})" if lvl else nm
-        if entry:
-            languages.append(entry)
+    # Languages (editable)
+    langs_html = ""
+    if resume.languages:
+        langs_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
+        for lang in resume.languages:
+            nm = lang.name_en or lang.name or ""
+            lvl = lang.level or ""
+            entry = f"{nm} ({lvl})" if lvl else nm
+            langs_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(entry)}</li>'
+        langs_html += '</ul>'
 
-    html = template.render(
-        name=name,
-        email=email,
-        phone=phone,
-        location=location,
-        objective=objective,
-        education=education,
-        experience=experience,
-        skills=skills,
-        technical_skills=technical_skills,
-        courses=courses,
-        languages=languages,
-    )
+    # Section title style (border-top, uppercase)
+    st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-transform:uppercase;text-align:start;"'
+    ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
+
+    return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
+    <h1 style="text-align:center;margin-bottom:5px;font-size:28px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
+    <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
+
+    <div {st}>CAREER OBJECTIVE</div>
+    <div class="editable" data-field="summary_en" dir="auto" {ct}>{esc(objective)}</div>
+
+    <div {st}>EDUCATION</div>
+    <div {ct}>{edu_html}</div>
+
+    <div {st}>EXPERIENCE</div>
+    <div {ct}>{exp_html}</div>
+
+    {"<div " + st + ">COURSES</div><div " + ct + ">" + courses_html + "</div>" if courses_html else ""}
+
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:10px;">
+        <div style="width:48%;">
+            <div {st}>SKILLS</div>
+            <div {ct}>{skills_html}</div>
+        </div>
+        {"<div style='width:48%;'><div " + st + ">TECHNICAL SKILLS</div><div " + ct + ">" + tech_html + "</div></div>" if tech_html else ""}
+    </div>
+
+    {"<div " + st + ">LANGUAGES</div><div " + ct + ">" + langs_html + "</div>" if langs_html else ""}
+</div>'''
     return html

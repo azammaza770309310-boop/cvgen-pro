@@ -1146,48 +1146,6 @@
           <div class="ts-line w65"></div>
         </div>`;
 
-      case "executive_ar":
-        // Executive Arabic: centered name, HR, pipe-separated contact
-        return `<div class="thumb-exec-ar" style="--ta:${accent}" dir="rtl">
-          <div class="te-name">أحمد محمد</div>
-          <div class="te-contact">email | هاتف | موقع</div>
-          <div class="te-hr"></div>
-          <div class="te-h">الهدف الوظيفي</div>
-          <div class="te-line w90"></div>
-          <div class="te-line w70"></div>
-          <div class="te-h">التعليم</div>
-          <div class="te-line w80"></div>
-          <div class="te-line w60"></div>
-          <div class="te-h">الخبرات المهنية</div>
-          <div class="te-line w85"></div>
-          <div class="te-line w65"></div>
-          <div class="te-line w75"></div>
-          <div class="te-h">المهارات والدورات</div>
-          <div class="te-line w50"></div>
-          <div class="te-line w60"></div>
-        </div>`;
-
-      case "executive_en":
-        // Executive English: centered name, HR, pipe-separated contact
-        return `<div class="thumb-exec-en" style="--ta:${accent}">
-          <div class="te-name">John Smith</div>
-          <div class="te-contact">email | phone | location</div>
-          <div class="te-hr"></div>
-          <div class="te-h">CAREER OBJECTIVE</div>
-          <div class="te-line w90"></div>
-          <div class="te-line w70"></div>
-          <div class="te-h">EDUCATION</div>
-          <div class="te-line w80"></div>
-          <div class="te-line w60"></div>
-          <div class="te-h">EXPERIENCE</div>
-          <div class="te-line w85"></div>
-          <div class="te-line w65"></div>
-          <div class="te-line w75"></div>
-          <div class="te-h">SKILLS & COURSES</div>
-          <div class="te-line w50"></div>
-          <div class="te-line w60"></div>
-        </div>`;
-
       case "professional_classic":
         // Professional Classic: centered name, section titles with borders, two-column skills
         return `<div class="thumb-pro-classic" style="--ta:${accent}">
