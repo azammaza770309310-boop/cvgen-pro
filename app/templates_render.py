@@ -441,21 +441,21 @@ def render_professional_classic(resume: ResumeData) -> str:
     # Build contact line with BLUE clickable links for email + phone
     contact_parts = []
     if email:
-        contact_parts.append(f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="color: #2563eb; text-decoration: none;">{esc(email)}</a>')
+        contact_parts.append(f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="color:#2563eb;text-decoration:none;">{esc(email)}</a>')
     if phone:
-        contact_parts.append(f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="color: #2563eb; text-decoration: none;">{esc(phone)}</a>')
+        contact_parts.append(f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="color:#2563eb;text-decoration:none;">{esc(phone)}</a>')
     if location:
         contact_parts.append(f'<span class="editable" data-field="location" dir="auto">{esc(location)}</span>')
     contact_line = ' | '.join(contact_parts)
 
-    # Education (editable)
+    # Education (each field editable)
     edu_html = ""
     for edu in resume.education:
         degree = edu.degree_en or edu.degree or ""
         institution = edu.institution_en or edu.institution or ""
         edu_html += f'<div style="margin-bottom:5px;"><strong class="editable" data-field="degree" dir="auto">{esc(degree)}</strong> - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span></div>'
 
-    # Experience (editable)
+    # Experience (each field editable, including bullets)
     exp_html = ""
     for exp in resume.experience:
         title = exp.title_en or exp.title or ""
@@ -471,19 +471,19 @@ def render_professional_classic(resume: ResumeData) -> str:
         if bullets:
             exp_html += '<ul style="margin:5px 0;padding-inline-start:20px;">'
             for b in bullets:
-                exp_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(b)}</li>'
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(b)}</li>'
             exp_html += '</ul>'
 
-    # Courses (editable)
+    # Courses (each editable)
     courses_html = ""
     if resume.courses:
         courses_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
         for c in resume.courses:
             if c:
-                courses_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
+                courses_html += f'<li class="editable" data-field="course" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
         courses_html += '</ul>'
 
-    # Skills — ENGLISH ONLY (filter out Arabic)
+    # Skills — ENGLISH ONLY (filter out Arabic), each editable
     skills = []
     for s in (resume.skills_en or []):
         if s and not _has_ar(s) and s not in skills:
@@ -498,10 +498,10 @@ def render_professional_classic(resume: ResumeData) -> str:
     if skills:
         skills_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
         for s in skills:
-            skills_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+            skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         skills_html += '</ul>'
 
-    # Technical skills (universal — include all)
+    # Technical skills (universal), each editable
     tech_skills = []
     for s in (resume.technical_skills_en or []):
         if s and s not in tech_skills:
@@ -513,10 +513,10 @@ def render_professional_classic(resume: ResumeData) -> str:
     if tech_skills:
         tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
         for s in tech_skills:
-            tech_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
+            tech_html += f'<li class="editable" data-field="technical_skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         tech_html += '</ul>'
 
-    # Languages (editable)
+    # Languages (each editable)
     langs_html = ""
     if resume.languages:
         langs_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
@@ -524,15 +524,15 @@ def render_professional_classic(resume: ResumeData) -> str:
             nm = lang.name_en or lang.name or ""
             lvl = lang.level or ""
             entry = f"{nm} ({lvl})" if lvl else nm
-            langs_html += f'<li dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(entry)}</li>'
+            langs_html += f'<li class="editable" data-field="language" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(entry)}</li>'
         langs_html += '</ul>'
 
-    # Section title style (border-top, uppercase)
+    # Section title style (border-top, uppercase) — name font increased +3 to 31px
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-transform:uppercase;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
     return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
-    <h1 style="text-align:center;margin-bottom:5px;font-size:28px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
+    <h1 style="text-align:center;margin-bottom:5px;font-size:31px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
     <div {st}>CAREER OBJECTIVE</div>
@@ -556,4 +556,3 @@ def render_professional_classic(resume: ResumeData) -> str:
 
     {"<div " + st + ">LANGUAGES</div><div " + ct + ">" + langs_html + "</div>" if langs_html else ""}
 </div>'''
-    return html
