@@ -532,7 +532,7 @@ def render_professional_classic(resume: ResumeData) -> str:
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
     return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
-    <h1 style="text-align:center;margin-bottom:5px;font-size:31px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
+    <h1 style="text-align:center;margin-bottom:5px;font-size:34px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
     <div {st}>CAREER OBJECTIVE</div>
@@ -567,17 +567,106 @@ def render_professional_classic(resume: ResumeData) -> str:
 # ===========================================================================
 
 def render_arabic_classic(resume: ResumeData) -> str:
-    """Arabic Classic template — RTL, all sections editable, blue hyperlinks."""
+    """Arabic Classic template — RTL, all sections editable, blue hyperlinks.
+    Translates English content to Arabic when Arabic fields are empty."""
     from app.utils.arabic import contains_arabic as _has_ar
 
+    # --- Translation maps (English → Arabic) ---
+    SKILL_EN_AR = {
+        "problem solving": "حل المشكلات", "teamwork": "العمل الجماعي",
+        "communication": "التواصل الفعال", "time management": "إدارة الوقت",
+        "attention to detail": "الاهتمام بالتفاصيل", "adaptability": "القدرة على التكيف",
+        "continuous learning": "التعلم المستمر", "leadership": "القيادة",
+        "creativity": "الإبداع", "critical thinking": "التفكير النقدي",
+        "project management": "إدارة المشاريع", "decision making": "اتخاذ القرارات",
+        "analytical skills": "المهارات التحليلية", "negotiation": "المفاوضة",
+        "presentation skills": "مهارات العرض", "collaboration": "التعاون",
+        "interpersonal skills": "المهارات الشخصية", "multitasking": "تعدد المهام",
+        "stress management": "إدارة الضغط", "self-motivated": "ذاتي التحفيز",
+        "hard working": "عمل جاد", "work under pressure": "العمل تحت الضغط",
+        "ability to work under pressure": "القدرة على العمل تحت الضغط",
+    }
+    LANG_NAME_AR = {
+        "arabic": "العربية", "english": "الإنجليزية", "french": "الفرنسية",
+        "german": "الألمانية", "spanish": "الإسبانية", "italian": "الإيطالية",
+        "chinese": "الصينية", "japanese": "اليابانية", "korean": "الكورية",
+        "russian": "الروسية", "turkish": "التركية", "hindi": "الهندية",
+        "urdu": "الأردية", "persian": "الفارسية",
+    }
+    LEVEL_AR = {
+        "native": "اللغة الأم", "fluent": "بطلاقة", "advanced": "متقدم",
+        "intermediate": "متوسط", "beginner": "مبتدئ",
+        "professional": "احترافي", "professional working proficiency": "إجادة عملية احترافية",
+        "conversational": "محادثة", "basic": "أساسي",
+    }
+    # Common location translations
+    LOCATION_AR = {
+        "saudi arabia": "السعودية", "riyadh": "الرياض", "jeddah": "جدة",
+        "mecca": "مكة", "medina": "المدينة", "taif": "الطائف",
+        "dammam": "الدمام", "khobar": "الخبر", "tabuk": "تبوك",
+        "abha": "أبها", "khamis mushait": "خميس مشيط",
+        "united arab emirates": "الإمارات", "dubai": "دبي", "abu dhabi": "أبو ظبي",
+        "kuwait": "الكويت", "qatar": "قطر", "doha": "الدوحة",
+        "bahrain": "البحرين", "oman": "عمان", "egypt": "مصر", "cairo": "القاهرة",
+        "jordan": "الأردن", "amman": "عمّان", "lebanon": "لبنان",
+        "beirut": "بيروت", "iraq": "العراق", "baghdad": "بغداد",
+    }
+
+    def _translate_skill(s):
+        """Translate an English skill to Arabic if possible."""
+        if not s:
+            return ""
+        if _has_ar(s):
+            return s  # Already Arabic
+        lower = s.lower().strip()
+        return SKILL_EN_AR.get(lower, s)  # Return original if no translation
+
+    def _translate_lang_name(name):
+        """Translate language name to Arabic."""
+        if not name:
+            return ""
+        if _has_ar(name):
+            return name
+        lower = name.lower().strip()
+        return LANG_NAME_AR.get(lower, name)
+
+    def _translate_level(level):
+        """Translate proficiency level to Arabic."""
+        if not level:
+            return ""
+        if _has_ar(level):
+            return level
+        lower = level.lower().strip()
+        return LEVEL_AR.get(lower, level)
+
+    def _translate_location(loc):
+        """Translate common location names to Arabic."""
+        if not loc:
+            return ""
+        if _has_ar(loc):
+            return loc
+        result = loc
+        lower = loc.lower().strip()
+        # Try full match first
+        if lower in LOCATION_AR:
+            return LOCATION_AR[lower]
+        # Replace each known location in the string (handles "Riyadh, Saudi Arabia")
+        for en, ar in sorted(LOCATION_AR.items(), key=lambda x: -len(x[0])):
+            if en in result.lower():
+                # Case-insensitive replace
+                import re as _re
+                result = _re.sub(_re.escape(en), ar, result, flags=_re.IGNORECASE)
+        return result
+
     p = resume.personal
-    name = p.name_ar or p.name or ""
+    # Name: prefer Arabic, fallback to English name (name might be transliterated)
+    name = p.name_ar or p.name or p.name_en or ""
     email = p.email or ""
     phone = p.phone or ""
-    location = p.location or ""
+    location = _translate_location(p.location or "")
     objective = resume.summary_text("ar") or resume.summary_text("en") or ""
 
-    # Build contact line with BLUE clickable links for email + phone
+    # Build contact line with BLUE clickable links
     contact_parts = []
     if email:
         contact_parts.append(f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="color:#2563eb;text-decoration:none;">{esc(email)}</a>')
@@ -587,20 +676,20 @@ def render_arabic_classic(resume: ResumeData) -> str:
         contact_parts.append(f'<span class="editable" data-field="location" dir="auto">{esc(location)}</span>')
     contact_line = ' | '.join(contact_parts)
 
-    # Education (each field editable)
+    # Education (prefer Arabic, fallback to English — keep as-is if no translation)
     edu_html = ""
     for edu in resume.education:
-        degree = edu.degree_ar or edu.degree or ""
-        institution = edu.institution_ar or edu.institution or ""
+        degree = edu.degree_ar or edu.degree_en or edu.degree or ""
+        institution = edu.institution_ar or edu.institution_en or edu.institution or ""
         edu_html += f'<div style="margin-bottom:5px;"><strong class="editable" data-field="degree" dir="auto">{esc(degree)}</strong> - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span></div>'
 
-    # Experience (each field editable, including bullets)
+    # Experience (prefer Arabic, fallback to English)
     exp_html = ""
     for exp in resume.experience:
-        title = exp.title_ar or exp.title or ""
-        company = exp.company_ar or exp.company or ""
+        title = exp.title_ar or exp.title_en or exp.title or ""
+        company = exp.company_ar or exp.company_en or exp.company or ""
         desc = exp.description or ""
-        bullets = exp.bullets_ar or exp.bullets or []
+        bullets = exp.bullets_ar or exp.bullets_en or exp.bullets or []
         exp_html += f'<div style="margin-bottom:10px;"><strong class="editable" data-field="title" dir="auto">{esc(title)}</strong>'
         if company:
             exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
@@ -622,20 +711,19 @@ def render_arabic_classic(resume: ResumeData) -> str:
                 courses_html += f'<li class="editable" data-field="course" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
         courses_html += '</ul>'
 
-    # Skills — ARABIC ONLY (filter out English)
+    # Skills — translate ALL skills to Arabic
     skills = []
     for s in (resume.skills_ar or []):
         if s and s not in skills:
             skills.append(s)
     for s in (resume.skills or []):
-        if s and _has_ar(s) and s not in skills:
-            skills.append(s)
+        translated = _translate_skill(s)
+        if translated and translated not in skills:
+            skills.append(translated)
     for s in (resume.soft_skills or []):
-        if s and _has_ar(s) and s not in skills:
-            skills.append(s)
-    # Fallback: if no Arabic skills, show all skills
-    if not skills:
-        skills = [s for s in (resume.skills or []) if s]
+        translated = _translate_skill(s)
+        if translated and translated not in skills:
+            skills.append(translated)
     skills_html = ""
     if skills:
         skills_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
@@ -643,9 +731,12 @@ def render_arabic_classic(resume: ResumeData) -> str:
             skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         skills_html += '</ul>'
 
-    # Technical skills (universal — include all)
+    # Technical skills (translate common ones, keep universal terms)
     tech_skills = []
     for s in (resume.technical_skills_ar or []):
+        if s and s not in tech_skills:
+            tech_skills.append(s)
+    for s in (resume.technical_skills_en or []):
         if s and s not in tech_skills:
             tech_skills.append(s)
     for s in (resume.technical_skills or []):
@@ -658,23 +749,23 @@ def render_arabic_classic(resume: ResumeData) -> str:
             tech_html += f'<li class="editable" data-field="technical_skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         tech_html += '</ul>'
 
-    # Languages (each editable)
+    # Languages — translate names + levels to Arabic
     langs_html = ""
     if resume.languages:
         langs_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
         for lang in resume.languages:
-            nm = lang.name_ar or lang.name or ""
-            lvl = lang.level or ""
+            nm = lang.name_ar or _translate_lang_name(lang.name_en or lang.name)
+            lvl = _translate_level(lang.level)
             entry = f"{nm} ({lvl})" if lvl else nm
             langs_html += f'<li class="editable" data-field="language" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(entry)}</li>'
         langs_html += '</ul>'
 
-    # Section title style (border-top, Arabic titles)
+    # Section title style — name font increased +3 more to 34px
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
     return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
-    <h1 style="text-align:center;margin-bottom:5px;font-size:31px;" class="editable" data-field="name_ar">{esc(name)}</h1>
+    <h1 style="text-align:center;margin-bottom:5px;font-size:34px;" class="editable" data-field="name_ar">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
     <div {st}>الهدف الوظيفي</div>
