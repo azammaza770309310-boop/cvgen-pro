@@ -586,6 +586,65 @@ def render_arabic_classic(resume: ResumeData) -> str:
         "hard working": "عمل جاد", "work under pressure": "العمل تحت الضغط",
         "ability to work under pressure": "القدرة على العمل تحت الضغط",
     }
+    # Technical skills translations — comprehensive
+    TECH_EN_AR = {
+        "road design": "تصميم الطرق", "pavement engineering": "هندسة الرصف",
+        "soil mechanics": "ميكانيكا التربة", "foundation engineering": "هندسة الأساسات",
+        "construction quality control": "مراقبة جودة الإنشاء",
+        "construction methods": "طرق الإنشاء", "construction practices": "ممارسات الإنشاء",
+        "engineering drawings": "الرسومات الهندسية",
+        "engineering drawings interpretation": "تفسير الرسومات الهندسية",
+        "technical reports": "التقارير الفنية", "technical reports preparation": "إعداد التقارير الفنية",
+        "quantity estimation": "تقدير الكميات", "quantity takeoff": "حساب الكميات",
+        "project planning": "تخطيط المشاريع", "project coordination": "تنسيق المشاريع",
+        "structural analysis": "التحليل الإنشائي", "structural design": "التصميم الإنشائي",
+        "surveying": "المساحة", "land surveying": "مساحة الأراضي",
+        "hydrology": "الهيدرولوجيا", "hydraulics": "الهيدروليكا",
+        "environmental engineering": "الهندسة البيئية",
+        "transportation engineering": "هندسة النقل",
+        "geotechnical engineering": "الهندسة الجيوتقنية",
+        "water resources": "موارد المياه", "water treatment": "معالجة المياه",
+        "wastewater treatment": "معالجة مياه الصرف",
+        "highway engineering": "هندسة الطرق السريعة",
+        "traffic engineering": "هندسة المرور",
+        "urban planning": "التخطيط الحضري",
+        "building design": "تصميم المباني",
+        "concrete design": "تصميم الخرسانة",
+        "steel design": "تصميم المنشآت المعدنية",
+        "cost estimation": "تقدير التكاليف",
+        "risk assessment": "تقييم المخاطر",
+        "safety management": "إدارة السلامة",
+        "quality assurance": "ضمان الجودة",
+        "microsoft office": "مايكروسوفت أوفيس",
+        "microsoft word": "مايكروسوفت وورد",
+        "microsoft excel": "مايكروسوفت إكسل",
+        "microsoft powerpoint": "مايكروسوفت بوربوينت",
+        "autocad": "أوتوكاد",
+        "revit": "ريفيت",
+        "sap2000": "SAP2000",
+        "etabs": "ETABS",
+        "primavera": "بريمافيرا",
+        "ms project": "مايكروسوفت بروجكت",
+        "gis": "نظم المعلومات الجغرافية",
+        "python": "بايثون",
+        "javascript": "جافا سكريبت",
+        "react": "رياكت",
+        "html": "HTML",
+        "css": "CSS",
+        "sql": "SQL",
+        "database management": "إدارة قواعد البيانات",
+        "web development": "تطوير الويب",
+        "software development": "تطوير البرمجيات",
+        "data analysis": "تحليل البيانات",
+        "machine learning": "التعلم الآلي",
+        "artificial intelligence": "الذكاء الاصطناعي",
+        "cybersecurity": "الأمن السيبراني",
+        "network security": "أمن الشبكات",
+        "cloud computing": "الحوسبة السحابية",
+        "devops": "ديف أوبس",
+        "agile": "أجايل",
+        "scrum": "سكرم",
+    }
     LANG_NAME_AR = {
         "arabic": "العربية", "english": "الإنجليزية", "french": "الفرنسية",
         "german": "الألمانية", "spanish": "الإسبانية", "italian": "الإيطالية",
@@ -599,7 +658,6 @@ def render_arabic_classic(resume: ResumeData) -> str:
         "professional": "احترافي", "professional working proficiency": "إجادة عملية احترافية",
         "conversational": "محادثة", "basic": "أساسي",
     }
-    # Common location translations
     LOCATION_AR = {
         "saudi arabia": "السعودية", "riyadh": "الرياض", "jeddah": "جدة",
         "mecca": "مكة", "medina": "المدينة", "taif": "الطائف",
@@ -613,13 +671,23 @@ def render_arabic_classic(resume: ResumeData) -> str:
     }
 
     def _translate_skill(s):
-        """Translate an English skill to Arabic if possible."""
+        """Translate an English skill (soft or technical) to Arabic."""
         if not s:
             return ""
         if _has_ar(s):
-            return s  # Already Arabic
+            return s
         lower = s.lower().strip()
-        return SKILL_EN_AR.get(lower, s)  # Return original if no translation
+        # Check soft skills map first
+        if lower in SKILL_EN_AR:
+            return SKILL_EN_AR[lower]
+        # Check technical skills map
+        if lower in TECH_EN_AR:
+            return TECH_EN_AR[lower]
+        # Try partial match for technical skills (e.g. "AutoCAD Civil 3D")
+        for en, ar in TECH_EN_AR.items():
+            if en in lower:
+                return s.lower().replace(en, ar)
+        return s  # No translation found
 
     def _translate_lang_name(name):
         """Translate language name to Arabic."""
@@ -664,7 +732,12 @@ def render_arabic_classic(resume: ResumeData) -> str:
     email = p.email or ""
     phone = p.phone or ""
     location = _translate_location(p.location or "")
-    objective = resume.summary_text("ar") or resume.summary_text("en") or ""
+    # Objective: prefer Arabic summary, fallback to English.
+    # If only English available, keep it (user can edit inline).
+    objective = resume.summary_text("ar") or resume.summary_text("en") or resume.objective_text("ar") or resume.objective_text("en") or ""
+    # Ensure objective is never empty — show placeholder if missing
+    if not objective.strip():
+        objective = "أدخل الهدف المهني هنا..."
 
     # Build contact line with BLUE clickable links
     contact_parts = []
@@ -735,24 +808,24 @@ def render_arabic_classic(resume: ResumeData) -> str:
             skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         skills_html += '</ul>'
 
-    # Technical skills — include all technical_skills + any skills that couldn't
-    # be translated to Arabic (Python, JavaScript, React, etc. — universal terms)
+    # Technical skills — translate ALL to Arabic using unified _translate_skill
     tech_skills = []
     for s in (resume.technical_skills_ar or []):
         if s and s not in tech_skills:
             tech_skills.append(s)
     for s in (resume.technical_skills_en or []):
-        if s and s not in tech_skills:
-            tech_skills.append(s)
+        translated = _translate_skill(s)
+        if translated and translated not in tech_skills:
+            tech_skills.append(translated)
     for s in (resume.technical_skills or []):
-        if s and s not in tech_skills:
-            tech_skills.append(s)
-    # Also add any skills from resume.skills that couldn't be translated to Arabic
-    # (e.g. Python, JavaScript, React — these are technical terms, not soft skills)
+        translated = _translate_skill(s)
+        if translated and translated not in tech_skills:
+            tech_skills.append(translated)
+    # Also add any skills from resume.skills that couldn't be translated to Arabic soft skills
     for s in (resume.skills or []):
         translated = _translate_skill(s)
         if translated == s and not _has_ar(s) and s not in tech_skills:
-            tech_skills.append(s)  # Move untranslatable skills to technical section
+            tech_skills.append(s)
     tech_html = ""
     if tech_skills:
         tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
