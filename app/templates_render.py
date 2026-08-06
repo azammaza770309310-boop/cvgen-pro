@@ -711,18 +711,22 @@ def render_arabic_classic(resume: ResumeData) -> str:
                 courses_html += f'<li class="editable" data-field="course" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
         courses_html += '</ul>'
 
-    # Skills — translate ALL skills to Arabic
+    # Skills — Arabic ONLY: translate, and EXCLUDE any that stay English
+    # (English technical terms like Python/JavaScript go to technical_skills section)
     skills = []
     for s in (resume.skills_ar or []):
         if s and s not in skills:
             skills.append(s)
     for s in (resume.skills or []):
         translated = _translate_skill(s)
-        if translated and translated not in skills:
+        # Only include if translation succeeded (i.e. result is Arabic or was already Arabic)
+        if translated and translated not in skills and _has_ar(translated):
             skills.append(translated)
+        # If translation failed (still English), skip it — it's a technical term
+        # that belongs in the technical skills section, not the soft skills section
     for s in (resume.soft_skills or []):
         translated = _translate_skill(s)
-        if translated and translated not in skills:
+        if translated and translated not in skills and _has_ar(translated):
             skills.append(translated)
     skills_html = ""
     if skills:
@@ -731,7 +735,8 @@ def render_arabic_classic(resume: ResumeData) -> str:
             skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         skills_html += '</ul>'
 
-    # Technical skills (translate common ones, keep universal terms)
+    # Technical skills — include all technical_skills + any skills that couldn't
+    # be translated to Arabic (Python, JavaScript, React, etc. — universal terms)
     tech_skills = []
     for s in (resume.technical_skills_ar or []):
         if s and s not in tech_skills:
@@ -742,6 +747,12 @@ def render_arabic_classic(resume: ResumeData) -> str:
     for s in (resume.technical_skills or []):
         if s and s not in tech_skills:
             tech_skills.append(s)
+    # Also add any skills from resume.skills that couldn't be translated to Arabic
+    # (e.g. Python, JavaScript, React — these are technical terms, not soft skills)
+    for s in (resume.skills or []):
+        translated = _translate_skill(s)
+        if translated == s and not _has_ar(s) and s not in tech_skills:
+            tech_skills.append(s)  # Move untranslatable skills to technical section
     tech_html = ""
     if tech_skills:
         tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
