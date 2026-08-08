@@ -959,3 +959,248 @@ def render_arabic_classic(resume: ResumeData) -> str:
 
     {"<div " + st + ">اللغات</div><div " + ct + ">" + langs_html + "</div>" if langs_html else ""}
 </div>'''
+
+
+# ===========================================================================
+# TEMPLATE 8: Asymmetric Dark (تخطيط غير متماثل داكن)
+# RTL asymmetric layout with dark sidebar on the right + pill-shaped contact bar
+# Pixel-perfect implementation per technical specification
+# ===========================================================================
+
+def render_asymmetric_dark(resume: ResumeData) -> str:
+    """Asymmetric Dark template — RTL, dark sidebar, pill contact, all editable."""
+    from app.utils.arabic import contains_arabic as _has_ar
+
+    # Translation maps (reuse from arabic_classic)
+    SKILL_EN_AR = {
+        "problem solving": "حل المشكلات", "teamwork": "العمل الجماعي",
+        "communication": "التواصل الفعال", "time management": "إدارة الوقت",
+        "attention to detail": "الاهتمام بالتفاصيل", "adaptability": "القدرة على التكيف",
+        "continuous learning": "التعلم المستمر", "leadership": "القيادة",
+        "creativity": "الإبداع", "critical thinking": "التفكير النقدي",
+        "project management": "إدارة المشاريع", "decision making": "اتخاذ القرارات",
+        "analytical skills": "المهارات التحليلية", "negotiation": "المفاوضة",
+        "presentation skills": "مهارات العرض", "collaboration": "التعاون",
+        "interpersonal skills": "المهارات الشخصية", "multitasking": "تعدد المهام",
+        "stress management": "إدارة الضغط", "self-motivated": "ذاتي التحفيز",
+        "hard working": "عمل جاد", "work under pressure": "العمل تحت الضغط",
+        "ability to work under pressure": "القدرة على العمل تحت الضغط",
+        "supplier coordination": "تنسيق الموردين", "social media management": "إدارة وسائل التواصل الاجتماعي",
+        "communication & writing": "التواصل والكتابة", "organization & coordination": "التنظيم والتنسيق",
+        "records management": "إدارة السجلات", "archiving": "الأرشفة",
+        "cataloging & classification": "الفهرسة والتصنيف", "academic research": "البحث الأكاديمي",
+        "proficiency in ms office suite": "إجادة حزمة مايكروسوفت أوفيس",
+        "inventory management": "إدارة المخزون", "warehouse management": "إدارة المستودعات",
+        "organization": "التنظيم", "supervision": "الإشراف", "team management": "إدارة الفرق",
+        "communication & negotiation": "التواصل والتفاوض", "hr consulting": "الاستشارات في الموارد البشرية",
+        "procurement management": "إدارة المشتريات", "strategic planning": "التخطيط الاستراتيجي",
+        "successful negotiation": "التفاوض الناجح", "customer service": "خدمة العملاء",
+        "customer support": "دعم العملاء", "sales": "المبيعات", "marketing": "التسويق",
+        "digital marketing": "التسويق الرقمي", "content writing": "كتابة المحتوى",
+        "data entry": "إدخال البيانات", "bookkeeping": "مسك الدفاتر", "accounting": "المحاسبة",
+        "financial analysis": "التحليل المالي", "budgeting": "إعداد الميزانيات",
+        "payroll": "الرواتب", "recruitment": "التوظيف", "training & development": "التدريب والتطوير",
+        "employee relations": "علاقات الموظفين", "performance management": "إدارة الأداء",
+        "contract management": "إدارة العقود", "supply chain": "سلسلة التوريد",
+        "logistics": "اللوجستيات", "operations management": "إدارة العمليات",
+        "quality management": "إدارة الجودة", "risk management": "إدارة المخاطر",
+        "event planning": "تخطيط الفعاليات", "public relations": "العلاقات العامة",
+        "report writing": "كتابة التقارير", "office administration": "إدارة المكتب",
+        "scheduling": "جدولة المواعيد", "conflict resolution": "حل النزاعات",
+        "mentoring": "التوجيه", "coaching": "التدريب", "public speaking": "التحدث أمام الجمهور",
+        "writing skills": "مهارات الكتابة", "editing": "التحرير", "proofreading": "التدقيق اللغوي",
+        "documentation": "التوثيق", "data analysis": "تحليل البيانات",
+        "compliance": "الامتثال", "auditing": "التدقيق", "reporting": "إعداد التقارير",
+        "strategic thinking": "التفكير الاستراتيجي", "change management": "إدارة التغيير",
+        "process improvement": "تحسين العمليات", "business development": "تطوير الأعمال",
+        "relationship building": "بناء العلاقات", "networking": "بناء الشبكات",
+        "client management": "إدارة العملاء",
+    }
+    TECH_EN_AR = {
+        "road design": "تصميم الطرق", "soil mechanics": "ميكانيكا التربة",
+        "autocad": "أوتوكاد", "microsoft office": "مايكروسوفت أوفيس",
+        "microsoft word": "مايكروسوفت وورد", "microsoft excel": "مايكروسوفت إكسل",
+        "microsoft powerpoint": "مايكروسوفت بوربوينت", "python": "بايثون",
+        "javascript": "جافا سكريبت", "react": "رياكت", "docker": "دوكر",
+        "structural analysis": "التحليل الإنشائي", "surveying": "المساحة",
+        "quantity estimation": "تقدير الكميات", "cybersecurity": "الأمن السيبراني",
+        "gis": "نظم المعلومات الجغرافية", "revit": "ريفيت", "primavera": "بريمافيرا",
+    }
+    LANG_NAME_AR = {
+        "arabic": "العربية", "english": "الإنجليزية", "french": "الفرنسية",
+        "german": "الألمانية", "spanish": "الإسبانية",
+    }
+    LEVEL_AR = {
+        "native": "اللغة الأم", "fluent": "بطلاقة", "advanced": "متقدم",
+        "intermediate": "متوسط", "beginner": "مبتدئ", "professional": "احترافي",
+        "professional working proficiency": "إجادة عملية احترافية",
+    }
+
+    def _tr(s):
+        if not s: return ""
+        if _has_ar(s): return s
+        lower = s.lower().strip()
+        if lower in SKILL_EN_AR: return SKILL_EN_AR[lower]
+        if lower in TECH_EN_AR: return TECH_EN_AR[lower]
+        return s
+
+    p = resume.personal
+    name = p.name_ar or p.name or ""
+    email = p.email or ""
+    phone = p.phone or ""
+    location = p.location or ""
+    if not _has_ar(location):
+        for en, ar in {"saudi arabia":"السعودية","riyadh":"الرياض","jeddah":"جدة","taif":"الطائف","makkah":"مكة","medina":"المدينة","dammam":"الدمام"}.items():
+            if en in location.lower():
+                location = location.lower().replace(en, ar)
+    objective = resume.summary_text("ar") or resume.summary_text("en") or ""
+
+    # --- Education (sidebar) ---
+    edu_items = ""
+    for edu in resume.education:
+        degree = edu.degree_ar or edu.degree_en or edu.degree or ""
+        institution = edu.institution_ar or edu.institution_en or edu.institution or ""
+        edu_items += f'<li class="editable" data-field="degree" dir="auto" style="margin-bottom:4pt;">{esc(degree)}'
+        if institution:
+            edu_items += f' - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span>'
+        edu_items += '</li>'
+
+    # --- Skills (sidebar) — Arabic only ---
+    skill_items = ""
+    skills = []
+    for source in [resume.skills_ar or [], resume.skills or [], resume.skills_en or [], resume.soft_skills or []]:
+        for s in source:
+            t = _tr(s)
+            if t and _has_ar(t) and t not in skills:
+                skills.append(t)
+    for s in skills:
+        skill_items += f'<li class="editable" data-field="skill" dir="auto">{esc(s)}</li>'
+
+    # --- Technical skills (sidebar) — Arabic only ---
+    tech_items = ""
+    tech_skills = []
+    for source in [resume.technical_skills_ar or [], resume.technical_skills or [], resume.technical_skills_en or []]:
+        for s in source:
+            t = _tr(s)
+            if t and _has_ar(t) and t not in tech_skills:
+                tech_skills.append(t)
+    for s in tech_skills:
+        tech_items += f'<li class="editable" data-field="technical_skill" dir="auto">{esc(s)}</li>'
+
+    # --- Experience (main content) ---
+    exp_html = ""
+    for exp in resume.experience:
+        title = exp.title_ar or exp.title_en or exp.title or ""
+        company = exp.company_ar or exp.company_en or exp.company or ""
+        period = ""
+        if exp.start_date and exp.end_date:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - {esc(exp.end_date)})</span>'
+        elif exp.start_date and exp.current:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - حتى الآن)</span>'
+        exp_html += f'<div style="margin-bottom:12pt;">'
+        exp_html += f'<div style="font-weight:700;font-size:10pt;color:#2D3748;margin-bottom:4pt;"><span class="editable" data-field="title" dir="auto">{esc(title)}</span>'
+        if company:
+            exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
+        if period:
+            exp_html += f' {period}'
+        exp_html += '</div>'
+        desc = exp.description or ""
+        if desc:
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.4;margin-bottom:4pt;">{esc(desc)}</div>'
+        bullets = exp.bullets_ar or exp.bullets_en or exp.bullets or []
+        if bullets:
+            exp_html += '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;">'
+            for b in bullets:
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.4;">{esc(b)}</li>'
+            exp_html += '</ul>'
+        exp_html += '</div>'
+
+    # --- Contact pill rows ---
+    contact_row1 = ""
+    if phone:
+        contact_row1 += f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">📞</span><span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span></span>'
+    if email:
+        if contact_row1: contact_row1 += '<span style="width:12pt;"></span>'
+        contact_row1 += f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">✉</span><span class="editable" data-field="email" dir="ltr">{esc(email)}</span></span>'
+    contact_row2 = ""
+    if location:
+        contact_row2 = f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">📍</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+
+    # --- Languages (sidebar) ---
+    lang_items = ""
+    for lang in resume.languages:
+        nm = lang.name_ar or LANG_NAME_AR.get((lang.name_en or lang.name or "").lower(), lang.name or "")
+        lvl = LEVEL_AR.get((lang.level or "").lower(), lang.level or "")
+        if _has_ar(lvl) == False and lvl:
+            for en, ar in LEVEL_AR.items():
+                if en in (lang.level or "").lower():
+                    lvl = ar
+                    break
+        entry = f"{nm} ({lvl})" if lvl else nm
+        lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
+
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+
+    <!-- ===== HEADER ===== -->
+    <h1 class="editable" data-field="name_ar" style="text-align:right;font-weight:700;font-size:24pt;color:#2D3748;margin:0 0 12pt 0;">{esc(name)}</h1>
+
+    <!-- Contact Pill -->
+    <div style="background:#2D3748;border-radius:16pt;padding:10pt 16pt;display:flex;flex-direction:column;align-items:center;gap:4pt;-webkit-print-color-adjust:exact;">
+        <div style="display:flex;align-items:center;gap:12pt;font-size:9.5pt;color:#FFFFFF;">
+            {contact_row1}
+        </div>
+        {f'<div style="font-size:9.5pt;color:#FFFFFF;">{contact_row2}</div>' if contact_row2 else ''}
+    </div>
+
+    <!-- ===== MAIN BODY GRID ===== -->
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16pt;align-items:start;margin-top:16pt;">
+
+        <!-- ===== RIGHT SIDEBAR (Dark) ===== -->
+        <div style="background:#2D3748;border-radius:12pt 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact;">
+
+            <!-- Education -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
+                {edu_items}
+            </ul>
+
+            <!-- Skills -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
+                {skill_items}
+            </ul>
+
+            <!-- Technical Skills -->
+            {f'''<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات التقنية</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
+                {tech_items}
+            </ul>''' if tech_items else ''}
+
+            <!-- Languages -->
+            {f'''<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">اللغات</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;color:#FFFFFF;">
+                {lang_items}
+            </ul>''' if lang_items else ''}
+
+        </div>
+
+        <!-- ===== LEFT MAIN CONTENT (White) ===== -->
+        <div style="padding:0 16pt 0 0;color:#2D3748;">
+
+            <!-- Profile Summary -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">الملخص المهني</div>
+            <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
+            <div class="editable" data-field="summary_ar" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.5;text-align:justify;margin-bottom:12pt;">{esc(objective)}</div>
+
+            <!-- Professional Experience -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">الخبرات المهنية</div>
+            <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
+            {exp_html}
+
+        </div>
+    </div>
+</div>'''

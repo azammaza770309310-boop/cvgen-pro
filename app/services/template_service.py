@@ -16,6 +16,7 @@ from app.models.resume import ResumeData
 from app.templates_render import (
     render_professional_classic,
     render_arabic_classic,
+    render_asymmetric_dark,
     render_official_bilingual_master,
     render_english_single_column,
     render_arabic_single_column,
@@ -97,6 +98,18 @@ REGISTRY: List[TemplateDef] = [
         supported_languages=["ar"],
         accent="#000000",
         render=render_arabic_classic,
+    ),
+    TemplateDef(
+        id="asymmetric_dark",
+        name="Asymmetric Dark",
+        name_ar="غير متماثل داكن",
+        description="Asymmetric RTL layout with dark sidebar, pill-shaped contact bar.",
+        description_ar="تخطيط غير متماثل RTL مع عمود جانبي داكن وشريط تواصل بيضاوي.",
+        category="creative",
+        ats_level="medium",
+        supported_languages=["ar"],
+        accent="#2D3748",
+        render=render_asymmetric_dark,
     ),
 ]
 

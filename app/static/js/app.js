@@ -1411,6 +1411,33 @@
           <div class="tac-line w45"></div>
         </div>`;
 
+      case "asymmetric_dark":
+        // Asymmetric Dark: dark sidebar on right, pill contact, two-column grid
+        return `<div class="thumb-asym-dark" style="--ta:${accent}" dir="rtl">
+          <div class="tad-name">أحمد محمد</div>
+          <div class="tad-pill"></div>
+          <div class="tad-body">
+            <div class="tad-sidebar">
+              <div class="tad-sb-h">المؤهلات</div>
+              <div class="tad-sb-line w80"></div>
+              <div class="tad-sb-line w60"></div>
+              <div class="tad-sb-h">المهارات</div>
+              <div class="tad-sb-line w70"></div>
+              <div class="tad-sb-line w50"></div>
+              <div class="tad-sb-line w65"></div>
+            </div>
+            <div class="tad-main">
+              <div class="tad-mc-h">الملخص</div>
+              <div class="tad-mc-line w90"></div>
+              <div class="tad-mc-line w75"></div>
+              <div class="tad-mc-h">الخبرات</div>
+              <div class="tad-mc-line w85"></div>
+              <div class="tad-mc-line w60"></div>
+              <div class="tad-mc-line w70"></div>
+            </div>
+          </div>
+        </div>`;
+
       default:
         // Generic fallback
         return `<div class="thumb-generic" style="--ta:${accent}">
