@@ -1412,28 +1412,37 @@
         </div>`;
 
       case "asymmetric_dark":
-        // Asymmetric Dark: dark sidebar on right, pill contact, two-column grid
+        // Asymmetric Dark: dark sidebar on right (one-sided radius), pill contact, flexbox layout
         return `<div class="thumb-asym-dark" style="--ta:${accent}" dir="rtl">
           <div class="tad-name">أحمد محمد</div>
-          <div class="tad-pill"></div>
+          <div class="tad-pill">
+            <span class="tad-pill-dot"></span>
+            <span class="tad-pill-dot"></span>
+            <span class="tad-pill-dot"></span>
+          </div>
           <div class="tad-body">
             <div class="tad-sidebar">
-              <div class="tad-sb-h">المؤهلات</div>
-              <div class="tad-sb-line w80"></div>
+              <div class="tad-sb-h">التعليم</div>
+              <div class="tad-sb-line w85"></div>
               <div class="tad-sb-line w60"></div>
               <div class="tad-sb-h">المهارات</div>
-              <div class="tad-sb-line w70"></div>
-              <div class="tad-sb-line w50"></div>
+              <div class="tad-sb-line w75"></div>
+              <div class="tad-sb-line w55"></div>
               <div class="tad-sb-line w65"></div>
+              <div class="tad-sb-h">اللغات</div>
+              <div class="tad-sb-line w50"></div>
+              <div class="tad-sb-line w45"></div>
             </div>
             <div class="tad-main">
-              <div class="tad-mc-h">الملخص</div>
+              <div class="tad-mc-h">نبذة عني</div>
               <div class="tad-mc-line w90"></div>
-              <div class="tad-mc-line w75"></div>
-              <div class="tad-mc-h">الخبرات</div>
+              <div class="tad-mc-line w80"></div>
+              <div class="tad-mc-line w70"></div>
+              <div class="tad-mc-h">الخبرات المهنية</div>
               <div class="tad-mc-line w85"></div>
               <div class="tad-mc-line w60"></div>
-              <div class="tad-mc-line w70"></div>
+              <div class="tad-mc-line w75"></div>
+              <div class="tad-mc-line w55"></div>
             </div>
           </div>
         </div>`;

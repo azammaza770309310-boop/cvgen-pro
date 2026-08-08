@@ -1172,7 +1172,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== RIGHT SIDEBAR (Dark) — 35% width, stretches to bottom ===== -->
-        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:12pt 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:0 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1200,7 +1200,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         <div style="width:65%;padding:0 16pt 0 0;color:#2D3748;">
 
             <!-- Profile Summary -->
-            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">الملخص المهني</div>
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">نبذة عني</div>
             <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
             <div class="editable" data-field="summary_ar" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;text-align:justify;margin-bottom:18pt;">{esc(objective)}</div>
 

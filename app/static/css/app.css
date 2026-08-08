@@ -1446,18 +1446,83 @@ button { font-family: inherit; }
 .tac-skills-col { flex: 1; display: flex; flex-direction: column; }
 
 /* --- Asymmetric Dark thumbnail --- */
+
+/* --- Asymmetric Dark thumbnail (official, clean) --- */
 .thumb-asym-dark {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-family: inherit;
+  padding: 6px 4px;
 }
-.tad-name { font-size: 8px; font-weight: 700; color: #2D3748; text-align: right; }
-.tad-pill { height: 6px; background: #2D3748; border-radius: 8px; margin-bottom: 2px; }
-.tad-body { display: grid; grid-template-columns: 1fr 2fr; gap: 4px; }
-.tad-sidebar { background: #2D3748; border-radius: 4px 4px 0 0; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
-.tad-sb-h { font-size: 5px; font-weight: 700; color: #fff; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 1px; margin-bottom: 1px; }
-.tad-sb-line { height: 2px; background: rgba(255,255,255,0.4); border-radius: 1px; }
-.tad-main { display: flex; flex-direction: column; gap: 2px; padding: 0 2px; }
-.tad-mc-h { font-size: 5px; font-weight: 700; color: #2D3748; text-align: right; border-bottom: 1px solid #2D3748; padding-bottom: 1px; margin-bottom: 1px; }
-.tad-mc-line { height: 2px; background: #bbb; border-radius: 1px; }
+.tad-name {
+  font-size: 9px;
+  font-weight: 800;
+  color: #2D3748;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.tad-pill {
+  background: #2D3748;
+  border-radius: 10px;
+  padding: 3px 6px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.tad-pill-dot {
+  width: 10px;
+  height: 2px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 1px;
+}
+.tad-body {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+}
+.tad-sidebar {
+  width: 35%;
+  background: #2D3748;
+  border-radius: 0 5px 0 0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 80px;
+}
+.tad-sb-h {
+  font-size: 5px;
+  font-weight: 700;
+  color: #fff;
+  text-align: right;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+.tad-sb-line {
+  height: 2px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 1px;
+}
+.tad-main {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+.tad-mc-h {
+  font-size: 5px;
+  font-weight: 700;
+  color: #2D3748;
+  text-align: right;
+  border-bottom: 1px solid #2D3748;
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+.tad-mc-line {
+  height: 2px;
+  background: #c8c8c8;
+  border-radius: 1px;
+}
