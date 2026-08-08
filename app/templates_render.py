@@ -1087,7 +1087,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     for s in tech_skills:
         tech_items += f'<li class="editable" data-field="technical_skill" dir="auto">{esc(s)}</li>'
 
-    # --- Experience (main content) ---
+    # --- Experience (main content) — with increased spacing per hotfix ---
     exp_html = ""
     for exp in resume.experience:
         title = exp.title_ar or exp.title_en or exp.title or ""
@@ -1097,8 +1097,8 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
             period = f'<span dir="ltr">({esc(exp.start_date)} - {esc(exp.end_date)})</span>'
         elif exp.start_date and exp.current:
             period = f'<span dir="ltr">({esc(exp.start_date)} - حتى الآن)</span>'
-        exp_html += f'<div style="margin-bottom:12pt;">'
-        exp_html += f'<div style="font-weight:700;font-size:10pt;color:#2D3748;margin-bottom:4pt;"><span class="editable" data-field="title" dir="auto">{esc(title)}</span>'
+        exp_html += f'<div style="margin-bottom:18pt;">'
+        exp_html += f'<div style="font-weight:700;font-size:11pt;color:#2D3748;margin-bottom:6pt;"><span class="editable" data-field="title" dir="auto">{esc(title)}</span>'
         if company:
             exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
         if period:
@@ -1106,25 +1106,23 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         exp_html += '</div>'
         desc = exp.description or ""
         if desc:
-            exp_html += f'<div class="editable" data-field="description" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.4;margin-bottom:4pt;">{esc(desc)}</div>'
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;margin-bottom:6pt;">{esc(desc)}</div>'
         bullets = exp.bullets_ar or exp.bullets_en or exp.bullets or []
         if bullets:
             exp_html += '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;">'
             for b in bullets:
-                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.4;">{esc(b)}</li>'
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;margin-bottom:6pt;">{esc(b)}</li>'
             exp_html += '</ul>'
         exp_html += '</div>'
 
-    # --- Contact pill rows ---
-    contact_row1 = ""
+    # --- Contact pill items — single line, nowrap ---
+    contact_items_html = ""
     if phone:
-        contact_row1 += f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">📞</span><span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span></span>'
+        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">📞</span><span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span></span>'
     if email:
-        if contact_row1: contact_row1 += '<span style="width:12pt;"></span>'
-        contact_row1 += f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">✉</span><span class="editable" data-field="email" dir="ltr">{esc(email)}</span></span>'
-    contact_row2 = ""
+        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">✉</span><span class="editable" data-field="email" dir="ltr">{esc(email)}</span></span>'
     if location:
-        contact_row2 = f'<span style="display:flex;align-items:center;gap:4pt;"><span style="font-size:9pt;">📍</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">📍</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
 
     # --- Languages (sidebar) ---
     lang_items = ""
@@ -1140,14 +1138,12 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
 
     # Pre-build conditional sections (avoid nested f-strings which break Python 3.11)
-    contact_row2_html = f'<div style="font-size:9.5pt;color:#FFFFFF;">{contact_row2}</div>' if contact_row2 else ''
-
     tech_section_html = ""
     if tech_items:
         tech_section_html = (
             '<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات التقنية</div>'
             '<div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>'
-            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">'
             + tech_items +
             '</ul>'
         )
@@ -1162,36 +1158,33 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
-    <!-- ===== HEADER ===== -->
-    <h1 class="editable" data-field="name_ar" style="text-align:right;font-weight:700;font-size:24pt;color:#2D3748;margin:0 0 12pt 0;">{esc(name)}</h1>
+    <!-- ===== HEADER: Centered Name ===== -->
+    <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:32pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
 
-    <!-- Contact Pill -->
-    <div style="background:#2D3748;border-radius:16pt;padding:10pt 16pt;display:flex;flex-direction:column;align-items:center;gap:4pt;-webkit-print-color-adjust:exact;">
-        <div style="display:flex;align-items:center;gap:12pt;font-size:9.5pt;color:#FFFFFF;">
-            {contact_row1}
-        </div>
-        {contact_row2_html}
+    <!-- ===== Contact Pill: Single line, nowrap ===== -->
+    <div style="background-color:#2D3748;border-radius:20pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        {contact_items_html}
     </div>
 
-    <!-- ===== MAIN BODY GRID ===== -->
-    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16pt;align-items:start;margin-top:16pt;">
+    <!-- ===== MAIN BODY: Flexbox (not Grid) for reliable RTL print ===== -->
+    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
-        <!-- ===== RIGHT SIDEBAR (Dark) ===== -->
-        <div style="background:#2D3748;border-radius:12pt 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact;">
+        <!-- ===== RIGHT SIDEBAR (Dark) — 35% width, stretches to bottom ===== -->
+        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:12pt 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
             <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
-            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">
                 {edu_items}
             </ul>
 
             <!-- Skills -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات</div>
             <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
-            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">
                 {skill_items}
             </ul>
 
@@ -1203,13 +1196,13 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
 
         </div>
 
-        <!-- ===== LEFT MAIN CONTENT (White) ===== -->
-        <div style="padding:0 16pt 0 0;color:#2D3748;">
+        <!-- ===== LEFT MAIN CONTENT (White) — 65% width ===== -->
+        <div style="width:65%;padding:0 16pt 0 0;color:#2D3748;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">الملخص المهني</div>
             <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
-            <div class="editable" data-field="summary_ar" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.5;text-align:justify;margin-bottom:12pt;">{esc(objective)}</div>
+            <div class="editable" data-field="summary_ar" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;text-align:justify;margin-bottom:18pt;">{esc(objective)}</div>
 
             <!-- Professional Experience -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">الخبرات المهنية</div>
