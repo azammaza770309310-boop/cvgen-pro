@@ -415,6 +415,17 @@
       el.addEventListener("blur", function() {
         el.removeAttribute("contenteditable");
         saveEditFromElement(el);
+        // If the element is now empty, re-render the preview to remove
+        // the empty bullet/dash/item (fixes "leftover dot/dash" bug)
+        var txt = el.textContent.trim();
+        if (!txt) {
+          // Element was emptied — re-render preview to clean up
+          setTimeout(function() {
+            if (state.data && state.data.personal) {
+              renderPreview();
+            }
+          }, 100);
+        }
       });
       // Enter (without shift) = save & blur; Escape = cancel
       el.addEventListener("keydown", function(e) {

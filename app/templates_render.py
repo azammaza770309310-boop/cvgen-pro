@@ -872,23 +872,25 @@ def render_arabic_classic(resume: ResumeData) -> str:
                 courses_html += f'<li class="editable" data-field="course" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(c)}</li>'
         courses_html += '</ul>'
 
-    # Skills — Arabic ONLY: translate, and EXCLUDE any that stay English
-    # (English technical terms like Python/JavaScript go to technical_skills section)
+    # Skills — Arabic ONLY. Gather from ALL sources (skills, skills_en, skills_ar, soft_skills).
+    # The normalizer moves Arabic skills to skills_en, so we MUST check it.
+    # Any skill that can't be translated to Arabic is EXCLUDED entirely.
     skills = []
-    for s in (resume.skills_ar or []):
-        if s and s not in skills:
-            skills.append(s)
-    for s in (resume.skills or []):
-        translated = _translate_skill(s)
-        # Only include if translation succeeded (i.e. result is Arabic or was already Arabic)
-        if translated and translated not in skills and _has_ar(translated):
-            skills.append(translated)
-        # If translation failed (still English), skip it — it's a technical term
-        # that belongs in the technical skills section, not the soft skills section
-    for s in (resume.soft_skills or []):
-        translated = _translate_skill(s)
-        if translated and translated not in skills and _has_ar(translated):
-            skills.append(translated)
+    all_skill_sources = [
+        resume.skills_ar or [],
+        resume.skills or [],
+        resume.skills_en or [],   # CRITICAL: normalizer puts Arabic skills here too!
+        resume.soft_skills or [],
+    ]
+    for source in all_skill_sources:
+        for s in source:
+            if not s:
+                continue
+            translated = _translate_skill(s)
+            # ONLY include if result is Arabic (either was Arabic or was translated)
+            if translated and translated not in skills and _has_ar(translated):
+                skills.append(translated)
+            # If translation failed (still English) → EXCLUDE entirely
     skills_html = ""
     if skills:
         skills_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
@@ -896,24 +898,20 @@ def render_arabic_classic(resume: ResumeData) -> str:
             skills_html += f'<li class="editable" data-field="skill" dir="auto" style="unicode-bidi:plaintext;text-align:start;">{esc(s)}</li>'
         skills_html += '</ul>'
 
-    # Technical skills — translate ALL to Arabic using unified _translate_skill
+    # Technical skills — Arabic ONLY. Same rule: gather from ALL sources.
     tech_skills = []
-    for s in (resume.technical_skills_ar or []):
-        if s and s not in tech_skills:
-            tech_skills.append(s)
-    for s in (resume.technical_skills_en or []):
-        translated = _translate_skill(s)
-        if translated and translated not in tech_skills:
-            tech_skills.append(translated)
-    for s in (resume.technical_skills or []):
-        translated = _translate_skill(s)
-        if translated and translated not in tech_skills:
-            tech_skills.append(translated)
-    # Also add any skills from resume.skills that couldn't be translated to Arabic soft skills
-    for s in (resume.skills or []):
-        translated = _translate_skill(s)
-        if translated == s and not _has_ar(s) and s not in tech_skills:
-            tech_skills.append(s)
+    all_tech_sources = [
+        resume.technical_skills_ar or [],
+        resume.technical_skills or [],
+        resume.technical_skills_en or [],   # CRITICAL: normalizer puts skills here too!
+    ]
+    for source in all_tech_sources:
+        for s in source:
+            if not s:
+                continue
+            translated = _translate_skill(s)
+            if translated and translated not in tech_skills and _has_ar(translated):
+                tech_skills.append(translated)
     tech_html = ""
     if tech_skills:
         tech_html = '<ul style="margin:5px 0;padding-inline-start:20px;">'
