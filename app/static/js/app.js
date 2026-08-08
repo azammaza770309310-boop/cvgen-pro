@@ -415,17 +415,7 @@
       el.addEventListener("blur", function() {
         el.removeAttribute("contenteditable");
         saveEditFromElement(el);
-        // If the element is now empty, re-render the preview to remove
-        // the empty bullet/dash/item (fixes "leftover dot/dash" bug)
-        var txt = el.textContent.trim();
-        if (!txt) {
-          // Element was emptied — re-render preview to clean up
-          setTimeout(function() {
-            if (state.data && state.data.personal) {
-              renderPreview();
-            }
-          }, 100);
-        }
+        // saveEditFromElement handles re-rendering if element was deleted
       });
       // Enter (without shift) = save & blur; Escape = cancel
       el.addEventListener("keydown", function(e) {
@@ -526,8 +516,20 @@
 
   function saveEditFromElement(el) {
     const text = el.textContent.trim();
-    // Map element to data field using data-field attribute
     const field = el.getAttribute("data-field");
+
+    // Helper: remove empty string from array
+    function removeFromArrayIfEmpty(arr, idx) {
+      if (!text && idx >= 0 && idx < arr.length) {
+        arr.splice(idx, 1);
+        return true;
+      }
+      return false;
+    }
+
+    // Helper: check if we need to re-render (element was deleted)
+    let needRerender = false;
+
     if (field) {
       // Direct field mapping via data-field attribute
       if (field === "name_en") state.data.personal.name_en = text;
@@ -535,47 +537,231 @@
       else if (field === "email") state.data.personal.email = text;
       else if (field === "phone") state.data.personal.phone = text;
       else if (field === "location" || field === "location_en" || field === "location_ar") state.data.personal.location = text;
-      else if (field === "summary_en") state.data.summary.en = text;
-      else if (field === "summary_ar") state.data.summary.ar = text;
-      toast("تم التحديث", "success");
-      return;
-    }
-    // Fallback: use class-based detection
-    if (el.classList.contains("header-name-en")) {
-      state.data.personal.name_en = text;
-    } else if (el.classList.contains("header-name-ar")) {
-      state.data.personal.name_ar = text;
-    } else if (el.tagName === "LI") {
-      // Bullet item — find which list and section
-      const list = el.closest("ul.editable-list");
-      const section = el.closest(".section");
-      const col = el.closest(".col-en") ? "en" : "ar";
-      if (section && list) {
-        const items = Array.from(list.querySelectorAll("li"));
-        const idx = items.indexOf(el);
-        const heading = section.querySelector("h2")?.textContent || "";
-        if (heading.includes("SKILLS") || heading.includes("المهارات")) {
-          if (heading.includes("TECHNICAL") || heading.includes("التقنية")) {
-            if (idx < state.data.technical_skills.length) state.data.technical_skills[idx] = text;
-          } else {
-            if (idx < state.data.skills.length) state.data.skills[idx] = text;
-          }
-        } else if (heading.includes("COURSES") || heading.includes("الدورات")) {
-          if (idx < state.data.courses.length) state.data.courses[idx] = text;
-        } else if (heading.includes("LANGUAGES") || heading.includes("اللغات")) {
-          if (idx < state.data.languages.length) {
-            const old = state.data.languages[idx];
-            state.data.languages[idx] = { name: text.replace(/\s*\(.*\)$/, ""), level: old?.level || "" };
+      else if (field === "summary_en") {
+        if (!text) { state.data.summary.en = ""; } else { state.data.summary.en = text; }
+      }
+      else if (field === "summary_ar") {
+        if (!text) { state.data.summary.ar = ""; } else { state.data.summary.ar = text; }
+      }
+      else if (field === "skill") {
+        // Find the index in the rendered list
+        const list = el.closest("ul");
+        if (list) {
+          const items = Array.from(list.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          // Try to find in skills array
+          if (idx >= 0) {
+            // Check all skill arrays
+            const allSkills = [
+              ...(state.data.skills || []),
+              ...(state.data.skills_en || []),
+              ...(state.data.skills_ar || []),
+            ];
+            // Remove from the array that contains this item
+            for (const arr of [state.data.skills, state.data.skills_en, state.data.skills_ar]) {
+              if (arr && idx < arr.length) {
+                if (!text) {
+                  arr.splice(idx, 1);
+                  needRerender = true;
+                } else {
+                  arr[idx] = text;
+                }
+                break;
+              }
+            }
           }
         }
       }
-    } else if (el.tagName === "P") {
-      // Summary paragraph
-      const col = el.closest(".col-en") ? "en" : "ar";
-      if (col === "en") state.data.summary.en = text;
-      else state.data.summary.ar = text;
+      else if (field === "technical_skill") {
+        const list = el.closest("ul");
+        if (list) {
+          const items = Array.from(list.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          for (const arr of [state.data.technical_skills, state.data.technical_skills_en, state.data.technical_skills_ar]) {
+            if (arr && idx < arr.length) {
+              if (!text) {
+                arr.splice(idx, 1);
+                needRerender = true;
+              } else {
+                arr[idx] = text;
+              }
+              break;
+            }
+          }
+        }
+      }
+      else if (field === "course") {
+        const list = el.closest("ul");
+        if (list) {
+          const items = Array.from(list.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          if (state.data.courses && idx >= 0 && idx < state.data.courses.length) {
+            if (!text) {
+              state.data.courses.splice(idx, 1);
+              needRerender = true;
+            } else {
+              state.data.courses[idx] = text;
+            }
+          }
+        }
+      }
+      else if (field === "language") {
+        const list = el.closest("ul");
+        if (list) {
+          const items = Array.from(list.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          if (state.data.languages && idx >= 0 && idx < state.data.languages.length) {
+            if (!text) {
+              state.data.languages.splice(idx, 1);
+              needRerender = true;
+            } else {
+              const old = state.data.languages[idx];
+              state.data.languages[idx] = { name: text.replace(/\s*\(.*\)$/, ""), level: old?.level || "" };
+            }
+          }
+        }
+      }
+      else if (field === "bullet") {
+        // Experience bullet — find parent experience item
+        const expItem = el.closest(".item") || el.closest("div");
+        const ul = el.closest("ul");
+        if (ul) {
+          const items = Array.from(ul.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          // Find which experience item this belongs to
+          const allExp = state.data.experience || [];
+          for (let i = 0; i < allExp.length; i++) {
+            const bullets = allExp[i].bullets_en || allExp[i].bullets || [];
+            if (idx >= 0 && idx < bullets.length) {
+              if (!text) {
+                // Remove the bullet
+                if (allExp[i].bullets_en) allExp[i].bullets_en.splice(idx, 1);
+                if (allExp[i].bullets) allExp[i].bullets.splice(idx, 1);
+                if (allExp[i].bullets_ar) allExp[i].bullets_ar.splice(idx, 1);
+                needRerender = true;
+              } else {
+                if (allExp[i].bullets_en) allExp[i].bullets_en[idx] = text;
+                if (allExp[i].bullets) allExp[i].bullets[idx] = text;
+              }
+              break;
+            }
+          }
+        }
+      }
+      else if (field === "degree" || field === "institution") {
+        // Education item
+        const expItem = el.closest("div");
+        // Find index by counting siblings
+        if (expItem) {
+          const parent = expItem.parentElement;
+          if (parent) {
+            const items = Array.from(parent.querySelectorAll(":scope > div"));
+            const idx = items.indexOf(expItem);
+            if (state.data.education && idx >= 0 && idx < state.data.education.length) {
+              if (field === "degree") {
+                if (!text && !state.data.education[idx].institution_en && !state.data.education[idx].institution) {
+                  state.data.education.splice(idx, 1);
+                  needRerender = true;
+                } else {
+                  state.data.education[idx].degree_en = text;
+                  state.data.education[idx].degree = text;
+                }
+              } else {
+                state.data.education[idx].institution_en = text;
+                state.data.education[idx].institution = text;
+              }
+            }
+          }
+        }
+      }
+      else if (field === "title" || field === "company" || field === "description") {
+        // Experience item
+        const expItem = el.closest("div");
+        if (expItem) {
+          const parent = expItem.parentElement;
+          if (parent) {
+            const items = Array.from(parent.querySelectorAll(":scope > div"));
+            const idx = items.indexOf(expItem);
+            if (state.data.experience && idx >= 0 && idx < state.data.experience.length) {
+              if (field === "title") {
+                state.data.experience[idx].title_en = text;
+                state.data.experience[idx].title = text;
+              } else if (field === "company") {
+                state.data.experience[idx].company_en = text;
+                state.data.experience[idx].company = text;
+              } else {
+                state.data.experience[idx].description = text;
+              }
+            }
+          }
+        }
+      }
+      // Only show toast if not re-rendering
+      if (!needRerender) toast("تم التحديث", "success");
+    } else {
+      // Fallback: use class-based detection
+      if (el.classList.contains("header-name-en")) {
+        state.data.personal.name_en = text;
+      } else if (el.classList.contains("header-name-ar")) {
+        state.data.personal.name_ar = text;
+      } else if (el.tagName === "LI") {
+        const list = el.closest("ul.editable-list");
+        const section = el.closest(".section");
+        const col = el.closest(".col-en") ? "en" : "ar";
+        if (section && list) {
+          const items = Array.from(list.querySelectorAll("li"));
+          const idx = items.indexOf(el);
+          const heading = section.querySelector("h2")?.textContent || "";
+          if (heading.includes("SKILLS") || heading.includes("المهارات")) {
+            if (heading.includes("TECHNICAL") || heading.includes("التقنية")) {
+              if (!text) {
+                state.data.technical_skills.splice(idx, 1);
+                needRerender = true;
+              } else if (idx < state.data.technical_skills.length) {
+                state.data.technical_skills[idx] = text;
+              }
+            } else {
+              if (!text) {
+                if (idx < state.data.skills.length) state.data.skills.splice(idx, 1);
+                needRerender = true;
+              } else if (idx < state.data.skills.length) {
+                state.data.skills[idx] = text;
+              }
+            }
+          } else if (heading.includes("COURSES") || heading.includes("الدورات")) {
+            if (!text) {
+              state.data.courses.splice(idx, 1);
+              needRerender = true;
+            } else if (idx < state.data.courses.length) {
+              state.data.courses[idx] = text;
+            }
+          } else if (heading.includes("LANGUAGES") || heading.includes("اللغات")) {
+            if (!text) {
+              state.data.languages.splice(idx, 1);
+              needRerender = true;
+            } else if (idx < state.data.languages.length) {
+              const old = state.data.languages[idx];
+              state.data.languages[idx] = { name: text.replace(/\s*\(.*\)$/, ""), level: old?.level || "" };
+            }
+          }
+        }
+      } else if (el.tagName === "P") {
+        const col = el.closest(".col-en") ? "en" : "ar";
+        if (col === "en") state.data.summary.en = text;
+        else state.data.summary.ar = text;
+      }
+      if (!needRerender) toast("تم التحديث", "success");
     }
-    toast("تم التحديث", "success");
+
+    // If element was deleted (text emptied), re-render to remove it from preview
+    if (needRerender) {
+      toast("تم الحذف", "success");
+      setTimeout(function() {
+        if (state.data && state.data.personal) {
+          renderPreview();
+        }
+      }, 100);
+    }
   }
 
   function rgbToHex(rgb) {
