@@ -1139,6 +1139,29 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         entry = f"{nm} ({lvl})" if lvl else nm
         lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
 
+    # Pre-build conditional sections (avoid nested f-strings which break Python 3.11)
+    contact_row2_html = f'<div style="font-size:9.5pt;color:#FFFFFF;">{contact_row2}</div>' if contact_row2 else ''
+
+    tech_section_html = ""
+    if tech_items:
+        tech_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات التقنية</div>'
+            '<div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">'
+            + tech_items +
+            '</ul>'
+        )
+
+    lang_section_html = ""
+    if lang_items:
+        lang_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">اللغات</div>'
+            '<div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;color:#FFFFFF;">'
+            + lang_items +
+            '</ul>'
+        )
+
     return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
 
     <!-- ===== HEADER ===== -->
@@ -1149,7 +1172,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         <div style="display:flex;align-items:center;gap:12pt;font-size:9.5pt;color:#FFFFFF;">
             {contact_row1}
         </div>
-        {f'<div style="font-size:9.5pt;color:#FFFFFF;">{contact_row2}</div>' if contact_row2 else ''}
+        {contact_row2_html}
     </div>
 
     <!-- ===== MAIN BODY GRID ===== -->
@@ -1173,18 +1196,10 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
             </ul>
 
             <!-- Technical Skills -->
-            {f'''<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات التقنية</div>
-            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
-            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 12pt 0;color:#FFFFFF;">
-                {tech_items}
-            </ul>''' if tech_items else ''}
+            {tech_section_html}
 
             <!-- Languages -->
-            {f'''<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">اللغات</div>
-            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
-            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;color:#FFFFFF;">
-                {lang_items}
-            </ul>''' if lang_items else ''}
+            {lang_section_html}
 
         </div>
 
