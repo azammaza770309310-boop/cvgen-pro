@@ -1143,21 +1143,44 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
 
     # --- Contact pill items — SVG icons (not emoji), BLUE clickable hyperlinks ---
     # Emoji (📞✉📍) render as squares in WeasyPrint PDF, so use SVG instead
-    ICON_PHONE = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
-    ICON_EMAIL = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>'
-    ICON_LOCATION = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
+    # CRITICAL: SVG icons need vertical-align:middle to align with text.
+    # Without it, the icon sits on the baseline and looks misaligned.
+    ICON_PHONE = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
+    ICON_EMAIL = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>'
+    ICON_LOCATION = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
 
     contact_items_html = ""
-    # CRITICAL: All contact items MUST use display:flex (NOT inline-flex).
-    # WeasyPrint does NOT support inline-flex properly — it causes the location
-    # item to jump to the center of the email in PDF. Also add flex-shrink:0
-    # so items don't collapse when the pill is narrow.
+    # CRITICAL: WeasyPrint PDF fix for icon overlap.
+    # Previous attempts used display:flex on each item, but WeasyPrint does NOT
+    # fully support nested flex containers + the `gap` property. This caused the
+    # location icon to overlap with the email text in the exported PDF (even
+    # though it looked fine in the browser preview).
+    #
+    # Solution: use display:inline-block with vertical-align:middle on each
+    # contact item. This is fully supported by WeasyPrint and guarantees the
+    # items flow left-to-right without overlapping. We use margin-inline-end
+    # for spacing instead of flex `gap`.
+    # Each item: icon + text, inline-block, no wrap, separated by a real space.
     if phone:
-        contact_items_html += f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_PHONE}<span>{esc(phone)}</span></a>'
+        contact_items_html += (
+            f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:14pt;">'
+            f'{ICON_PHONE}&nbsp;<span>{esc(phone)}</span></a>'
+        )
     if email:
-        contact_items_html += f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_EMAIL}<span>{esc(email)}</span></a>'
+        contact_items_html += (
+            f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:14pt;">'
+            f'{ICON_EMAIL}&nbsp;<span>{esc(email)}</span></a>'
+        )
     if location:
-        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="display:flex;align-items:center;">{ICON_LOCATION}</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+        contact_items_html += (
+            f'<span style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#FFFFFF;'
+            f'white-space:nowrap;">'
+            f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+        )
 
     # --- Languages (sidebar) ---
     lang_items = ""
@@ -1198,8 +1221,8 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
 
-    <!-- ===== Contact Pill: Single line, nowrap — data-role="pill" for reliable JS targeting ===== -->
-    <div data-role="pill" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <!-- ===== Contact Pill: text-align:center for inline-block items (WeasyPrint-safe) — data-role="pill" for reliable JS targeting ===== -->
+    <div data-role="pill" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 16pt;text-align:center;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
         {contact_items_html}
     </div>
 
