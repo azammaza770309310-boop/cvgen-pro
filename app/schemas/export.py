@@ -17,6 +17,15 @@ class DesignControls(BaseModel):
     fontFamily: Optional[str] = None
 
 
+class StyleOverrides(BaseModel):
+    """Style overrides for asymmetric_dark template (from color picker)."""
+    sidebarColor: Optional[str] = None
+    pillColor: Optional[str] = None
+    pillRadius: Optional[str] = None
+    sidebarRadius: Optional[str] = None
+    sidebarWidth: Optional[int] = None
+
+
 class ExportRequest(BaseModel):
     data: dict
     template_id: str = "official_bilingual_master"
@@ -24,3 +33,4 @@ class ExportRequest(BaseModel):
     filename: Optional[str] = None
     controls: Optional[DesignControls] = None
     font: Optional[str] = None
+    style_overrides: Optional[StyleOverrides] = None

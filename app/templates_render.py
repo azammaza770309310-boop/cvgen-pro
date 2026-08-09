@@ -967,9 +967,32 @@ def render_arabic_classic(resume: ResumeData) -> str:
 # Pixel-perfect implementation per technical specification
 # ===========================================================================
 
-def render_asymmetric_dark(resume: ResumeData) -> str:
-    """Asymmetric Dark template — RTL, dark sidebar, pill contact, all editable."""
+def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
+    """Asymmetric Dark template — RTL, dark sidebar, pill contact, all editable.
+    Accepts style_overrides to apply user-selected colors/radius/width."""
     from app.utils.arabic import contains_arabic as _has_ar
+
+    # Apply style overrides or use defaults
+    DEFAULT_SIDEBAR_COLOR = "#2D3748"
+    DEFAULT_PILL_COLOR = "#2D3748"
+    DEFAULT_PILL_RADIUS = "20"
+    DEFAULT_SIDEBAR_RADIUS = "12"
+    DEFAULT_SIDEBAR_WIDTH = "35"
+
+    if style_overrides:
+        sb_color = style_overrides.sidebarColor or DEFAULT_SIDEBAR_COLOR
+        pill_color = style_overrides.pillColor or DEFAULT_PILL_COLOR
+        pill_radius = style_overrides.pillRadius or DEFAULT_PILL_RADIUS
+        sb_radius = style_overrides.sidebarRadius or DEFAULT_SIDEBAR_RADIUS
+        sb_width = str(style_overrides.sidebarWidth) if style_overrides.sidebarWidth else DEFAULT_SIDEBAR_WIDTH
+    else:
+        sb_color = DEFAULT_SIDEBAR_COLOR
+        pill_color = DEFAULT_PILL_COLOR
+        pill_radius = DEFAULT_PILL_RADIUS
+        sb_radius = DEFAULT_SIDEBAR_RADIUS
+        sb_width = DEFAULT_SIDEBAR_WIDTH
+
+    main_width = str(100 - int(sb_width))
 
     # Translation maps (reuse from arabic_classic)
     SKILL_EN_AR = {
@@ -1130,7 +1153,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     if email:
         contact_items_html += f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_EMAIL}<span>{esc(email)}</span></a>'
     if location:
-        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;">{ICON_LOCATION}<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+        contact_items_html += f'<span style="display:inline-flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;vertical-align:middle;">{ICON_LOCATION}<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
 
     # --- Languages (sidebar) ---
     lang_items = ""
@@ -1172,7 +1195,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
 
     <!-- ===== Contact Pill: Single line, nowrap ===== -->
-    <div style="background-color:#2D3748;border-radius:20pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <div style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
         {contact_items_html}
     </div>
 
@@ -1180,7 +1203,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — 35%, one-sided radius (top-left), stretches to bottom ===== -->
-        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:12pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1205,7 +1228,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         </div>
 
         <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
-        <div style="width:65%;padding:0;color:#2D3748;min-height:100%;">
+        <div style="width:{main_width}%;padding:0;color:#2D3748;min-height:100%;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">نبذة عني</div>

@@ -49,7 +49,7 @@ async def export_pdf_route(req: ExportRequest, engine: str = Query("weasyprint",
             from app.services.chromium_pdf_service import export_pdf_chromium
             pdf_bytes = export_pdf_chromium(resume, req.template_id, controls=req.controls)
         else:
-            pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls, font_family=font_family)
+            pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls, font_family=font_family, style_overrides=req.style_overrides)
 
         filename = _safe_filename(req.filename or resume.personal.name or "resume", "pdf")
         return Response(

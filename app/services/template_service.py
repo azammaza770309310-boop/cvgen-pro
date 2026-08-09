@@ -162,6 +162,9 @@ def get_template(template_id: str) -> TemplateDef:
     return t
 
 
-def render_template(template_id: str, resume: ResumeData) -> str:
+def render_template(template_id: str, resume: ResumeData, style_overrides=None) -> str:
     t = get_template(template_id)
+    # Pass style_overrides to templates that accept it (asymmetric_dark)
+    if template_id == "asymmetric_dark" and style_overrides is not None:
+        return t.render(resume, style_overrides=style_overrides)
     return t.render(resume)

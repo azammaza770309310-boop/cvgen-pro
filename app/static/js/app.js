@@ -26,6 +26,14 @@
     pageCount: 1,
     selectedElement: null,
     selectedSection: null,
+    // Style overrides for asymmetric_dark template (saved on color picker change)
+    styleOverrides: {
+      sidebarColor: null,     // e.g. "#1a365d"
+      pillColor: null,        // e.g. "#1a365d"
+      pillRadius: null,       // e.g. "20" (pt)
+      sidebarRadius: null,    // e.g. "12" (pt)
+      sidebarWidth: null,     // e.g. "35" (%)
+    },
     controls: { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 15 },
     controlLimits: {
       fontSize: { min: 5.0, max: 14.0, step: 0.3 },
@@ -496,11 +504,13 @@
         const dx = e.clientX - startX;
         const newWidth = Math.max(100, Math.min(500, startWidth + dx));
         const parentWidth = sidebar.parentElement.offsetWidth;
-        const widthPct = (newWidth / parentWidth) * 100;
+        const widthPct = Math.round((newWidth / parentWidth) * 100);
         sidebar.style.width = widthPct + "%";
         if (mainContent) {
           mainContent.style.width = (100 - widthPct) + "%";
         }
+        // Save to state for export
+        state.styleOverrides.sidebarWidth = widthPct;
       });
 
       document.addEventListener("mouseup", function() {
@@ -593,10 +603,12 @@
         if (target === "sidebar" && sidebar) {
           sidebar.style.backgroundColor = color;
           sidebar.style.background = color;
+          state.styleOverrides.sidebarColor = color;
         }
         if (target === "pill" && pill) {
           pill.style.backgroundColor = color;
           pill.style.background = color;
+          state.styleOverrides.pillColor = color;
         }
         // Update selected border
         this.parentElement.querySelectorAll(".color-swatch").forEach(b => b.style.border = "2px solid transparent");
@@ -610,6 +622,7 @@
       customSidebar.addEventListener("input", function() {
         sidebar.style.backgroundColor = this.value;
         sidebar.style.background = this.value;
+        state.styleOverrides.sidebarColor = this.value;
       });
     }
     const customPill = $("#customPillColor");
@@ -617,6 +630,7 @@
       customPill.addEventListener("input", function() {
         pill.style.backgroundColor = this.value;
         pill.style.background = this.value;
+        state.styleOverrides.pillColor = this.value;
       });
     }
 
@@ -628,6 +642,7 @@
         const val = this.value;
         radiusValue.textContent = val;
         pill.style.borderRadius = val + "pt";
+        state.styleOverrides.pillRadius = val;
       });
     }
 
@@ -637,7 +652,7 @@
     if (sbRadiusSlider && sidebar) {
       // Get current sidebar radius
       const sbStyle = sidebar.style.cssText;
-      const radiusMatch = sbStyle.match(/border-radius:(\d+)pt\s/);
+      const radiusMatch = sbStyle.match(/border-radius:(\d+)pt/);
       const currentSbRadius = radiusMatch ? radiusMatch[1] : 12;
       sbRadiusSlider.value = currentSbRadius;
       sbRadiusValue.textContent = currentSbRadius;
@@ -647,6 +662,7 @@
         sbRadiusValue.textContent = val;
         // Keep one-sided radius (top-left only)
         sidebar.style.borderRadius = val + "pt 0 0 0";
+        state.styleOverrides.sidebarRadius = val;
       });
     }
 
@@ -1225,7 +1241,8 @@
         lang: state.displayLang,
         filename: state.data.personal.name_en || state.data.personal.name || "resume",
         controls: controlsWithFont,
-        font: state.font
+        font: state.font,
+        style_overrides: state.styleOverrides
       };
       const blob = await api("/api/export/pdf", { method: "POST", body: body });
       downloadBlob(blob, (state.data.personal.name_en || state.data.personal.name || "resume") + ".pdf", "application/pdf");

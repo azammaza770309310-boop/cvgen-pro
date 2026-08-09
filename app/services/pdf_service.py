@@ -133,7 +133,7 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
     return "\n".join(parts) + "\n"
 
 
-def render_html_for_pdf(resume: ResumeData, template_id: str | None = None, controls=None, font_family=None) -> str:
+def render_html_for_pdf(resume: ResumeData, template_id: str | None = None, controls=None, font_family=None, style_overrides=None) -> str:
     """Build the full HTML document (with embedded CSS) for a resume.
 
     CRITICAL: The <html> tag must ALWAYS be dir="ltr" for the official bilingual
@@ -147,7 +147,7 @@ def render_html_for_pdf(resume: ResumeData, template_id: str | None = None, cont
     The `font_family` parameter applies the user's selected font to all text.
     """
     tid = template_id or resume.template_id or "official_bilingual_master"
-    body = render_template(tid, resume)
+    body = render_template(tid, resume, style_overrides=style_overrides)
     css = _load_css()
     design_vars = _build_design_vars_css(controls, font_family)
     # Build Google Fonts link if a font is specified
@@ -182,7 +182,7 @@ def render_html_for_pdf(resume: ResumeData, template_id: str | None = None, cont
     return html_doc
 
 
-def export_pdf(resume_data: ResumeData | dict, template_id: str | None = None, controls=None, font_family=None) -> bytes:
+def export_pdf(resume_data: ResumeData | dict, template_id: str | None = None, controls=None, font_family=None, style_overrides=None) -> bytes:
     """Generate a PDF from ResumeData (or a raw dict that gets normalized).
 
     The `controls` parameter (DesignControls) injects the user's design
@@ -195,7 +195,7 @@ def export_pdf(resume_data: ResumeData | dict, template_id: str | None = None, c
         resume = resume_data
     if template_id:
         resume.template_id = template_id
-    html_doc = render_html_for_pdf(resume, resume.template_id, controls=controls, font_family=font_family)
+    html_doc = render_html_for_pdf(resume, resume.template_id, controls=controls, font_family=font_family, style_overrides=style_overrides)
     font_config = FontConfiguration()
     pdf = HTML(string=html_doc).write_pdf(font_config=font_config)
     return pdf
