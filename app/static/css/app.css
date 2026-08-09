@@ -1476,7 +1476,7 @@ button { font-family: inherit; }
   background: rgba(255,255,255,0.7);
   border-radius: 1px;
 }
-.tad-body {
+.tad-body { gap: 4px;
   display: flex;
   flex-direction: row;
   gap: 3px;

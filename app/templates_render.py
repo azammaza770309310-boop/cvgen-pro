@@ -1057,15 +1057,16 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     if not objective.strip():
         objective = " "  # Prevent empty rendering
 
-    # --- Education (sidebar) ---
+    # --- Education (sidebar) — structured, not bullet points ---
     edu_items = ""
     for edu in resume.education:
         degree = edu.degree_ar or edu.degree_en or edu.degree or ""
         institution = edu.institution_ar or edu.institution_en or edu.institution or ""
-        edu_items += f'<li class="editable" data-field="degree" dir="auto" style="margin-bottom:4pt;">{esc(degree)}'
+        edu_items += '<div style="margin-bottom:10pt;">'
+        edu_items += f'<div class="editable" data-field="degree" dir="auto" style="font-weight:700;font-size:10pt;color:#FFFFFF;line-height:1.4;">{esc(degree)}</div>'
         if institution:
-            edu_items += f' - <span class="editable" data-field="institution" dir="auto">{esc(institution)}</span>'
-        edu_items += '</li>'
+            edu_items += f'<div class="editable" data-field="institution" dir="auto" style="font-weight:400;font-size:9pt;color:rgba(255,255,255,0.85);line-height:1.4;margin-top:2pt;">{esc(institution)}</div>'
+        edu_items += '</div>'
 
     # --- Skills (sidebar) — Arabic only ---
     skill_items = ""
@@ -1171,7 +1172,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:0;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — 35%, one-sided radius (top-left), stretches to bottom ===== -->
         <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:12pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
@@ -1179,9 +1180,9 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
             <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
-            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">
+            <div style="margin-bottom:18pt;">
                 {edu_items}
-            </ul>
+            </div>
 
             <!-- Skills -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;">المهارات</div>
@@ -1199,7 +1200,7 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         </div>
 
         <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
-        <div style="width:65%;padding:0 0 0 16pt;color:#2D3748;min-height:100%;">
+        <div style="width:65%;padding:0;color:#2D3748;min-height:100%;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">نبذة عني</div>
