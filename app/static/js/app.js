@@ -451,6 +451,214 @@
         deselectAll();
       }
     });
+
+    // ===== SIDEBAR & PILL COLOR PICKER + RESIZE (Canva-style) =====
+    // Click on the dark sidebar or contact pill to change its color
+    // and resize the sidebar width by dragging
+    attachStyleControls(content);
+  }
+
+  function attachStyleControls(content) {
+    // Find sidebar (dark background div) and contact pill
+    const sidebar = content.querySelector('[style*="background-color:#2D3748"][style*="width:35%"]');
+    const pill = content.querySelector('[style*="border-radius:20pt"]');
+
+    // --- Sidebar: click to show color picker + resize handle ---
+    if (sidebar) {
+      sidebar.style.cursor = "pointer";
+      sidebar.style.position = "relative";
+
+      // Add resize handle (right edge of sidebar)
+      const resizeHandle = document.createElement("div");
+      resizeHandle.style.cssText = "position:absolute;top:0;bottom:0;right:-3px;width:6px;cursor:ew-resize;background:transparent;z-index:10;";
+      resizeHandle.title = "اسحب لتغيير العرض";
+      sidebar.appendChild(resizeHandle);
+
+      // Resize logic
+      let isResizing = false;
+      let startX = 0;
+      let startWidth = 0;
+      let mainContent = null;
+
+      resizeHandle.addEventListener("mousedown", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = sidebar.offsetWidth;
+        // Find main content (sibling)
+        mainContent = sidebar.nextElementSibling;
+        document.body.style.userSelect = "none";
+      });
+
+      document.addEventListener("mousemove", function(e) {
+        if (!isResizing) return;
+        const dx = e.clientX - startX;
+        const newWidth = Math.max(100, Math.min(500, startWidth + dx));
+        const parentWidth = sidebar.parentElement.offsetWidth;
+        const widthPct = (newWidth / parentWidth) * 100;
+        sidebar.style.width = widthPct + "%";
+        if (mainContent) {
+          mainContent.style.width = (100 - widthPct) + "%";
+        }
+      });
+
+      document.addEventListener("mouseup", function() {
+        if (isResizing) {
+          isResizing = false;
+          document.body.style.userSelect = "";
+        }
+      });
+
+      // Click on sidebar (not on text) to show color picker
+      sidebar.addEventListener("click", function(e) {
+        // Don't trigger if clicking on editable text or resize handle
+        if (e.target.closest("[data-editable]") || e.target === resizeHandle) return;
+        e.stopPropagation();
+        showSidebarColorPicker(sidebar, pill);
+      });
+    }
+
+    // --- Contact pill: click to change color ---
+    if (pill) {
+      pill.style.cursor = "pointer";
+      pill.addEventListener("click", function(e) {
+        if (e.target.closest("[data-editable]")) return;
+        e.stopPropagation();
+        showSidebarColorPicker(sidebar, pill);
+      });
+    }
+  }
+
+  function showSidebarColorPicker(sidebar, pill) {
+    // Remove any existing color picker popup
+    const existing = document.getElementById("sidebarColorPopup");
+    if (existing) existing.remove();
+
+    // Create popup
+    const popup = document.createElement("div");
+    popup.id = "sidebarColorPopup";
+    popup.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a1a;border:1px solid #444;border-radius:12px;padding:20px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);";
+
+    const currentColor = sidebar ? (sidebar.style.backgroundColor || "#2D3748") : "#2D3748";
+    const currentRadius = pill ? (pill.style.borderRadius || "20pt") : "20pt";
+
+    popup.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="color:#fff;font-size:16px;margin:0;">تخصيص الألوان والشكل</h3>
+        <button id="closeColorPopup" style="background:#333;color:#fff;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">لون العمود الجانبي</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${["#2D3748","#1a365d","#1e3a8a","#581c87","#7c2d12","#064e3b","#831843","#374151"].map(c =>
+            `<button class="color-swatch" data-color="${c}" data-target="sidebar" style="width:32px;height:32px;border-radius:8px;border:2px solid ${c === currentColor ? '#fff' : 'transparent'};background:${c};cursor:pointer;"></button>`
+          ).join("")}
+          <input type="color" id="customSidebarColor" value="${rgbToHex(currentColor)}" style="width:32px;height:32px;border:none;cursor:pointer;border-radius:8px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">لون شريط التواصل</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${["#2D3748","#1a365d","#1e3a8a","#581c87","#7c2d12","#064e3b","#831843","#374151"].map(c =>
+            `<button class="color-swatch" data-color="${c}" data-target="pill" style="width:32px;height:32px;border-radius:8px;border:2px solid transparent;background:${c};cursor:pointer;"></button>`
+          ).join("")}
+          <input type="color" id="customPillColor" value="${rgbToHex(currentColor)}" style="width:32px;height:32px;border:none;cursor:pointer;border-radius:8px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">انحناء الزاوية (الدمعة): <span id="radiusValue">${parseInt(currentRadius) || 20}</span>pt</label>
+        <input type="range" id="radiusSlider" min="0" max="40" value="${parseInt(currentRadius) || 20}" style="width:100%;accent-color:#f97316;">
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">انحناء العمود الجانبي: <span id="sidebarRadiusValue">12</span>pt</label>
+        <input type="range" id="sidebarRadiusSlider" min="0" max="40" value="12" style="width:100%;accent-color:#f97316;">
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Close button
+    $("#closeColorPopup").addEventListener("click", () => popup.remove());
+
+    // Color swatches
+    $$(".color-swatch").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const color = this.dataset.color;
+        const target = this.dataset.target;
+        if (target === "sidebar" && sidebar) {
+          sidebar.style.backgroundColor = color;
+          sidebar.style.background = color;
+        }
+        if (target === "pill" && pill) {
+          pill.style.backgroundColor = color;
+          pill.style.background = color;
+        }
+        // Update selected border
+        this.parentElement.querySelectorAll(".color-swatch").forEach(b => b.style.border = "2px solid transparent");
+        this.style.border = "2px solid #fff";
+      });
+    });
+
+    // Custom color pickers
+    const customSidebar = $("#customSidebarColor");
+    if (customSidebar && sidebar) {
+      customSidebar.addEventListener("input", function() {
+        sidebar.style.backgroundColor = this.value;
+        sidebar.style.background = this.value;
+      });
+    }
+    const customPill = $("#customPillColor");
+    if (customPill && pill) {
+      customPill.addEventListener("input", function() {
+        pill.style.backgroundColor = this.value;
+        pill.style.background = this.value;
+      });
+    }
+
+    // Radius slider (pill / tear shape)
+    const radiusSlider = $("#radiusSlider");
+    const radiusValue = $("#radiusValue");
+    if (radiusSlider && pill) {
+      radiusSlider.addEventListener("input", function() {
+        const val = this.value;
+        radiusValue.textContent = val;
+        pill.style.borderRadius = val + "pt";
+      });
+    }
+
+    // Sidebar radius slider
+    const sbRadiusSlider = $("#sidebarRadiusSlider");
+    const sbRadiusValue = $("#sidebarRadiusValue");
+    if (sbRadiusSlider && sidebar) {
+      // Get current sidebar radius
+      const sbStyle = sidebar.style.cssText;
+      const radiusMatch = sbStyle.match(/border-radius:(\d+)pt\s/);
+      const currentSbRadius = radiusMatch ? radiusMatch[1] : 12;
+      sbRadiusSlider.value = currentSbRadius;
+      sbRadiusValue.textContent = currentSbRadius;
+
+      sbRadiusSlider.addEventListener("input", function() {
+        const val = this.value;
+        sbRadiusValue.textContent = val;
+        // Keep one-sided radius (top-left only)
+        sidebar.style.borderRadius = val + "pt 0 0 0";
+      });
+    }
+
+    // Click outside to close
+    setTimeout(() => {
+      document.addEventListener("click", function closeHandler(e) {
+        if (!popup.contains(e.target) && !e.target.closest("[style*='background-color:#2D3748']") && !e.target.closest("[style*='border-radius:20pt']")) {
+          popup.remove();
+          document.removeEventListener("click", closeHandler);
+        }
+      });
+    }, 100);
   }
 
   function selectElement(el) {
