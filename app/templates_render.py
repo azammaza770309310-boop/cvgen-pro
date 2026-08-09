@@ -1148,12 +1148,16 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     ICON_LOCATION = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
 
     contact_items_html = ""
+    # CRITICAL: All contact items MUST use display:flex (NOT inline-flex).
+    # WeasyPrint does NOT support inline-flex properly — it causes the location
+    # item to jump to the center of the email in PDF. Also add flex-shrink:0
+    # so items don't collapse when the pill is narrow.
     if phone:
-        contact_items_html += f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_PHONE}<span>{esc(phone)}</span></a>'
+        contact_items_html += f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_PHONE}<span>{esc(phone)}</span></a>'
     if email:
-        contact_items_html += f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_EMAIL}<span>{esc(email)}</span></a>'
+        contact_items_html += f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;">{ICON_EMAIL}<span>{esc(email)}</span></a>'
     if location:
-        contact_items_html += f'<span style="display:inline-flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;vertical-align:middle;">{ICON_LOCATION}<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;flex-shrink:0;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="display:flex;align-items:center;">{ICON_LOCATION}</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
 
     # --- Languages (sidebar) ---
     lang_items = ""
@@ -1194,16 +1198,16 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
 
-    <!-- ===== Contact Pill: Single line, nowrap ===== -->
-    <div style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <!-- ===== Contact Pill: Single line, nowrap — data-role="pill" for reliable JS targeting ===== -->
+    <div data-role="pill" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 12pt;display:flex;flex-direction:row !important;flex-wrap:nowrap !important;justify-content:center;align-items:center;gap:16pt;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
         {contact_items_html}
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
-        <!-- ===== LEFT SIDEBAR (Dark) — 35%, one-sided radius (top-left), stretches to bottom ===== -->
-        <div style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left), stretches to bottom — data-role="sidebar" for reliable JS targeting ===== -->
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>

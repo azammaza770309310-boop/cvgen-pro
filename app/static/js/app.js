@@ -467,9 +467,13 @@
   }
 
   function attachStyleControls(content) {
-    // Find sidebar (dark background div) and contact pill
-    const sidebar = content.querySelector('[style*="background-color:#2D3748"][style*="width:35%"]');
-    const pill = content.querySelector('[style*="border-radius:20pt"]');
+    // Find sidebar (dark background div) and contact pill.
+    // Use data-role attributes for RELIABLE targeting — the old style* selectors
+    // broke as soon as the user changed the color or width (the literal string
+    // no longer matched), which is why the color picker stopped working after
+    // the first change.
+    const sidebar = content.querySelector('[data-role="sidebar"]');
+    const pill = content.querySelector('[data-role="pill"]');
 
     // --- Sidebar: click to show color picker + resize handle ---
     if (sidebar) {
@@ -502,8 +506,12 @@
       document.addEventListener("mousemove", function(e) {
         if (!isResizing) return;
         const dx = e.clientX - startX;
-        const newWidth = Math.max(100, Math.min(500, startWidth + dx));
+        // In RTL layout, dragging right should DECREASE sidebar width (since sidebar is on the right visually... but actually the sidebar is on the LEFT in the DOM). The sidebar is the first child (left side), so dragging right INCREASES its width.
         const parentWidth = sidebar.parentElement.offsetWidth;
+        // Clamp width between 25% and 50% of parent (matches the slider bounds)
+        const minWidth = parentWidth * 0.25;
+        const maxWidth = parentWidth * 0.50;
+        const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + dx));
         const widthPct = Math.round((newWidth / parentWidth) * 100);
         sidebar.style.width = widthPct + "%";
         if (mainContent) {
@@ -588,6 +596,11 @@
         <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">انحناء العمود الجانبي: <span id="sidebarRadiusValue">12</span>pt</label>
         <input type="range" id="sidebarRadiusSlider" min="0" max="40" value="12" style="width:100%;accent-color:#f97316;">
       </div>
+
+      <div style="margin-bottom:8px;">
+        <label style="color:#aaa;font-size:12px;display:block;margin-bottom:6px;">عرض العمود الجانبي: <span id="sidebarWidthValue">35</span>%</label>
+        <input type="range" id="sidebarWidthSlider" min="25" max="50" value="35" step="1" style="width:100%;accent-color:#f97316;">
+      </div>
     `;
 
     document.body.appendChild(popup);
@@ -666,10 +679,37 @@
       });
     }
 
+    // Sidebar WIDTH slider (third slider — controls sidebar width %)
+    const sbWidthSlider = $("#sidebarWidthSlider");
+    const sbWidthValue = $("#sidebarWidthValue");
+    if (sbWidthSlider && sidebar) {
+      // Get current sidebar width from inline style (e.g. "width:35%" or "width:40%")
+      const widthMatch = sidebar.style.width && sidebar.style.width.match(/(\d+)/);
+      const currentSbWidth = widthMatch ? parseInt(widthMatch[1], 10) : 35;
+      // Clamp to slider bounds [25, 50]
+      const clampedWidth = Math.max(25, Math.min(50, currentSbWidth));
+      sbWidthSlider.value = clampedWidth;
+      sbWidthValue.textContent = clampedWidth;
+
+      sbWidthSlider.addEventListener("input", function() {
+        const val = parseInt(this.value, 10);
+        sbWidthValue.textContent = val;
+        // Apply width to sidebar
+        sidebar.style.width = val + "%";
+        // Update main content (sibling) width to fill the rest
+        const mainContent = sidebar.nextElementSibling;
+        if (mainContent) {
+          mainContent.style.width = (100 - val) + "%";
+        }
+        // Save to state for export
+        state.styleOverrides.sidebarWidth = val;
+      });
+    }
+
     // Click outside to close
     setTimeout(() => {
       document.addEventListener("click", function closeHandler(e) {
-        if (!popup.contains(e.target) && !e.target.closest("[style*='background-color:#2D3748']") && !e.target.closest("[style*='border-radius:20pt']")) {
+        if (!popup.contains(e.target) && !e.target.closest('[data-role="sidebar"]') && !e.target.closest('[data-role="pill"]')) {
           popup.remove();
           document.removeEventListener("click", closeHandler);
         }
@@ -1282,6 +1322,63 @@
     // Also save ALL editable elements (in case some were edited but not blurred)
     const content = $("#a4Content");
     if (content) {
+      // 0. SAFETY NET: Capture inline styles from the asymmetric_dark sidebar & pill.
+      // The color picker / resize handle update state.styleOverrides on each change,
+      // but this is a backup to guarantee the exported PDF matches the preview DOM
+      // even if some event handler was missed or the state got reset.
+      // Use data-role attributes for reliable targeting (works regardless of
+      // current color/width values).
+      const sidebar = content.querySelector('[data-role="sidebar"]');
+      const pill = content.querySelector('[data-role="pill"]');
+      // Helper: accept both hex (#2D3748) and rgb() formats
+      const normalizeColor = (val) => {
+        if (!val) return null;
+        const s = String(val).trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(s)) return s.toLowerCase();
+        if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+          // expand #abc -> #aabbcc
+          return ("#" + s[1]+s[1]+s[2]+s[2]+s[3]+s[3]).toLowerCase();
+        }
+        // rgb(r, g, b) format
+        const m = s.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+        if (m) {
+          return "#" + [m[1],m[2],m[3]].map(x => parseInt(x,10).toString(16).padStart(2,"0")).join("").toLowerCase();
+        }
+        return null;
+      };
+      if (sidebar) {
+        // Capture sidebar background color
+        const sbBg = sidebar.style.backgroundColor || sidebar.style.background;
+        const sbHex = normalizeColor(sbBg);
+        if (sbHex) state.styleOverrides.sidebarColor = sbHex;
+        // Capture sidebar width (%)
+        const sbW = sidebar.style.width;
+        if (sbW) {
+          const m = sbW.match(/(\d+)/);
+          if (m) {
+            const pct = parseInt(m[1], 10);
+            if (pct >= 20 && pct <= 60) state.styleOverrides.sidebarWidth = pct;
+          }
+        }
+        // Capture sidebar border-radius
+        const sbR = sidebar.style.borderRadius;
+        if (sbR) {
+          const m = sbR.match(/(\d+)/);
+          if (m) state.styleOverrides.sidebarRadius = m[1];
+        }
+      }
+      if (pill) {
+        // Capture pill background color
+        const pillBg = pill.style.backgroundColor || pill.style.background;
+        const pillHex = normalizeColor(pillBg);
+        if (pillHex) state.styleOverrides.pillColor = pillHex;
+        // Capture pill border-radius
+        const pillR = pill.style.borderRadius;
+        if (pillR) {
+          const m = pillR.match(/(\d+)/);
+          if (m) state.styleOverrides.pillRadius = m[1];
+        }
+      }
       // 1. Save all data-field elements (name, email, phone, location, summary)
       content.querySelectorAll("[data-field]").forEach(el => {
         const text = el.textContent.trim();
