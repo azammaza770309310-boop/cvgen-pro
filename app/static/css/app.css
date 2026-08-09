@@ -1484,7 +1484,7 @@ button { font-family: inherit; }
 .tad-sidebar {
   width: 35%;
   background: #2D3748;
-  border-radius: 0 5px 0 0;
+  border-radius: 5px 0 0 0;
   padding: 4px;
   display: flex;
   flex-direction: column;

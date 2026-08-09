@@ -1053,7 +1053,9 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         for en, ar in {"saudi arabia":"السعودية","riyadh":"الرياض","jeddah":"جدة","taif":"الطائف","makkah":"مكة","medina":"المدينة","dammam":"الدمام"}.items():
             if en in location.lower():
                 location = location.lower().replace(en, ar)
-    objective = resume.summary_text("ar") or resume.summary_text("en") or ""
+    objective = resume.summary_text("ar") or resume.summary_text("en") or resume.objective_text("ar") or resume.objective_text("en") or ""
+    if not objective.strip():
+        objective = " "  # Prevent empty rendering
 
     # --- Education (sidebar) ---
     edu_items = ""
@@ -1115,12 +1117,12 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
             exp_html += '</ul>'
         exp_html += '</div>'
 
-    # --- Contact pill items — single line, nowrap ---
+    # --- Contact pill items — single line, nowrap, BLUE clickable hyperlinks ---
     contact_items_html = ""
     if phone:
-        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">📞</span><span class="editable" data-field="phone" dir="ltr">{esc(phone)}</span></span>'
+        contact_items_html += f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;"><span style="font-size:9pt;">📞</span>{esc(phone)}</a>'
     if email:
-        contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">✉</span><span class="editable" data-field="email" dir="ltr">{esc(email)}</span></span>'
+        contact_items_html += f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#60a5fa;text-decoration:none;white-space:nowrap;"><span style="font-size:9pt;">✉</span>{esc(email)}</a>'
     if location:
         contact_items_html += f'<span style="display:flex;align-items:center;gap:4pt;font-size:9.5pt;color:#FFFFFF;white-space:nowrap;"><span style="font-size:9pt;">📍</span><span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
 
@@ -1168,11 +1170,11 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
         {contact_items_html}
     </div>
 
-    <!-- ===== MAIN BODY: Flexbox (not Grid) for reliable RTL print ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+    <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
+    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:0;margin-top:24pt;">
 
-        <!-- ===== RIGHT SIDEBAR (Dark) — 35% width, stretches to bottom ===== -->
-        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:0 12pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <!-- ===== LEFT SIDEBAR (Dark) — 35%, one-sided radius (top-left), stretches to bottom ===== -->
+        <div style="width:35%;min-height:100%;background-color:#2D3748;border-radius:12pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1196,8 +1198,8 @@ def render_asymmetric_dark(resume: ResumeData) -> str:
 
         </div>
 
-        <!-- ===== LEFT MAIN CONTENT (White) — 65% width ===== -->
-        <div style="width:65%;padding:0 16pt 0 0;color:#2D3748;">
+        <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
+        <div style="width:65%;padding:0 0 0 16pt;color:#2D3748;min-height:100%;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">نبذة عني</div>
