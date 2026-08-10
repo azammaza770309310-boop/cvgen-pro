@@ -1268,7 +1268,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left), stretches to bottom — data-role="sidebar" for reliable JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1590,7 +1590,7 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Light) — {sb_width}%, one-sided radius (top-left), dark text on light bg — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">المؤهلات العلمية</div>
@@ -1672,6 +1672,37 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     email = p.email or ""
     phone = p.phone or ""
     location = p.location or ""
+    # Translate Arabic location names to English for the English template
+    LOCATIONS_AR_EN = {
+        "السعودية": "Saudi Arabia", "سعودية": "Saudi Arabia",
+        "الرياض": "Riyadh", "رياض": "Riyadh",
+        "جدة": "Jeddah", "مكة": "Mecca", "مكة المكرمة": "Mecca",
+        "المدينة": "Medina", "المدينة المنورة": "Medina",
+        "الطائف": "Taif", "الدمام": "Dammam", "الخبر": "Khobar",
+        "تبوك": "Tabuk", "أبها": "Abha", "حائل": "Hail",
+        "نجران": "Najran", "جازان": "Jazan", "القصيم": "Qassim",
+        "بريدة": "Buraidah", "ينبع": "Yanbu", "الجبيل": "Jubail",
+        "اليمن": "Yemen", "صنعاء": "Sana'a", "عدن": "Aden",
+        "تعز": "Taiz", "الحديدة": "Hodeidah",
+        "الإمارات": "UAE", "دبي": "Dubai", "أبوظبي": "Abu Dhabi",
+        "الشارقة": "Sharjah", "مصر": "Egypt", "القاهرة": "Cairo",
+        "الإسكندرية": "Alexandria", "الأردن": "Jordan", "عمّان": "Amman",
+        "الكويت": "Kuwait", "قطر": "Qatar", "الدوحة": "Doha",
+        "البحرين": "Bahrain", "المنامة": "Manama", "عمان": "Oman",
+        "مسقط": "Muscat", "لبنان": "Lebanon", "بيروت": "Beirut",
+        "العراق": "Iraq", "بغداد": "Baghdad", "سوريا": "Syria",
+        "دمشق": "Damascus", "تونس": "Tunisia", "الجزائر": "Algeria",
+        "المغرب": "Morocco", "ليبيا": "Libya", "السودان": "Sudan",
+    }
+    if location:
+        # Replace any Arabic location names with English equivalents
+        for ar, en in LOCATIONS_AR_EN.items():
+            if ar in location:
+                location = location.replace(ar, en)
+        # If location is still fully Arabic (no Latin chars), use a fallback
+        from app.utils.arabic import contains_arabic as _has_ar_check
+        if _has_ar_check(location) and not any(c.isalpha() and ord(c) < 128 for c in location):
+            location = "Saudi Arabia"
     objective = resume.summary_text("en") or resume.summary_text("ar") or resume.objective_text("en") or resume.objective_text("ar") or ""
     if not objective.strip():
         objective = " "
@@ -1785,11 +1816,50 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
             f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location">{esc(location)}</span></span>'
         )
 
-    # --- Languages (sidebar) ---
+    # --- Languages (sidebar) — English names + English levels ---
+    LANG_NAME_EN = {
+        "arabic": "Arabic", "english": "English", "french": "French",
+        "german": "German", "spanish": "Spanish", "italian": "Italian",
+        "chinese": "Chinese", "japanese": "Japanese", "korean": "Korean",
+        "russian": "Russian", "turkish": "Turkish", "hindi": "Hindi",
+        "urdu": "Urdu", "persian": "Persian", "portuguese": "Portuguese",
+        "dutch": "Dutch", "swedish": "Swedish", "polish": "Polish",
+        # Arabic → English
+        "العربية": "Arabic", "الإنجليزية": "English", "الفرنسية": "French",
+        "الألمانية": "German", "الإسبانية": "Spanish", "الإيطالية": "Italian",
+        "الصينية": "Chinese", "اليابانية": "Japanese", "الكورية": "Korean",
+        "الروسية": "Russian", "التركية": "Turkish", "الهندية": "Hindi",
+        "الأردية": "Urdu", "الفارسية": "Persian", "البرتغالية": "Portuguese",
+    }
+    LEVEL_EN = {
+        "native": "Native", "fluent": "Fluent", "advanced": "Advanced",
+        "intermediate": "Intermediate", "beginner": "Beginner",
+        "professional": "Professional",
+        # Arabic → English
+        "اللغة الأم": "Native", "بطلاقة": "Fluent", "متقدم": "Advanced",
+        "متوسط": "Intermediate", "مبتدئ": "Beginner", "احترافي": "Professional",
+        "بطلاقة تامة": "Native", "إجادة عملية احترافية": "Professional Working Proficiency",
+    }
     lang_items = ""
     for lang in resume.languages:
-        nm = lang.name_en or lang.name or ""
-        lvl = lang.level or ""
+        # Get the language name — prefer name_en, then translate name_ar/name
+        raw_name = (lang.name_en or lang.name or "").strip()
+        nm = LANG_NAME_EN.get(raw_name.lower(), LANG_NAME_EN.get(raw_name, raw_name))
+        if not nm:
+            nm = "English"  # fallback
+        # Get the level — translate Arabic to English
+        raw_lvl = (lang.level or "").strip()
+        lvl = LEVEL_EN.get(raw_lvl.lower(), LEVEL_EN.get(raw_lvl, raw_lvl))
+        # If level is still Arabic, try to find any matching key
+        from app.utils.arabic import contains_arabic as _has_ar_lvl
+        if _has_ar_lvl(lvl):
+            for ar_key, en_val in LEVEL_EN.items():
+                if _has_ar_lvl(ar_key) and ar_key in lvl:
+                    lvl = en_val
+                    break
+            else:
+                # Still Arabic — use a generic English level
+                lvl = "Fluent"
         entry = f"{nm} ({lvl})" if lvl else nm
         lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
 
@@ -1828,7 +1898,7 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left) — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Education</div>

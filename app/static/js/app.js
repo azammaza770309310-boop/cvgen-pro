@@ -673,8 +673,8 @@
       sbRadiusSlider.addEventListener("input", function() {
         const val = this.value;
         sbRadiusValue.textContent = val;
-        // Keep one-sided radius (top-left only)
-        sidebar.style.borderRadius = val + "pt 0 0 0";
+        // One-sided radius on TOP-RIGHT corner (teardrop shape)
+        sidebar.style.borderRadius = "0 " + val + "pt 0 0";
         state.styleOverrides.sidebarRadius = val;
       });
     }

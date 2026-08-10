@@ -71,11 +71,17 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
         if hasattr(controls, "fontSize") and controls.fontSize:
             font_size = float(controls.fontSize)
             font_size_ar = round(font_size * 1.13, 1)  # Arabic +13% for visual parity
-            # English + generic elements: use the base font size
+            # English + generic elements: use the base font size.
+            # CRITICAL: h1 is EXCLUDED — the asymmetric templates use
+            # inline `font-size: 26pt !important` on the name <h1>, and we
+            # must NOT override it. Same for h2/h3 section headings in asym
+            # templates (they use 14pt inline).
+            # The selector below targets body text only (p, li, span, div,
+            # .editable, .contact-item, .item, .item-title) — NOT h1/h2/h3.
             direct_rules.append(
                 f".a4-page, .cv-root, .section, .section-row, .section-body, "
-                f".section-headings, .body-en, .item, .item-title, "
-                f".contact-bar, .contact-item, .editable, p, li, h1, h2, h3, span, div {{\n"
+                f".body-en, .item, .item-title, "
+                f".contact-bar, .contact-item, .editable, p, li, span, div {{\n"
                 f"  font-size: {font_size}pt !important;\n"
                 f"}}"
             )
@@ -95,7 +101,15 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
                 f"  line-height: {controls.lineHeight} !important;\n"
                 f"}}"
             )
-        # Padding (margin) on the A4 page
+        # Padding (margin) on the A4 page.
+        # CRITICAL: Only apply to templates that use the default .a4-page padding.
+        # The asymmetric templates (asymmetric_dark, asymmetric_light,
+        # asymmetric_dark_en) use inline `padding: 24pt` which should NOT be
+        # overridden. We scope this rule to exclude elements with
+        # data-role="sidebar" or data-role="pill" (their padding stays).
+        # Actually, the .a4-page padding override is fine for the OUTER page
+        # padding — it does NOT affect the sidebar/pill inner padding.
+        # So we keep it but use the controls margin value.
         if hasattr(controls, "margin") and controls.margin:
             direct_rules.append(
                 f".a4-page {{\n"
