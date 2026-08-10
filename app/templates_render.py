@@ -1308,3 +1308,325 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
         </div>
     </div>
 </div>'''
+
+
+# ===========================================================================
+# TEMPLATE 9: Asymmetric Light (تخطيط غير متماثل فاتح)
+# Same structure & features as asymmetric_dark, but with a LIGHT sidebar,
+# colored accent borders, and a modern clean look.
+# Supports the same style_overrides (sidebarColor, pillColor, pillRadius,
+# sidebarRadius, sidebarWidth) and data-role attributes for JS targeting.
+# ===========================================================================
+
+def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
+    """Asymmetric Light template — RTL, light sidebar, pill contact, all editable.
+    Accepts style_overrides to apply user-selected colors/radius/width.
+    Same features as asymmetric_dark: color picker, resize handle, 3 sliders."""
+    from app.utils.arabic import contains_arabic as _has_ar
+
+    # Apply style overrides or use defaults (LIGHT theme)
+    DEFAULT_SIDEBAR_COLOR = "#F1F5F9"   # very light slate
+    DEFAULT_PILL_COLOR = "#2563EB"     # modern blue
+    DEFAULT_PILL_RADIUS = "20"
+    DEFAULT_SIDEBAR_RADIUS = "12"
+    DEFAULT_SIDEBAR_WIDTH = "35"
+    DEFAULT_ACCENT_COLOR = "#2563EB"   # accent for borders/headings on light sidebar
+
+    if style_overrides:
+        sb_color = style_overrides.sidebarColor or DEFAULT_SIDEBAR_COLOR
+        pill_color = style_overrides.pillColor or DEFAULT_PILL_COLOR
+        pill_radius = style_overrides.pillRadius or DEFAULT_PILL_RADIUS
+        sb_radius = style_overrides.sidebarRadius or DEFAULT_SIDEBAR_RADIUS
+        sb_width = str(style_overrides.sidebarWidth) if style_overrides.sidebarWidth else DEFAULT_SIDEBAR_WIDTH
+    else:
+        sb_color = DEFAULT_SIDEBAR_COLOR
+        pill_color = DEFAULT_PILL_COLOR
+        pill_radius = DEFAULT_PILL_RADIUS
+        sb_radius = DEFAULT_SIDEBAR_RADIUS
+        sb_width = DEFAULT_SIDEBAR_WIDTH
+
+    main_width = str(100 - int(sb_width))
+
+    # Translation maps (reuse from asymmetric_dark)
+    SKILL_EN_AR = {
+        "problem solving": "حل المشكلات", "teamwork": "العمل الجماعي",
+        "communication": "التواصل الفعال", "time management": "إدارة الوقت",
+        "attention to detail": "الاهتمام بالتفاصيل", "adaptability": "القدرة على التكيف",
+        "continuous learning": "التعلم المستمر", "leadership": "القيادة",
+        "creativity": "الإبداع", "critical thinking": "التفكير النقدي",
+        "project management": "إدارة المشاريع", "decision making": "اتخاذ القرارات",
+        "analytical skills": "المهارات التحليلية", "negotiation": "المفاوضة",
+        "presentation skills": "مهارات العرض", "collaboration": "التعاون",
+        "interpersonal skills": "المهارات الشخصية", "multitasking": "تعدد المهام",
+        "stress management": "إدارة الضغط", "self-motivated": "ذاتي التحفيز",
+        "hard working": "عمل جاد", "work under pressure": "العمل تحت الضغط",
+        "ability to work under pressure": "القدرة على العمل تحت الضغط",
+        "supplier coordination": "تنسيق الموردين", "social media management": "إدارة وسائل التواصل الاجتماعي",
+        "communication & writing": "التواصل والكتابة", "organization & coordination": "التنظيم والتنسيق",
+        "records management": "إدارة السجلات", "archiving": "الأرشفة",
+        "cataloging & classification": "الفهرسة والتصنيف", "academic research": "البحث الأكاديمي",
+        "proficiency in ms office suite": "إجادة حزمة مايكروسوفت أوفيس",
+        "inventory management": "إدارة المخزون", "warehouse management": "إدارة المستودعات",
+        "organization": "التنظيم", "supervision": "الإشراف", "team management": "إدارة الفرق",
+        "communication & negotiation": "التواصل والتفاوض", "hr consulting": "الاستشارات في الموارد البشرية",
+        "procurement management": "إدارة المشتريات", "strategic planning": "التخطيط الاستراتيجي",
+        "successful negotiation": "التفاوض الناجح", "customer service": "خدمة العملاء",
+        "customer support": "دعم العملاء", "sales": "المبيعات", "marketing": "التسويق",
+        "digital marketing": "التسويق الرقمي", "content writing": "كتابة المحتوى",
+        "data entry": "إدخال البيانات", "bookkeeping": "مسك الدفاتر", "accounting": "المحاسبة",
+        "financial analysis": "التحليل المالي", "budgeting": "إعداد الميزانيات",
+        "payroll": "الرواتب", "recruitment": "التوظيف", "training & development": "التدريب والتطوير",
+        "employee relations": "علاقات الموظفين", "performance management": "إدارة الأداء",
+        "contract management": "إدارة العقود", "supply chain": "سلسلة التوريد",
+        "logistics": "اللوجستيات", "operations management": "إدارة العمليات",
+        "quality management": "إدارة الجودة", "risk management": "إدارة المخاطر",
+        "event planning": "تخطيط الفعاليات", "public relations": "العلاقات العامة",
+        "report writing": "كتابة التقارير", "office administration": "إدارة المكتب",
+        "scheduling": "جدولة المواعيد", "conflict resolution": "حل النزاعات",
+        "mentoring": "التوجيه", "coaching": "التدريب", "public speaking": "التحدث أمام الجمهور",
+        "writing skills": "مهارات الكتابة", "editing": "التحرير", "proofreading": "التدقيق اللغوي",
+        "documentation": "التوثيق", "data analysis": "تحليل البيانات",
+        "compliance": "الامتثال", "auditing": "التدقيق", "reporting": "إعداد التقارير",
+        "strategic thinking": "التفكير الاستراتيجي", "change management": "إدارة التغيير",
+        "process improvement": "تحسين العمليات", "business development": "تطوير الأعمال",
+        "relationship building": "بناء العلاقات", "networking": "بناء الشبكات",
+        "client management": "إدارة العملاء",
+    }
+    TECH_EN_AR = {
+        "road design": "تصميم الطرق", "soil mechanics": "ميكانيكا التربة",
+        "autocad": "أوتوكاد", "microsoft office": "مايكروسوفت أوفيس",
+        "microsoft word": "مايكروسوفت وورد", "microsoft excel": "مايكروسوفت إكسل",
+        "microsoft powerpoint": "مايكروسوفت بوربوينت", "python": "بايثون",
+        "javascript": "جافا سكريبت", "react": "رياكت", "docker": "دوكر",
+        "structural analysis": "التحليل الإنشائي", "surveying": "المساحة",
+        "quantity estimation": "تقدير الكميات", "cybersecurity": "الأمن السيبراني",
+        "gis": "نظم المعلومات الجغرافية", "revit": "ريفيت", "primavera": "بريمافيرا",
+    }
+    LANG_NAME_AR = {
+        "arabic": "العربية", "english": "الإنجليزية", "french": "الفرنسية",
+        "german": "الألمانية", "spanish": "الإسبانية",
+    }
+    LEVEL_AR = {
+        "native": "اللغة الأم", "fluent": "بطلاقة", "advanced": "متقدم",
+        "intermediate": "متوسط", "beginner": "مبتدئ", "professional": "احترافي",
+        "professional working proficiency": "إجادة عملية احترافية",
+    }
+
+    def _tr(s):
+        if not s: return ""
+        if _has_ar(s): return s
+        lower = s.lower().strip()
+        if lower in SKILL_EN_AR: return SKILL_EN_AR[lower]
+        if lower in TECH_EN_AR: return TECH_EN_AR[lower]
+        return s
+
+    p = resume.personal
+    name = p.name_ar or p.name or ""
+    email = p.email or ""
+    phone = p.phone or ""
+    location = p.location or ""
+    if not _has_ar(location):
+        for en, ar in {"saudi arabia":"السعودية","riyadh":"الرياض","jeddah":"جدة","taif":"الطائف","makkah":"مكة","medina":"المدينة","dammam":"الدمام"}.items():
+            if en in location.lower():
+                location = location.lower().replace(en, ar)
+    objective = resume.summary_text("ar") or resume.summary_text("en") or resume.objective_text("ar") or resume.objective_text("en") or ""
+    if not objective.strip():
+        objective = " "
+
+    # --- Education (sidebar) — DARK text on LIGHT background ---
+    edu_items = ""
+    for edu in resume.education:
+        degree = edu.degree_ar or edu.degree_en or edu.degree or ""
+        institution = edu.institution_ar or edu.institution_en or edu.institution or ""
+        edu_items += '<div style="margin-bottom:10pt;">'
+        edu_items += f'<div class="editable" data-field="degree" dir="auto" style="font-weight:700;font-size:10pt;color:#1E293B;line-height:1.4;">{esc(degree)}</div>'
+        if institution:
+            edu_items += f'<div class="editable" data-field="institution" dir="auto" style="font-weight:400;font-size:9pt;color:#64748B;line-height:1.4;margin-top:2pt;">{esc(institution)}</div>'
+        edu_items += '</div>'
+
+    # --- Skills (sidebar) — DARK text ---
+    skill_items = ""
+    skills = []
+    for source in [resume.skills_ar or [], resume.skills or [], resume.skills_en or [], resume.soft_skills or []]:
+        for s in source:
+            t = _tr(s)
+            if t and _has_ar(t) and t not in skills:
+                skills.append(t)
+    for s in skills:
+        skill_items += f'<li class="editable" data-field="skill" dir="auto">{esc(s)}</li>'
+
+    # --- Technical skills (sidebar) ---
+    tech_items = ""
+    tech_skills = []
+    for source in [resume.technical_skills_ar or [], resume.technical_skills or [], resume.technical_skills_en or []]:
+        for s in source:
+            t = _tr(s)
+            if t and _has_ar(t) and t not in tech_skills:
+                tech_skills.append(t)
+    for s in tech_skills:
+        tech_items += f'<li class="editable" data-field="technical_skill" dir="auto">{esc(s)}</li>'
+
+    # --- Experience (main content) ---
+    exp_html = ""
+    for exp in resume.experience:
+        title = exp.title_ar or exp.title_en or exp.title or ""
+        company = exp.company_ar or exp.company_en or exp.company or ""
+        period = ""
+        if exp.start_date and exp.end_date:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - {esc(exp.end_date)})</span>'
+        elif exp.start_date and exp.current:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - حتى الآن)</span>'
+        exp_html += f'<div style="margin-bottom:18pt;">'
+        exp_html += f'<div style="font-weight:700;font-size:11pt;color:#1E293B;margin-bottom:6pt;"><span class="editable" data-field="title" dir="auto">{esc(title)}</span>'
+        if company:
+            exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
+        if period:
+            exp_html += f' {period}'
+        exp_html += '</div>'
+        desc = exp.description or ""
+        if desc:
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="font-size:9.5pt;color:#475569;line-height:1.6;margin-bottom:6pt;">{esc(desc)}</div>'
+        bullets = exp.bullets_ar or exp.bullets_en or exp.bullets or []
+        if bullets:
+            exp_html += '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;">'
+            for b in bullets:
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="font-size:9.5pt;color:#475569;line-height:1.6;margin-bottom:6pt;">{esc(b)}</li>'
+            exp_html += '</ul>'
+        exp_html += '</div>'
+
+    # --- Contact pill items — FILLED SVG icons with EXPLICIT white color ---
+    # Same icons as asymmetric_dark — white on the colored pill background.
+    ICON_PHONE = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
+        '</svg>'
+    )
+    ICON_EMAIL = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+        '</svg>'
+    )
+    ICON_LOCATION = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
+        '</svg>'
+    )
+
+    contact_items_html = ""
+    # Same as asymmetric_dark: DOM order Phone → Email → Location.
+    # Pill has dir="rtl" → visual: Location (LEFT) → Email (MID) → Phone (RIGHT).
+    if phone:
+        contact_items_html += (
+            f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#BFDBFE;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'{ICON_PHONE}&nbsp;<span>{esc(phone)}</span></a>'
+        )
+    if email:
+        contact_items_html += (
+            f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#BFDBFE;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'{ICON_EMAIL}&nbsp;<span>{esc(email)}</span></a>'
+        )
+    if location:
+        contact_items_html += (
+            f'<span style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#FFFFFF;'
+            f'white-space:nowrap;">'
+            f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location">{esc(location)}</span></span>'
+        )
+
+    # --- Languages (sidebar) — DARK text ---
+    lang_items = ""
+    for lang in resume.languages:
+        nm = lang.name_ar or LANG_NAME_AR.get((lang.name_en or lang.name or "").lower(), lang.name or "")
+        lvl = LEVEL_AR.get((lang.level or "").lower(), lang.level or "")
+        if _has_ar(lvl) == False and lvl:
+            for en, ar in LEVEL_AR.items():
+                if en in (lang.level or "").lower():
+                    lvl = ar
+                    break
+        entry = f"{nm} ({lvl})" if lvl else nm
+        lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
+
+    # Pre-build conditional sections
+    tech_section_html = ""
+    if tech_items:
+        tech_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;color:#1E293B;">المهارات التقنية</div>'
+            '<div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#334155;">'
+            + tech_items +
+            '</ul>'
+        )
+
+    lang_section_html = ""
+    if lang_items:
+        lang_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;color:#1E293B;">اللغات</div>'
+            '<div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;color:#334155;">'
+            + lang_items +
+            '</ul>'
+        )
+
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#1E293B;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+
+    <!-- ===== HEADER: Centered Name ===== -->
+    <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#1E293B;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
+
+    <!-- ===== Contact Pill: dir="rtl" for consistent RTL rendering — data-role="pill" for JS targeting ===== -->
+    <div data-role="pill" dir="rtl" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 16pt;text-align:center;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        {contact_items_html}
+    </div>
+
+    <!-- ===== MAIN BODY: Flexbox — light sidebar on LEFT, white content on RIGHT ===== -->
+    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+
+        <!-- ===== LEFT SIDEBAR (Light) — {sb_width}%, one-sided radius (top-left), dark text on light bg — data-role="sidebar" for JS targeting ===== -->
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+
+            <!-- Education -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">المؤهلات العلمية</div>
+            <div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>
+            <div style="margin-bottom:18pt;">
+                {edu_items}
+            </div>
+
+            <!-- Skills -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;color:#1E293B;">المهارات</div>
+            <div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#334155;">
+                {skill_items}
+            </ul>
+
+            <!-- Technical Skills -->
+            {tech_section_html}
+
+            <!-- Languages -->
+            {lang_section_html}
+
+        </div>
+
+        <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
+        <div style="width:{main_width}%;padding:0;color:#1E293B;min-height:100%;">
+
+            <!-- Profile Summary -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">نبذة عني</div>
+            <div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>
+            <div class="editable" data-field="summary_ar" dir="auto" style="font-size:9.5pt;color:#475569;line-height:1.6;text-align:justify;margin-bottom:18pt;">{esc(objective)}</div>
+
+            <!-- Professional Experience -->
+            <div style="font-weight:700;font-size:14pt;text-align:right;margin-top:12pt;margin-bottom:4pt;color:#1E293B;">الخبرات المهنية</div>
+            <div style="border-bottom:2pt solid #2563EB;margin-bottom:8pt;"></div>
+            {exp_html}
+
+        </div>
+    </div>
+</div>'''

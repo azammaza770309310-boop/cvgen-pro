@@ -1769,6 +1769,42 @@
           </div>
         </div>`;
 
+      case "asymmetric_light":
+        // Asymmetric Light: light sidebar with blue accent borders, pill contact
+        return `<div class="thumb-asym-light" style="--ta:${accent}" dir="rtl">
+          <div class="tal-name">أحمد محمد</div>
+          <div class="tal-pill">
+            <span class="tal-pill-dot"></span>
+            <span class="tal-pill-dot"></span>
+            <span class="tal-pill-dot"></span>
+          </div>
+          <div class="tal-body">
+            <div class="tal-sidebar">
+              <div class="tal-sb-h">التعليم</div>
+              <div class="tal-sb-line w85"></div>
+              <div class="tal-sb-line w60"></div>
+              <div class="tal-sb-h">المهارات</div>
+              <div class="tal-sb-line w75"></div>
+              <div class="tal-sb-line w55"></div>
+              <div class="tal-sb-line w65"></div>
+              <div class="tal-sb-h">اللغات</div>
+              <div class="tal-sb-line w50"></div>
+              <div class="tal-sb-line w45"></div>
+            </div>
+            <div class="tal-main">
+              <div class="tal-mc-h">نبذة عني</div>
+              <div class="tal-mc-line w90"></div>
+              <div class="tal-mc-line w80"></div>
+              <div class="tal-mc-line w70"></div>
+              <div class="tal-mc-h">الخبرات المهنية</div>
+              <div class="tal-mc-line w85"></div>
+              <div class="tal-mc-line w60"></div>
+              <div class="tal-mc-line w75"></div>
+              <div class="tal-mc-line w55"></div>
+            </div>
+          </div>
+        </div>`;
+
       default:
         // Generic fallback
         return `<div class="thumb-generic" style="--ta:${accent}">

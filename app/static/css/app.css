@@ -1526,3 +1526,84 @@ button { font-family: inherit; }
   background: #c8c8c8;
   border-radius: 1px;
 }
+
+/* ===== Thumbnail: Asymmetric Light ===== */
+.thumb-asym-light {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 4px;
+}
+.tal-name {
+  font-size: 9px;
+  font-weight: 800;
+  color: #1E293B;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.tal-pill {
+  background: #2563EB;
+  border-radius: 10px;
+  padding: 3px 6px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.tal-pill-dot {
+  width: 10px;
+  height: 2px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 1px;
+}
+.tal-body {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+}
+.tal-sidebar {
+  width: 35%;
+  background: #F1F5F9;
+  border-top: 2px solid #2563EB;
+  border-radius: 5px 0 0 0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 80px;
+}
+.tal-sb-h {
+  font-size: 5px;
+  font-weight: 700;
+  color: #1E293B;
+  text-align: right;
+  border-bottom: 1px solid #2563EB;
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+.tal-sb-line {
+  height: 2px;
+  background: #94A3B8;
+  border-radius: 1px;
+}
+.tal-main {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+.tal-mc-h {
+  font-size: 5px;
+  font-weight: 700;
+  color: #1E293B;
+  text-align: right;
+  border-bottom: 1px solid #2563EB;
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+.tal-mc-line {
+  height: 2px;
+  background: #CBD5E1;
+  border-radius: 1px;
+}
