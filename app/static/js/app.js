@@ -34,7 +34,7 @@
       sidebarRadius: null,    // e.g. "12" (pt)
       sidebarWidth: null,     // e.g. "35" (%)
     },
-    controls: { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 15 },
+    controls: { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 8 },
     controlLimits: {
       fontSize: { min: 5.0, max: 14.0, step: 0.3 },
       lineHeight: { min: 0.8, max: 2.0, step: 0.05 },
@@ -357,13 +357,20 @@
       el.style.setProperty("--cv-column-gap", state.controls.columnDistance + "pt");
       el.style.setProperty("--cv-page-padding", state.controls.margin + "mm");
     });
-    // Apply font size + line height DIRECTLY to ALL text elements for immediate effect
-    // This overrides the !important in templates.css because inline styles with
-    // !important win over stylesheet !important.
+    // Apply font size + line height DIRECTLY to body text elements for immediate effect.
+    // CRITICAL: h1, h2, h3 are EXCLUDED — the asymmetric templates use inline
+    // `font-size: 26pt !important` on the name <h1> and 14pt on section <h2>/<h3>.
+    // If we override them here with the slider font-size (e.g. 11pt), the name
+    // becomes tiny in the preview but stays large in the PDF (where h1 is excluded),
+    // causing a PREVIEW vs PDF MISMATCH. Excluding h1/h2/h3 keeps them consistent.
+    // The selector below targets body text only (p, li, .editable on non-heading
+    // elements, .contact-item, .item, .item-title, span, div) — NOT h1/h2/h3.
+    // NOTE: .editable is applied to h1 in asym templates, so we use :not(h1):not(h2):not(h3)
+    // to exclude heading elements that happen to have the .editable class.
     const content = $("#a4Content");
     if (content) {
       content.style.fontFamily = state.font + ", sans-serif";
-      content.querySelectorAll(".a4-page, .section-row, .section-body, .body-en, .body-ar, .section-headings, .section-heading-en, .section-heading-ar, p, li, h1, h2, .item, .item-title, .contact-bar, .contact-item, .editable").forEach(el => {
+      content.querySelectorAll(".a4-page, .section-row, .section-body, .body-en, .body-ar, .section-headings, .section-heading-en, .section-heading-ar, p, li, .item, .item-title, .contact-bar, .contact-item, .editable:not(h1):not(h2):not(h3)").forEach(el => {
         el.style.setProperty("font-size", fontSize + "pt", "important");
         el.style.setProperty("line-height", state.controls.lineHeight, "important");
       });
@@ -1248,7 +1255,7 @@
     // A4 height at 96 DPI = 297mm * 3.7795 ≈ 1123px
     // But the USABLE content height = page height - 2 * padding (top + bottom margin)
     const A4_HEIGHT_PX = 1123;
-    const marginPx = (state.controls.margin || 15) * 3.7795; // mm → px
+    const marginPx = (state.controls.margin || 8) * 3.7795; // mm → px
     const usableHeight = A4_HEIGHT_PX - (2 * marginPx);
     // Measure the ACTUAL content height (not scrollHeight which includes padding)
     // Use the #a4Content element's offsetHeight for accuracy
@@ -1909,7 +1916,7 @@
 
   // Reset all design controls to defaults
   $("#btnResetAll")?.addEventListener("click", function() {
-    state.controls = { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 15 };
+    state.controls = { fontSize: 11, lineHeight: 1.5, sectionSpacing: 2, columnDistance: 4, margin: 8 };
     // Update stepper displays
     $$(".stepper-mini").forEach(st => {
       const control = st.dataset.control;

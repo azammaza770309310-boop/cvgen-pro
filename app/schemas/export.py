@@ -13,7 +13,7 @@ class DesignControls(BaseModel):
     lineHeight: float = 1.5
     sectionSpacing: float = 2.0
     columnDistance: float = 4.0
-    margin: float = 15.0
+    margin: float = 8.0
     fontFamily: Optional[str] = None
 
 

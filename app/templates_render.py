@@ -1254,7 +1254,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
@@ -1576,7 +1576,7 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#1E293B;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#1E293B;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#1E293B;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
@@ -1896,7 +1896,7 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="ltr" lang="en" style="font-family:'Inter','Helvetica',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="ltr" lang="en" style="font-family:'Inter','Helvetica',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_en" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>

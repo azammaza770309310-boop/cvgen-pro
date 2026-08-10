@@ -102,18 +102,21 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
                 f"}}"
             )
         # Padding (margin) on the A4 page.
-        # CRITICAL: Only apply to templates that use the default .a4-page padding.
-        # The asymmetric templates (asymmetric_dark, asymmetric_light,
-        # asymmetric_dark_en) use inline `padding: 24pt` which should NOT be
-        # overridden. We scope this rule to exclude elements with
-        # data-role="sidebar" or data-role="pill" (their padding stays).
-        # Actually, the .a4-page padding override is fine for the OUTER page
-        # padding — it does NOT affect the sidebar/pill inner padding.
-        # So we keep it but use the controls margin value.
+        # CRITICAL: templates.css has a `@media print { .a4-page { padding: 15mm !important } }`
+        # rule that WeasyPrint (which renders as @media print) applies with HIGHER
+        # priority than our plain `.a4-page { padding: 8mm !important }` rule.
+        # To override it, we MUST wrap our padding rule in @media print as well.
+        # Otherwise the PDF uses 15mm margins instead of the user's chosen 8mm,
+        # causing a PREVIEW vs PDF MISMATCH.
         if hasattr(controls, "margin") and controls.margin:
             direct_rules.append(
                 f".a4-page {{\n"
                 f"  padding: {controls.margin}mm !important;\n"
+                f"}}\n"
+                f"@media print {{\n"
+                f"  .a4-page {{\n"
+                f"    padding: {controls.margin}mm !important;\n"
+                f"  }}\n"
                 f"}}"
             )
         # Section spacing
