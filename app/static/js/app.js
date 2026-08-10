@@ -663,10 +663,22 @@
     const sbRadiusSlider = $("#sidebarRadiusSlider");
     const sbRadiusValue = $("#sidebarRadiusValue");
     if (sbRadiusSlider && sidebar) {
-      // Get current sidebar radius
-      const sbStyle = sidebar.style.cssText;
-      const radiusMatch = sbStyle.match(/border-radius:(\d+)pt/);
-      const currentSbRadius = radiusMatch ? radiusMatch[1] : 12;
+      // Get current sidebar radius — extract the SECOND value (top-right)
+      // from "0 12pt 0 0" or "0px 16px 0px 0px" (browser converts pt→px).
+      // The first value is always 0 (top-left has no radius in teardrop shape).
+      const sbBR = sidebar.style.borderRadius || "";
+      let currentSbRadius = 12;
+      // Try to match the second value in a 4-value border-radius
+      const m4 = sbBR.match(/\d+(?:pt|px)?\s+(\d+)(?:pt|px)?/);
+      if (m4 && m4[1] && m4[1] !== "0") {
+        currentSbRadius = parseInt(m4[1], 10);
+      } else {
+        // Fallback: try single-value match (e.g. "12pt")
+        const m1 = sbBR.match(/(\d+)/);
+        if (m1 && m1[1] !== "0") currentSbRadius = parseInt(m1[1], 10);
+      }
+      // Clamp to slider range [0, 40]
+      currentSbRadius = Math.max(0, Math.min(40, currentSbRadius));
       sbRadiusSlider.value = currentSbRadius;
       sbRadiusValue.textContent = currentSbRadius;
 
@@ -1360,11 +1372,22 @@
             if (pct >= 20 && pct <= 60) state.styleOverrides.sidebarWidth = pct;
           }
         }
-        // Capture sidebar border-radius
+        // Capture sidebar border-radius.
+        // CRITICAL: The sidebar uses a 4-value border-radius like
+        // "0 12pt 0 0" (top-right only) or "0px 16px 0px 0px" (browser
+        // converts pt→px). We must extract the SECOND value (top-right),
+        // NOT the first (which is always 0 for the teardrop shape).
+        // The old regex /(\d+)/ matched the first "0" and saved
+        // sidebarRadius="0", causing the PDF to render with NO radius.
         const sbR = sidebar.style.borderRadius;
         if (sbR) {
-          const m = sbR.match(/(\d+)/);
-          if (m) state.styleOverrides.sidebarRadius = m[1];
+          // Match pattern: firstValue unit? space secondValue unit?
+          // e.g. "0px 16px 0px 0px" → captures "16"
+          // e.g. "0 12pt 0 0" → captures "12"
+          const m = sbR.match(/\d+(?:pt|px)?\s+(\d+)(?:pt|px)?/);
+          if (m && m[1] && m[1] !== "0") {
+            state.styleOverrides.sidebarRadius = m[1];
+          }
         }
       }
       if (pill) {
@@ -1372,11 +1395,11 @@
         const pillBg = pill.style.backgroundColor || pill.style.background;
         const pillHex = normalizeColor(pillBg);
         if (pillHex) state.styleOverrides.pillColor = pillHex;
-        // Capture pill border-radius
+        // Capture pill border-radius (single value like "20pt" or "20px")
         const pillR = pill.style.borderRadius;
         if (pillR) {
           const m = pillR.match(/(\d+)/);
-          if (m) state.styleOverrides.pillRadius = m[1];
+          if (m && m[1] !== "0") state.styleOverrides.pillRadius = m[1];
         }
       }
       // 1. Save all data-field elements (name, email, phone, location, summary)

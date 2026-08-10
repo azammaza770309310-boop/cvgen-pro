@@ -1673,6 +1673,9 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     phone = p.phone or ""
     location = p.location or ""
     # Translate Arabic location names to English for the English template
+    # CRITICAL: Must sort by key length (longest first) so compound names
+    # like "المدينة المنورة" are matched before the shorter "المدينة".
+    # Otherwise "المدينة" → "Medina" leaves "المنورة" as orphan Arabic text.
     LOCATIONS_AR_EN = {
         "السعودية": "Saudi Arabia", "سعودية": "Saudi Arabia",
         "الرياض": "Riyadh", "رياض": "Riyadh",
@@ -1695,10 +1698,19 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
         "المغرب": "Morocco", "ليبيا": "Libya", "السودان": "Sudan",
     }
     if location:
-        # Replace any Arabic location names with English equivalents
-        for ar, en in LOCATIONS_AR_EN.items():
+        # Sort by key length DESCENDING — longest Arabic phrases first.
+        # This prevents partial matches (e.g. "المدينة" matching inside
+        # "المدينة المنورة" and leaving "المنورة" as orphan Arabic text).
+        sorted_locs = sorted(LOCATIONS_AR_EN.items(), key=lambda x: len(x[0]), reverse=True)
+        for ar, en in sorted_locs:
             if ar in location:
                 location = location.replace(ar, en)
+        # Replace Arabic comma "،" with English ", "
+        location = location.replace("،", ", ")
+        # Clean up double spaces (from replacements like "، " → ", ")
+        while "  " in location:
+            location = location.replace("  ", " ")
+        location = location.strip().strip(",").strip()
         # If location is still fully Arabic (no Latin chars), use a fallback
         from app.utils.arabic import contains_arabic as _has_ar_check
         if _has_ar_check(location) and not any(c.isalpha() and ord(c) < 128 for c in location):
