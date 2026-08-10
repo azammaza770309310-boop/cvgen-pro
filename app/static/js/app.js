@@ -1805,6 +1805,42 @@
           </div>
         </div>`;
 
+      case "asymmetric_dark_en":
+        // Asymmetric Dark EN: same as asymmetric_dark but LTR English text
+        return `<div class="thumb-asym-dark" style="--ta:${accent}" dir="ltr">
+          <div class="tad-name">John Smith</div>
+          <div class="tad-pill">
+            <span class="tad-pill-dot"></span>
+            <span class="tad-pill-dot"></span>
+            <span class="tad-pill-dot"></span>
+          </div>
+          <div class="tad-body">
+            <div class="tad-sidebar">
+              <div class="tad-sb-h">Education</div>
+              <div class="tad-sb-line w85"></div>
+              <div class="tad-sb-line w60"></div>
+              <div class="tad-sb-h">Skills</div>
+              <div class="tad-sb-line w75"></div>
+              <div class="tad-sb-line w55"></div>
+              <div class="tad-sb-line w65"></div>
+              <div class="tad-sb-h">Languages</div>
+              <div class="tad-sb-line w50"></div>
+              <div class="tad-sb-line w45"></div>
+            </div>
+            <div class="tad-main">
+              <div class="tad-mc-h">Profile Summary</div>
+              <div class="tad-mc-line w90"></div>
+              <div class="tad-mc-line w80"></div>
+              <div class="tad-mc-line w70"></div>
+              <div class="tad-mc-h">Professional Experience</div>
+              <div class="tad-mc-line w85"></div>
+              <div class="tad-mc-line w60"></div>
+              <div class="tad-mc-line w75"></div>
+              <div class="tad-mc-line w55"></div>
+            </div>
+          </div>
+        </div>`;
+
       default:
         // Generic fallback
         return `<div class="thumb-generic" style="--ta:${accent}">

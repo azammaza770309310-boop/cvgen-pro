@@ -17,6 +17,7 @@ from app.templates_render import (
     render_professional_classic,
     render_arabic_classic,
     render_asymmetric_dark,
+    render_asymmetric_dark_en,
     render_asymmetric_light,
     render_official_bilingual_master,
     render_english_single_column,
@@ -124,6 +125,18 @@ REGISTRY: List[TemplateDef] = [
         accent="#2563EB",
         render=render_asymmetric_light,
     ),
+    TemplateDef(
+        id="asymmetric_dark_en",
+        name="Asymmetric Dark EN",
+        name_ar="غير متماثل داكن إنجليزي",
+        description="Asymmetric LTR English layout with dark sidebar, pill contact bar, blue links.",
+        description_ar="تخطيط غير متماثل LTR إنجليزي مع عمود جانبي داكن وشريط تواصل بيضاوي وروابط زرقاء.",
+        category="creative",
+        ats_level="medium",
+        supported_languages=["en"],
+        accent="#2D3748",
+        render=render_asymmetric_dark_en,
+    ),
 ]
 
 
@@ -177,7 +190,8 @@ def get_template(template_id: str) -> TemplateDef:
 
 def render_template(template_id: str, resume: ResumeData, style_overrides=None) -> str:
     t = get_template(template_id)
-    # Pass style_overrides to templates that accept it (asymmetric_dark, asymmetric_light)
-    if template_id in ("asymmetric_dark", "asymmetric_light") and style_overrides is not None:
+    # Pass style_overrides to templates that accept it
+    # (asymmetric_dark, asymmetric_light, asymmetric_dark_en)
+    if template_id in ("asymmetric_dark", "asymmetric_light", "asymmetric_dark_en") and style_overrides is not None:
         return t.render(resume, style_overrides=style_overrides)
     return t.render(resume)

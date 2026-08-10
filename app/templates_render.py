@@ -1630,3 +1630,241 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
         </div>
     </div>
 </div>'''
+
+
+# ===========================================================================
+# TEMPLATE 10: Asymmetric Dark English (تخطيط غير متماثل داكن — إنجليزي)
+# Same structure & features as asymmetric_dark, but in ENGLISH (LTR).
+# Dark sidebar on the LEFT, white content on the RIGHT, English section
+# headings, LTR layout. Supports the same style_overrides + data-role attrs.
+# ===========================================================================
+
+def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
+    """Asymmetric Dark template — ENGLISH version (LTR).
+    Same features as asymmetric_dark: color picker, resize handle, 3 sliders.
+    English section headings, LTR layout, blue clickable contact links."""
+    from app.utils.arabic import contains_arabic as _has_ar
+
+    # Apply style overrides or use defaults
+    DEFAULT_SIDEBAR_COLOR = "#2D3748"
+    DEFAULT_PILL_COLOR = "#2D3748"
+    DEFAULT_PILL_RADIUS = "20"
+    DEFAULT_SIDEBAR_RADIUS = "12"
+    DEFAULT_SIDEBAR_WIDTH = "35"
+
+    if style_overrides:
+        sb_color = style_overrides.sidebarColor or DEFAULT_SIDEBAR_COLOR
+        pill_color = style_overrides.pillColor or DEFAULT_PILL_COLOR
+        pill_radius = style_overrides.pillRadius or DEFAULT_PILL_RADIUS
+        sb_radius = style_overrides.sidebarRadius or DEFAULT_SIDEBAR_RADIUS
+        sb_width = str(style_overrides.sidebarWidth) if style_overrides.sidebarWidth else DEFAULT_SIDEBAR_WIDTH
+    else:
+        sb_color = DEFAULT_SIDEBAR_COLOR
+        pill_color = DEFAULT_PILL_COLOR
+        pill_radius = DEFAULT_PILL_RADIUS
+        sb_radius = DEFAULT_SIDEBAR_RADIUS
+        sb_width = DEFAULT_SIDEBAR_WIDTH
+
+    main_width = str(100 - int(sb_width))
+
+    p = resume.personal
+    name = p.name_en or p.name or ""
+    email = p.email or ""
+    phone = p.phone or ""
+    location = p.location or ""
+    objective = resume.summary_text("en") or resume.summary_text("ar") or resume.objective_text("en") or resume.objective_text("ar") or ""
+    if not objective.strip():
+        objective = " "
+
+    # --- Education (sidebar) — white text on dark background ---
+    edu_items = ""
+    for edu in resume.education:
+        degree = edu.degree_en or edu.degree_ar or edu.degree or ""
+        institution = edu.institution_en or edu.institution_ar or edu.institution or ""
+        edu_items += '<div style="margin-bottom:10pt;">'
+        edu_items += f'<div class="editable" data-field="degree" dir="auto" style="font-weight:700;font-size:10pt;color:#FFFFFF;line-height:1.4;">{esc(degree)}</div>'
+        if institution:
+            edu_items += f'<div class="editable" data-field="institution" dir="auto" style="font-weight:400;font-size:9pt;color:rgba(255,255,255,0.85);line-height:1.4;margin-top:2pt;">{esc(institution)}</div>'
+        edu_items += '</div>'
+
+    # --- Skills (sidebar) — English only, filter out Arabic ---
+    skill_items = ""
+    skills = []
+    for source in [resume.skills_en or [], resume.skills or [], resume.soft_skills or [], resume.skills_ar or []]:
+        for s in source:
+            if s and not _has_ar(s) and s not in skills:
+                skills.append(s)
+    for s in skills:
+        skill_items += f'<li class="editable" data-field="skill" dir="auto">{esc(s)}</li>'
+
+    # --- Technical skills (sidebar) — English only ---
+    tech_items = ""
+    tech_skills = []
+    for source in [resume.technical_skills_en or [], resume.technical_skills or [], resume.technical_skills_ar or []]:
+        for s in source:
+            if s and not _has_ar(s) and s not in tech_skills:
+                tech_skills.append(s)
+    for s in tech_skills:
+        tech_items += f'<li class="editable" data-field="technical_skill" dir="auto">{esc(s)}</li>'
+
+    # --- Experience (main content) ---
+    exp_html = ""
+    for exp in resume.experience:
+        title = exp.title_en or exp.title_ar or exp.title or ""
+        company = exp.company_en or exp.company_ar or exp.company or ""
+        period = ""
+        if exp.start_date and exp.end_date:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - {esc(exp.end_date)})</span>'
+        elif exp.start_date and exp.current:
+            period = f'<span dir="ltr">({esc(exp.start_date)} - Present)</span>'
+        exp_html += f'<div style="margin-bottom:18pt;">'
+        exp_html += f'<div style="font-weight:700;font-size:11pt;color:#2D3748;margin-bottom:6pt;"><span class="editable" data-field="title" dir="auto">{esc(title)}</span>'
+        if company:
+            exp_html += f' - <span class="editable" data-field="company" dir="auto">{esc(company)}</span>'
+        if period:
+            exp_html += f' {period}'
+        exp_html += '</div>'
+        desc = exp.description or ""
+        if desc:
+            exp_html += f'<div class="editable" data-field="description" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;margin-bottom:6pt;">{esc(desc)}</div>'
+        bullets = exp.bullets_en or exp.bullets_ar or exp.bullets or []
+        if bullets:
+            exp_html += '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;">'
+            for b in bullets:
+                exp_html += f'<li class="editable" data-field="bullet" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;margin-bottom:6pt;">{esc(b)}</li>'
+            exp_html += '</ul>'
+        exp_html += '</div>'
+
+    # --- Contact pill items — FILLED SVG icons with EXPLICIT white color ---
+    # Same icons as asymmetric_dark — white on the dark pill background.
+    ICON_PHONE = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
+        '</svg>'
+    )
+    ICON_EMAIL = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+        '</svg>'
+    )
+    ICON_LOCATION = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
+        '</svg>'
+    )
+
+    contact_items_html = ""
+    # ENGLISH layout (LTR): DOM order Phone → Email → Location.
+    # The pill div has dir="ltr" so items flow left-to-right naturally.
+    # Visual result: Phone (LEFT) → Email (MIDDLE) → Location (RIGHT).
+    # This is the standard English CV order: phone first, location last.
+    if phone:
+        contact_items_html += (
+            f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'{ICON_PHONE}&nbsp;<span>{esc(phone)}</span></a>'
+        )
+    if email:
+        contact_items_html += (
+            f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" '
+            f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'{ICON_EMAIL}&nbsp;<span>{esc(email)}</span></a>'
+        )
+    if location:
+        contact_items_html += (
+            f'<span style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#FFFFFF;'
+            f'white-space:nowrap;">'
+            f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location">{esc(location)}</span></span>'
+        )
+
+    # --- Languages (sidebar) ---
+    lang_items = ""
+    for lang in resume.languages:
+        nm = lang.name_en or lang.name or ""
+        lvl = lang.level or ""
+        entry = f"{nm} ({lvl})" if lvl else nm
+        lang_items += f'<li class="editable" data-field="language" dir="auto">{esc(entry)}</li>'
+
+    # Pre-build conditional sections
+    tech_section_html = ""
+    if tech_items:
+        tech_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:left;margin-top:12pt;margin-bottom:4pt;">Technical Skills</div>'
+            '<div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">'
+            + tech_items +
+            '</ul>'
+        )
+
+    lang_section_html = ""
+    if lang_items:
+        lang_section_html = (
+            '<div style="font-weight:700;font-size:14pt;text-align:left;margin-top:12pt;margin-bottom:4pt;">Languages</div>'
+            '<div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>'
+            '<ul style="list-style-type:disc;padding-inline-start:14pt;margin:0;color:#FFFFFF;">'
+            + lang_items +
+            '</ul>'
+        )
+
+    return f'''<div class="a4-page" id="resume-document" dir="ltr" lang="en" style="font-family:'Inter','Helvetica',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:24pt;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+
+    <!-- ===== HEADER: Centered Name ===== -->
+    <h1 class="editable" data-field="name_en" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
+
+    <!-- ===== Contact Pill: dir="ltr" for English layout — data-role="pill" for JS targeting ===== -->
+    <div data-role="pill" dir="ltr" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 16pt;text-align:center;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        {contact_items_html}
+    </div>
+
+    <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
+    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+
+        <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left) — data-role="sidebar" for JS targeting ===== -->
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+
+            <!-- Education -->
+            <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Education</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <div style="margin-bottom:18pt;">
+                {edu_items}
+            </div>
+
+            <!-- Skills -->
+            <div style="font-weight:700;font-size:14pt;text-align:left;margin-top:12pt;margin-bottom:4pt;">Skills</div>
+            <div style="border-bottom:1pt solid rgba(255,255,255,0.4);margin-bottom:8pt;"></div>
+            <ul style="list-style-type:disc;padding-inline-start:14pt;margin:0 0 18pt 0;color:#FFFFFF;">
+                {skill_items}
+            </ul>
+
+            <!-- Technical Skills -->
+            {tech_section_html}
+
+            <!-- Languages -->
+            {lang_section_html}
+
+        </div>
+
+        <!-- ===== RIGHT MAIN CONTENT (White) — {main_width}%, extends to bottom ===== -->
+        <div style="width:{main_width}%;padding:0;color:#2D3748;min-height:100%;">
+
+            <!-- Profile Summary -->
+            <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Profile Summary</div>
+            <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
+            <div class="editable" data-field="summary_en" dir="auto" style="font-size:9.5pt;color:#4A5568;line-height:1.6;text-align:justify;margin-bottom:18pt;">{esc(objective)}</div>
+
+            <!-- Professional Experience -->
+            <div style="font-weight:700;font-size:14pt;text-align:left;margin-top:12pt;margin-bottom:4pt;">Professional Experience</div>
+            <div style="border-bottom:1pt solid #2D3748;margin-bottom:8pt;"></div>
+            {exp_html}
+
+        </div>
+    </div>
+</div>'''
