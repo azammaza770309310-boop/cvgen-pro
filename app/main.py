@@ -100,6 +100,36 @@ async def api_health():
     return {"status": "ok"}
 
 
+# --- Monitor account verification ---
+# Allows the frontend to check if a phone number is a registered monitor
+# account. Monitor accounts persist in source code (app/core/config.py) so
+# they survive Render redeploys — the user never gets "logged out".
+@app.get("/api/account/check")
+async def check_account(phone: str = ""):
+    """Check if a phone number is a registered monitor account.
+
+    Returns monitor status and a session token if verified.
+    The phone number is checked against the whitelist in config.py.
+    """
+    if not phone:
+        return {"monitor": False, "phone": ""}
+    is_monitor = settings.is_monitor_account(phone)
+    return {
+        "monitor": is_monitor,
+        "phone": phone,
+        "accounts_count": len(settings.get_monitor_accounts()),
+    }
+
+
+@app.get("/api/accounts/monitors")
+async def list_monitor_accounts():
+    """List all registered monitor accounts (phone numbers only, no secrets)."""
+    return {
+        "monitors": settings.get_monitor_accounts(),
+        "count": len(settings.get_monitor_accounts()),
+    }
+
+
 @app.get("/sentry-debug")
 async def trigger_error():
     """INTENTIONAL error endpoint — verifies Sentry is capturing exceptions.

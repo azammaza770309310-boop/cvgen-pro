@@ -37,6 +37,24 @@ class Settings(BaseSettings):
     # --- Database (SQLite, optional, ready for future use) ---
     database_url: str = f"sqlite:///{BASE_DIR / 'data' / 'cvgen.db'}"
 
+    # --- Monitor accounts (persist in source code — survive redeployments) ---
+    # These phone numbers are whitelisted monitor/preview accounts.
+    # They are committed to git so they persist across Render redeploys.
+    # Format: E.164 with + prefix, comma-separated.
+    monitor_accounts: str = "+967784642961"
+
+    def get_monitor_accounts(self) -> List[str]:
+        """Return list of whitelisted monitor phone numbers."""
+        return [a.strip() for a in self.monitor_accounts.split(",") if a.strip()]
+
+    def is_monitor_account(self, phone: str) -> bool:
+        """Check if a phone number is a registered monitor account."""
+        if not phone:
+            return False
+        normalized = phone.strip().replace(" ", "").replace("-", "")
+        monitors = [a.strip().replace(" ", "").replace("-", "") for a in self.monitor_accounts.split(",")]
+        return normalized in monitors
+
     # --- Cloud AI provider API keys (server-side only) ---
     gemini_api_key: str = ""
     gemini_backup_keys: str = ""  # comma separated

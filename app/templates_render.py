@@ -1141,45 +1141,84 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
             exp_html += '</ul>'
         exp_html += '</div>'
 
-    # --- Contact pill items — SVG icons (not emoji), BLUE clickable hyperlinks ---
-    # Emoji (📞✉📍) render as squares in WeasyPrint PDF, so use SVG instead
-    # CRITICAL: SVG icons need vertical-align:middle to align with text.
-    # Without it, the icon sits on the baseline and looks misaligned.
-    ICON_PHONE = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
-    ICON_EMAIL = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>'
-    ICON_LOCATION = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
+    # --- Contact pill items — FILLED SVG icons (modern, professional look) ---
+    # CRITICAL DESIGN NOTES:
+    # 1. Icons use fill (solid) instead of stroke (outline) for a modern,
+    #    polished appearance that renders consistently in WeasyPrint PDF.
+    # 2. Each icon is 11x11px with explicit color, ensuring visibility on
+    #    both dark pill backgrounds and light contexts.
+    # 3. Order is: Phone → Email → Location (DOM order).
+    #    In RTL (parent dir="rtl"), this displays visually as:
+    #    Location (far left) → Email (middle) → Phone (far right).
+    #    This matches the user's request: location on the far LEFT side.
+    # 4. All items use display:inline-block (NOT flex) because WeasyPrint
+    #    does not support flex `gap` properly and causes icon overlap.
+    # 5. Each icon is wrapped in a span with vertical-align:middle to ensure
+    #    perfect alignment with the text baseline.
+
+    # Phone icon — filled, modern handset shape
+    ICON_PHONE = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;" '
+        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
+        '<path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
+        '</svg>'
+    )
+
+    # Email icon — filled envelope with flap
+    ICON_EMAIL = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;" '
+        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
+        '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+        '</svg>'
+    )
+
+    # Location icon — filled map pin with inner dot cutout
+    ICON_LOCATION = (
+        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        'style="vertical-align:middle;display:inline-block;" '
+        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
+        '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
+        '</svg>'
+    )
 
     contact_items_html = ""
-    # CRITICAL: WeasyPrint PDF fix for icon overlap.
-    # Previous attempts used display:flex on each item, but WeasyPrint does NOT
-    # fully support nested flex containers + the `gap` property. This caused the
-    # location icon to overlap with the email text in the exported PDF (even
-    # though it looked fine in the browser preview).
+    # CRITICAL: WeasyPrint PDF fix for icon overlap + position.
+    # DOM order is: Phone → Email → Location.
+    # The parent .a4-page has dir="rtl", so inline-block elements flow
+    # right-to-left. This means the FIRST DOM element (Phone) appears on
+    # the RIGHT, and the LAST DOM element (Location) appears on the LEFT.
+    # Visual result: Location (LEFT) → Email (MIDDLE) → Phone (RIGHT).
+    # This matches the user's request: location on the far LEFT side.
     #
-    # Solution: use display:inline-block with vertical-align:middle on each
-    # contact item. This is fully supported by WeasyPrint and guarantees the
-    # items flow left-to-right without overlapping. We use margin-inline-end
-    # for spacing instead of flex `gap`.
-    # Each item: icon + text, inline-block, no wrap, separated by a real space.
+    # Each item uses display:inline-block (NOT flex) because WeasyPrint does
+    # NOT support flex `gap`. We use margin-inline-end for spacing.
+    # white-space:nowrap prevents any item from wrapping to a new line.
+    # Each icon is wrapped in a colored span so fill="currentColor" inherits
+    # the correct color (blue for links, white for location).
     if phone:
         contact_items_html += (
             f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" '
             f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
-            f'text-decoration:none;white-space:nowrap;margin-inline-end:14pt;">'
-            f'{ICON_PHONE}&nbsp;<span>{esc(phone)}</span></a>'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'<span style="display:inline-block;vertical-align:middle;color:#60a5fa;">{ICON_PHONE}</span>'
+            f'&nbsp;<span>{esc(phone)}</span></a>'
         )
     if email:
         contact_items_html += (
             f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" '
             f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
-            f'text-decoration:none;white-space:nowrap;margin-inline-end:14pt;">'
-            f'{ICON_EMAIL}&nbsp;<span>{esc(email)}</span></a>'
+            f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
+            f'<span style="display:inline-block;vertical-align:middle;color:#60a5fa;">{ICON_EMAIL}</span>'
+            f'&nbsp;<span>{esc(email)}</span></a>'
         )
     if location:
         contact_items_html += (
             f'<span style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#FFFFFF;'
             f'white-space:nowrap;">'
-            f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+            f'<span style="display:inline-block;vertical-align:middle;color:#FFFFFF;">{ICON_LOCATION}</span>'
+            f'&nbsp;<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
         )
 
     # --- Languages (sidebar) ---
