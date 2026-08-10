@@ -1141,84 +1141,83 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
             exp_html += '</ul>'
         exp_html += '</div>'
 
-    # --- Contact pill items — FILLED SVG icons (modern, professional look) ---
+    # --- Contact pill items — FILLED SVG icons with EXPLICIT white color ---
     # CRITICAL DESIGN NOTES:
-    # 1. Icons use fill (solid) instead of stroke (outline) for a modern,
-    #    polished appearance that renders consistently in WeasyPrint PDF.
-    # 2. Each icon is 11x11px with explicit color, ensuring visibility on
-    #    both dark pill backgrounds and light contexts.
-    # 3. Order is: Phone → Email → Location (DOM order).
-    #    In RTL (parent dir="rtl"), this displays visually as:
-    #    Location (far left) → Email (middle) → Phone (far right).
-    #    This matches the user's request: location on the far LEFT side.
+    # 1. Icons use fill="#FFFFFF" (EXPLICIT white) instead of fill="currentColor".
+    #    WeasyPrint does NOT reliably inherit `currentColor` from parent CSS
+    #    `color` property — it falls back to black, making icons invisible
+    #    on dark pill backgrounds. Hardcoding #FFFFFF guarantees the icons
+    #    are white in BOTH the browser preview AND the exported PDF.
+    # 2. Each icon is 11x11px, filled (solid), modern style.
+    # 3. DOM order is: Phone → Email → Location.
+    #    The parent .a4-page has dir="rtl", so inline-block elements flow
+    #    right-to-left. Visual result: Location (LEFT) → Email (MID) → Phone (RIGHT).
     # 4. All items use display:inline-block (NOT flex) because WeasyPrint
     #    does not support flex `gap` properly and causes icon overlap.
-    # 5. Each icon is wrapped in a span with vertical-align:middle to ensure
-    #    perfect alignment with the text baseline.
 
-    # Phone icon — filled, modern handset shape
+    # Phone icon — filled handset, WHITE
     ICON_PHONE = (
         '<svg width="11" height="11" viewBox="0 0 24 24" '
-        'style="vertical-align:middle;display:inline-block;" '
-        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
-        '<path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
         '</svg>'
     )
 
-    # Email icon — filled envelope with flap
+    # Email icon — filled envelope, WHITE
     ICON_EMAIL = (
         '<svg width="11" height="11" viewBox="0 0 24 24" '
-        'style="vertical-align:middle;display:inline-block;" '
-        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
-        '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
         '</svg>'
     )
 
-    # Location icon — filled map pin with inner dot cutout
+    # Location icon — filled map pin, WHITE
     ICON_LOCATION = (
         '<svg width="11" height="11" viewBox="0 0 24 24" '
-        'style="vertical-align:middle;display:inline-block;" '
-        'fill="currentColor" xmlns="http://www.w3.org/2000/svg">'
-        '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
+        'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
+        'xmlns="http://www.w3.org/2000/svg">'
+        '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
         '</svg>'
     )
 
     contact_items_html = ""
-    # CRITICAL: WeasyPrint PDF fix for icon overlap + position.
-    # DOM order is: Phone → Email → Location.
-    # The parent .a4-page has dir="rtl", so inline-block elements flow
-    # right-to-left. This means the FIRST DOM element (Phone) appears on
-    # the RIGHT, and the LAST DOM element (Location) appears on the LEFT.
-    # Visual result: Location (LEFT) → Email (MIDDLE) → Phone (RIGHT).
-    # This matches the user's request: location on the far LEFT side.
+    # CRITICAL: Icon color + position fix for BOTH preview and PDF.
     #
-    # Each item uses display:inline-block (NOT flex) because WeasyPrint does
-    # NOT support flex `gap`. We use margin-inline-end for spacing.
-    # white-space:nowrap prevents any item from wrapping to a new line.
-    # Each icon is wrapped in a colored span so fill="currentColor" inherits
-    # the correct color (blue for links, white for location).
+    # COLOR: All icons use fill="#FFFFFF" (hardcoded white). WeasyPrint does
+    # NOT reliably inherit `currentColor` from CSS — it falls back to black.
+    # Hardcoded white guarantees white icons in BOTH preview AND PDF.
+    #
+    # POSITION: The pill div has dir="rtl". We rely on the parent's dir="rtl"
+    # to flow items right-to-left. DOM order is Phone → Email → Location.
+    # Visual result in BOTH browser and WeasyPrint PDF:
+    #   Location (LEFT) → Email (MIDDLE) → Phone (RIGHT)
+    #
+    # IMPORTANT: We do NOT set dir="ltr" on individual items because that
+    # breaks the RTL flow in the browser (each item becomes its own LTR
+    # island, causing inconsistent ordering between preview and PDF).
+    # Phone numbers and emails are mostly digits/Latin anyway, so they
+    # render correctly even in an RTL container.
     if phone:
         contact_items_html += (
-            f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" dir="ltr" '
+            f'<a href="tel:{esc(phone)}" class="editable contact-link" data-field="phone" '
             f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
             f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
-            f'<span style="display:inline-block;vertical-align:middle;color:#60a5fa;">{ICON_PHONE}</span>'
-            f'&nbsp;<span>{esc(phone)}</span></a>'
+            f'{ICON_PHONE}&nbsp;<span>{esc(phone)}</span></a>'
         )
     if email:
         contact_items_html += (
-            f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" dir="ltr" '
+            f'<a href="mailto:{esc(email)}" class="editable contact-link" data-field="email" '
             f'style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#60a5fa;'
             f'text-decoration:none;white-space:nowrap;margin-inline-end:18pt;">'
-            f'<span style="display:inline-block;vertical-align:middle;color:#60a5fa;">{ICON_EMAIL}</span>'
-            f'&nbsp;<span>{esc(email)}</span></a>'
+            f'{ICON_EMAIL}&nbsp;<span>{esc(email)}</span></a>'
         )
     if location:
         contact_items_html += (
             f'<span style="display:inline-block;vertical-align:middle;font-size:9.5pt;color:#FFFFFF;'
             f'white-space:nowrap;">'
-            f'<span style="display:inline-block;vertical-align:middle;color:#FFFFFF;">{ICON_LOCATION}</span>'
-            f'&nbsp;<span class="editable" data-field="location" dir="auto">{esc(location)}</span></span>'
+            f'{ICON_LOCATION}&nbsp;<span class="editable" data-field="location">{esc(location)}</span></span>'
         )
 
     # --- Languages (sidebar) ---
@@ -1260,8 +1259,8 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
 
-    <!-- ===== Contact Pill: text-align:center for inline-block items (WeasyPrint-safe) — data-role="pill" for reliable JS targeting ===== -->
-    <div data-role="pill" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 16pt;text-align:center;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <!-- ===== Contact Pill: dir="rtl" for consistent RTL rendering in BOTH browser preview and WeasyPrint PDF — data-role="pill" for reliable JS targeting ===== -->
+    <div data-role="pill" dir="rtl" style="background-color:{pill_color};border-radius:{pill_radius}pt;padding:8pt 16pt;text-align:center;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
         {contact_items_html}
     </div>
 
