@@ -379,6 +379,20 @@
         el.style.setProperty("font-size", fontSizeAr + "pt", "important");
       });
     }
+    // CRITICAL: Update the page fill indicator whenever design vars change
+    // (font size, line height, spacing, margin all affect content height).
+    // Use requestAnimationFrame to ensure the DOM has reflowed before measuring.
+    if (typeof requestAnimationFrame !== "undefined") {
+      requestAnimationFrame(() => updatePageFill());
+    } else {
+      updatePageFill();
+    }
+    // Also fetch the AUTHORITATIVE page count from the backend since the
+    // font size / margin change affects the actual PDF page count.
+    // fetchTruePageCount is defined later in the IIFE but is hoisted,
+    // so it's safe to call here. We use a direct call (no typeof check)
+    // because the typeof check returns "undefined" in some scopes.
+    fetchTruePageCount();
   }
 
   // ---------------- Preview + Inline Editing ----------------
@@ -1177,35 +1191,49 @@
     }
   });
 
-  // ----- Page count -----
+  // ----- Page count (frontend estimate — corrected by backend) -----
   function updatePageCount() {
     const page = $("#a4Page");
-    const content = $("#a4Content");
-    if (!page || !content) return;
+    const a4PageEl = $(".a4-page");
+    if (!page || !a4PageEl) return;
     const A4_HEIGHT = 1123;
-    const marginPx = state.controls.margin * 3.7795;
-    const contentAreaPerPage = A4_HEIGHT - 2 * marginPx;
-    const contentHeight = content.scrollHeight;
-    if (contentHeight <= A4_HEIGHT) {
+    const marginPx = (state.controls.margin || 8) * 3.7795;
+    const contentAreaPerPage = A4_HEIGHT - (2 * marginPx);
+    // Measure the ACTUAL .a4-page content height (excluding its own padding)
+    const pageStyle = window.getComputedStyle(a4PageEl);
+    const paddingTop = parseFloat(pageStyle.paddingTop) || 0;
+    const paddingBottom = parseFloat(pageStyle.paddingBottom) || 0;
+    const contentHeight = Math.max(0, a4PageEl.scrollHeight - paddingTop - paddingBottom);
+    // Frontend estimate (will be corrected by fetchTruePageCount)
+    if (contentHeight <= contentAreaPerPage) {
       state.pageCount = 1;
     } else {
       state.pageCount = Math.max(1, Math.ceil(contentHeight / contentAreaPerPage));
     }
     if (state.currentPage > state.pageCount) state.currentPage = state.pageCount;
-    $("#pageInfo").textContent = `صفحة ${state.currentPage} من ${state.pageCount}`;
+    // Update the old #pageInfo (used in some layouts) — null-safe
+    const pageInfoOld = $("#pageInfo");
+    if (pageInfoOld) pageInfoOld.textContent = `صفحة ${state.currentPage} من ${state.pageCount}`;
+    // Update the page fill bar (new indicator)
+    updatePageFill();
+    // Show/hide overflow warning based on the estimate (backend will correct)
     const warn = $("#overflowWarning");
     const warnText = $("#overflowText");
-    if (state.pageCount > 1) {
-      warn.style.display = "flex";
-      const w = state.pageCount === 2 ? "صفحتان" : state.pageCount + " صفحات";
-      warnText.innerHTML = `السيرة تتجاوز صفحة واحدة — <strong>${w}</strong>. عدّل الخط أو الهوامش.`;
-    } else {
-      warn.style.display = "none";
+    if (warn && warnText) {
+      if (state.pageCount > 1) {
+        warn.style.display = "flex";
+        const w = state.pageCount === 2 ? "صفحتان" : state.pageCount + " صفحات";
+        warnText.innerHTML = `السيرة تتجاوز صفحة واحدة — <strong>${w}</strong>. عدّل الخط أو الهوامش.`;
+      } else {
+        warn.style.display = "none";
+      }
     }
+    // Position the page boundary line at A4 height
     const boundary = $(".page1-boundary");
     const badge = $(".page1-badge");
     if (boundary) boundary.style.top = A4_HEIGHT + "px";
     if (badge) badge.style.top = (A4_HEIGHT - 12) + "px";
+    // Fetch the AUTHORITATIVE page count from the backend (renders actual PDF)
     fetchTruePageCount();
   }
 
@@ -1214,17 +1242,45 @@
     clearTimeout(trueCountTimer);
     trueCountTimer = setTimeout(async () => {
       try {
-        const res = await api("/api/export/page-count?engine=chromium", {
+        // CRITICAL: Send controls + style_overrides so the backend renders
+        // the EXACT same PDF the user will download. Without these, the page
+        // count would be based on default settings and not match the preview.
+        const controlsWithFont = Object.assign({}, state.controls, { fontFamily: state.font });
+        const res = await api("/api/export/page-count?engine=weasyprint", {
           method: "POST",
-          body: { data: state.data, template_id: state.templateId, lang: state.displayLang },
+          body: {
+            data: state.data,
+            template_id: state.templateId,
+            lang: state.displayLang,
+            controls: controlsWithFont,
+            font: state.font,
+            style_overrides: state.styleOverrides,
+          },
         });
         if (res.page_count != null) {
           state.pageCount = res.page_count;
           if (state.currentPage > state.pageCount) state.currentPage = state.pageCount;
-          $("#pageInfo").textContent = `صفحة ${state.currentPage} من ${state.pageCount}`;
+          // Update BOTH the old #pageInfo and the new #pageInfoText elements
+          const pageInfoOld = $("#pageInfo");
+          if (pageInfoOld) pageInfoOld.textContent = `صفحة ${state.currentPage} من ${state.pageCount}`;
+          // Re-run updatePageFill to refresh the fill bar + page info text
+          // with the authoritative page count.
+          updatePageFill();
+          // Show/hide overflow warning
+          const warn = $("#overflowWarning");
+          const warnText = $("#overflowText");
+          if (warn && warnText) {
+            if (state.pageCount > 1) {
+              warn.style.display = "flex";
+              const w = state.pageCount === 2 ? "صفحتان" : state.pageCount + " صفحات";
+              warnText.innerHTML = `السيرة تتجاوز صفحة واحدة — <strong>${w}</strong>. عدّل الخط أو الهوامش.`;
+            } else {
+              warn.style.display = "none";
+            }
+          }
         }
-      } catch (e) { /* silent */ }
-    }, 1000);
+      } catch (e) { console.error("fetchTruePageCount error:", e.message); /* frontend estimate remains as fallback */ }
+    }, 800);
   }
 
   function fitA4ToContainer() {
@@ -1246,40 +1302,69 @@
   }
 
   // ---------------- Page Fill Indicator ----------------
+  // CRITICAL: The page fill indicator must be ACCURATE, not a rough guess.
+  // Previous implementation measured #a4Content.offsetHeight which includes
+  // outer padding + extra wrapper elements — giving inflated percentages
+  // that didn't match the actual PDF page count.
+  //
+  // New approach: measure the ACTUAL .a4-page content height (excluding the
+  // page padding itself), and compare it to the USABLE height per page
+  // (A4 height - 2 * margin). This gives a true fill percentage.
+  // The page COUNT is fetched from the backend (which renders the actual PDF)
+  // for authoritative accuracy — the frontend estimate is only a fallback
+  // until the backend responds.
   function updatePageFill() {
     const a4Page = $(".a4-page");
     const fillBar = $("#pageFillBar");
     const fillText = $("#pageFillText");
     const pageInfo = $("#pageInfoText");
     if (!a4Page || !fillBar) return;
-    // A4 height at 96 DPI = 297mm * 3.7795 ≈ 1123px
-    // But the USABLE content height = page height - 2 * padding (top + bottom margin)
+
+    // A4 page dimensions (at 96 DPI: 1mm = 3.7795px)
+    // A4 = 210mm x 297mm = 794px x 1123px
     const A4_HEIGHT_PX = 1123;
+    const A4_WIDTH_PX = 794;
     const marginPx = (state.controls.margin || 8) * 3.7795; // mm → px
-    const usableHeight = A4_HEIGHT_PX - (2 * marginPx);
-    // Measure the ACTUAL content height (not scrollHeight which includes padding)
-    // Use the #a4Content element's offsetHeight for accuracy
-    const contentEl = $("#a4Content");
-    let contentHeight = 0;
-    if (contentEl) {
-      contentHeight = contentEl.offsetHeight;
-    } else {
-      contentHeight = a4Page.scrollHeight - (2 * marginPx);
-    }
-    // Calculate percentage of usable area filled
-    const pct = Math.min(100, Math.round((contentHeight / usableHeight) * 100));
-    // Calculate number of pages (content height / usable height per page)
-    const pages = Math.max(1, Math.ceil(contentHeight / usableHeight));
+    // USABLE content area per page = page height - top margin - bottom margin
+    const usableHeightPerPage = A4_HEIGHT_PX - (2 * marginPx);
+
+    // Measure the ACTUAL content height INSIDE the .a4-page.
+    // We use scrollHeight of the .a4-page itself (which is the total content
+    // height including overflow, excluding the page's own padding).
+    // Then subtract the padding (top + bottom) to get the pure content height.
+    const pageStyle = window.getComputedStyle(a4Page);
+    const paddingTop = parseFloat(pageStyle.paddingTop) || 0;
+    const paddingBottom = parseFloat(pageStyle.paddingBottom) || 0;
+    const pageScrollHeight = a4Page.scrollHeight;
+    // Pure content height = scrollHeight - padding (top + bottom)
+    const contentHeight = Math.max(0, pageScrollHeight - paddingTop - paddingBottom);
+
+    // Fill percentage = how much of ONE page is filled (capped at 100%)
+    // If content is taller than one page, the bar stays at 100% and we rely
+    // on the page count text to show "1 of N".
+    const pct = Math.min(100, Math.max(0, Math.round((contentHeight / usableHeightPerPage) * 100)));
+
+    // Page count estimate (frontend only — will be corrected by backend)
+    const estimatedPages = Math.max(1, Math.ceil(contentHeight / usableHeightPerPage));
+
+    // Update the fill bar width
     fillBar.style.width = pct + "%";
-    if (pct > 90) {
-      fillBar.style.background = "#ef4444";
-    } else if (pct > 75) {
-      fillBar.style.background = "#f59e0b";
+    // Color: green (safe), amber (getting full), red (overflow)
+    if (pct >= 95) {
+      fillBar.style.background = "#ef4444"; // red — overflow imminent
+    } else if (pct >= 80) {
+      fillBar.style.background = "#f59e0b"; // amber — getting full
     } else {
-      fillBar.style.background = "#22c55e";
+      fillBar.style.background = "#22c55e"; // green — safe
     }
+    // Update the percentage text
     if (fillText) fillText.textContent = pct + "%";
-    if (pageInfo) pageInfo.textContent = pages === 1 ? "صفحة 1" : `صفحة 1 من ${pages}`;
+    // Update the page info text — use the authoritative page count from backend
+    // if available (state.pageCount), otherwise use the estimate.
+    const displayPages = state.pageCount || estimatedPages;
+    if (pageInfo) {
+      pageInfo.textContent = displayPages === 1 ? "صفحة 1" : `صفحة 1 من ${displayPages}`;
+    }
   }
 
   // ---------------- Export ----------------

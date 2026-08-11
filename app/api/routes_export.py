@@ -100,7 +100,16 @@ async def get_page_count(req: ExportRequest, engine: str = Query("chromium", pat
                 from app.services.chromium_pdf_service import export_pdf_chromium
                 pdf_bytes = export_pdf_chromium(resume, req.template_id, controls=req.controls)
             else:
-                pdf_bytes = export_pdf(resume, req.template_id, controls=req.controls)
+                # CRITICAL: Pass font_family + style_overrides so the page count
+                # matches the EXACT PDF the user will download (with their chosen
+                # font, colors, border-radius, sidebar width, etc.).
+                pdf_bytes = export_pdf(
+                    resume,
+                    req.template_id,
+                    controls=req.controls,
+                    font_family=req.font,
+                    style_overrides=req.style_overrides,
+                )
         except Exception as render_err:
             logger.exception("PDF rendering failed during page-count")
             raise HTTPException(
