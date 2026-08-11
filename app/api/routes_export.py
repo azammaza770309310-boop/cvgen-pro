@@ -143,6 +143,137 @@ async def get_page_count(req: ExportRequest, engine: str = Query("chromium", pat
         raise HTTPException(status_code=500, detail=f"Page count failed: {e}")
 
 
+@router.post("/fill-percentage")
+async def get_fill_percentage(req: ExportRequest):
+    """Return the ACTUAL fill percentage of page 1 by rendering the PDF with
+    WeasyPrint and measuring the content height on the first page.
+
+    This is the AUTHORITATIVE fill percentage — it matches EXACTLY what the
+    user will see when they download the PDF. The browser DOM measurement
+    is inaccurate because Chromium and WeasyPrint render fonts/spacing
+    differently (WeasyPrint is more compact).
+
+    Returns:
+      - fill_percentage: 0-100 (how much of page 1 is filled with content)
+      - page_count: total number of pages
+      - content_height_pt: content height in points (1pt = 1/72 inch)
+      - page_height_pt: total page height in points
+    """
+    try:
+        from weasyprint import HTML as WeasyHTML
+
+        resume = normalize_resume_data(req.data)
+        if req.template_id:
+            resume.template_id = req.template_id
+        if req.lang:
+            resume.lang = req.lang
+
+        # Build the HTML document (same as export_pdf uses)
+        from app.services.pdf_service import render_html_for_pdf
+        html_doc = render_html_for_pdf(
+            resume,
+            resume.template_id,
+            controls=req.controls,
+            font_family=req.font,
+            style_overrides=req.style_overrides,
+        )
+
+        # Render with WeasyPrint to get the layout tree
+        doc = WeasyHTML(string=html_doc).render()
+        page_count = len(doc.pages)
+        page1 = doc.pages[0]
+
+        # Get the page box — this contains the full layout tree
+        page_box = page1._page_box
+        # Page height in CSS pixels (A4 = 1123px at 96dpi)
+        page_height_css = float(page_box.height)
+
+        # Find the maximum bottom y-coordinate of CONTENT boxes (not containers).
+        #
+        # PROBLEM: .a4-page has `min-height: 297mm` which makes the page box
+        # always full height (1123px) regardless of actual content. If we
+        # measure the page box or its direct children (which stretch to fill
+        # the min-height), we always get 100% fill — even when the PDF has
+        # a big empty space at the bottom.
+        #
+        # SOLUTION: Only count boxes that contain ACTUAL TEXT content (leaf
+        # boxes with text), not container/wrapper divs that stretch to fill.
+        # WeasyPrint text boxes have `text` attribute (the actual text string)
+        # or are anonymous line boxes.
+        #
+        # We also skip the .a4-page itself and its flex container children
+        # that have min-height:100% (they stretch but have no content of their own).
+        max_content_bottom = 0.0
+        for box in page_box.descendants():
+            try:
+                # Skip the page box itself
+                if box is page_box:
+                    continue
+                # Check if the box is visible
+                style = getattr(box, "style", None)
+                if style:
+                    display = style.get("display")
+                    visibility = style.get("visibility")
+                    if display == "none" or visibility == "hidden":
+                        continue
+                # Get position and height
+                pos_y = float(getattr(box, "position_y", 0) or 0)
+                h = float(getattr(box, "height", 0) or 0)
+                if h <= 0:
+                    continue
+                # ONLY count boxes that have actual text content.
+                # We check for the 'text' attribute (TextBox) or children
+                # that are text boxes.
+                has_text = False
+                # Check if this box is a TextBox (has text attribute)
+                text_attr = getattr(box, "text", None)
+                if text_attr and str(text_attr).strip():
+                    has_text = True
+                # Check if this box has direct text children
+                if not has_text:
+                    for child in (getattr(box, "children", None) or []):
+                        child_text = getattr(child, "text", None)
+                        if child_text and str(child_text).strip():
+                            has_text = True
+                            break
+                if not has_text:
+                    continue
+                # This box has text content — measure its bottom edge
+                bottom = pos_y + h
+                if 0 < bottom <= page_height_css + 5:
+                    if bottom > max_content_bottom:
+                        max_content_bottom = bottom
+            except (TypeError, ValueError, AttributeError):
+                continue
+
+        # Calculate fill percentage based on usable content area
+        # (page height minus top + bottom padding)
+        margin_mm = 8.0
+        if req.controls and hasattr(req.controls, "margin") and req.controls.margin:
+            margin_mm = float(req.controls.margin)
+        margin_px = margin_mm * 3.7795  # mm to px
+        usable_height_css = page_height_css - (2 * margin_px)
+
+        # Content fill = (max_content_bottom - top_padding) / usable_height
+        content_fill = max_content_bottom - margin_px
+        if usable_height_css > 0:
+            fill_pct = min(100, max(0, round((content_fill / usable_height_css) * 100)))
+        else:
+            fill_pct = 0
+
+        return {
+            "fill_percentage": fill_pct,
+            "page_count": page_count,
+            "content_bottom_px": round(max_content_bottom, 1),
+            "page_height_px": round(page_height_css, 1),
+            "usable_height_px": round(usable_height_css, 1),
+            "margin_mm": margin_mm,
+        }
+    except Exception as e:
+        logger.exception("Fill percentage measurement failed")
+        raise HTTPException(status_code=500, detail=f"Fill measurement failed: {e}")
+
+
 @router.post("/docx")
 async def export_docx_route(req: ExportRequest):
     try:

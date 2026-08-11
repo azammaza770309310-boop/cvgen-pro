@@ -531,7 +531,7 @@ def render_professional_classic(resume: ResumeData) -> str:
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-transform:uppercase;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
-    return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;min-height:297mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
     <h1 style="text-align:center;margin-bottom:5px;font-size:26pt !important;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
@@ -934,7 +934,7 @@ def render_arabic_classic(resume: ResumeData) -> str:
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;min-height:297mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
     <h1 style="text-align:center;margin-bottom:5px;font-size:26pt !important;" class="editable" data-field="name_ar">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
@@ -1254,7 +1254,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
@@ -1265,10 +1265,10 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left), stretches to bottom — data-role="sidebar" for reliable JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1293,7 +1293,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
         </div>
 
         <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
-        <div style="width:{main_width}%;padding:0;color:#2D3748;min-height:100%;">
+        <div style="width:{main_width}%;padding:0;color:#2D3748;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">نبذة عني</div>
@@ -1576,7 +1576,7 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#1E293B;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" lang="ar" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#FFFFFF;color:#1E293B;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_ar" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#1E293B;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
@@ -1587,10 +1587,10 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — light sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Light) — {sb_width}%, one-sided radius (top-left), dark text on light bg — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">المؤهلات العلمية</div>
@@ -1615,7 +1615,7 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
         </div>
 
         <!-- ===== RIGHT MAIN CONTENT (White) — 65%, extends to bottom of page ===== -->
-        <div style="width:{main_width}%;padding:0;color:#1E293B;min-height:100%;">
+        <div style="width:{main_width}%;padding:0;color:#1E293B;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">نبذة عني</div>
@@ -1896,7 +1896,7 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
             '</ul>'
         )
 
-    return f'''<div class="a4-page" id="resume-document" dir="ltr" lang="en" style="font-family:'Inter','Helvetica',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;min-height:297mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    return f'''<div class="a4-page" id="resume-document" dir="ltr" lang="en" style="font-family:'Inter','Helvetica',Arial,sans-serif;background:#FFFFFF;color:#2D3748;padding:8mm;box-sizing:border-box;width:100%;max-width:210mm;margin:0 auto;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
     <!-- ===== HEADER: Centered Name ===== -->
     <h1 class="editable" data-field="name_en" style="text-align:center !important;font-size:26pt !important;font-weight:800 !important;color:#2D3748;width:100%;margin:0 0 16pt 0;">{esc(name)}</h1>
@@ -1907,10 +1907,10 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;min-height:250mm;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left) — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Education</div>
@@ -1935,7 +1935,7 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
         </div>
 
         <!-- ===== RIGHT MAIN CONTENT (White) — {main_width}%, extends to bottom ===== -->
-        <div style="width:{main_width}%;padding:0;color:#2D3748;min-height:100%;">
+        <div style="width:{main_width}%;padding:0;color:#2D3748;">
 
             <!-- Profile Summary -->
             <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Profile Summary</div>

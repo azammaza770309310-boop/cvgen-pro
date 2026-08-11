@@ -1242,11 +1242,16 @@
     clearTimeout(trueCountTimer);
     trueCountTimer = setTimeout(async () => {
       try {
-        // CRITICAL: Send controls + style_overrides so the backend renders
-        // the EXACT same PDF the user will download. Without these, the page
-        // count would be based on default settings and not match the preview.
+        // CRITICAL: We call the fill-percentage API which renders the ACTUAL
+        // PDF with WeasyPrint (same engine that produces the downloaded PDF)
+        // and measures the TRUE content height. This guarantees the fill
+        // percentage matches EXACTLY what the user sees when they download.
+        //
+        // The old approach (measuring browser DOM height) was inaccurate
+        // because Chromium and WeasyPrint render fonts/spacing differently —
+        // the browser showed 100% fill while the PDF had a big empty gap.
         const controlsWithFont = Object.assign({}, state.controls, { fontFamily: state.font });
-        const res = await api("/api/export/page-count?engine=weasyprint", {
+        const res = await api("/api/export/fill-percentage", {
           method: "POST",
           body: {
             data: state.data,
@@ -1257,15 +1262,35 @@
             style_overrides: state.styleOverrides,
           },
         });
-        if (res.page_count != null) {
-          state.pageCount = res.page_count;
-          if (state.currentPage > state.pageCount) state.currentPage = state.pageCount;
-          // Update BOTH the old #pageInfo and the new #pageInfoText elements
+        if (res.fill_percentage != null) {
+          // Update the fill bar to the AUTHORITATIVE percentage from WeasyPrint
+          const fillBar = $("#pageFillBar");
+          const fillText = $("#pageFillText");
+          const pageInfo = $("#pageInfoText");
+          const pct = res.fill_percentage;
+          if (fillBar) {
+            fillBar.style.width = pct + "%";
+            // Color: green (safe), amber (getting full), red (overflow)
+            if (pct >= 95) {
+              fillBar.style.background = "#ef4444"; // red — overflow imminent
+            } else if (pct >= 80) {
+              fillBar.style.background = "#f59e0b"; // amber — getting full
+            } else {
+              fillBar.style.background = "#22c55e"; // green — safe
+            }
+          }
+          if (fillText) fillText.textContent = pct + "%";
+          // Update page count from the authoritative response
+          if (res.page_count != null) {
+            state.pageCount = res.page_count;
+            if (state.currentPage > state.pageCount) state.currentPage = state.pageCount;
+          }
+          if (pageInfo) {
+            pageInfo.textContent = state.pageCount === 1 ? "صفحة 1" : `صفحة 1 من ${state.pageCount}`;
+          }
+          // Update old #pageInfo element if it exists
           const pageInfoOld = $("#pageInfo");
           if (pageInfoOld) pageInfoOld.textContent = `صفحة ${state.currentPage} من ${state.pageCount}`;
-          // Re-run updatePageFill to refresh the fill bar + page info text
-          // with the authoritative page count.
-          updatePageFill();
           // Show/hide overflow warning
           const warn = $("#overflowWarning");
           const warnText = $("#overflowText");
@@ -1302,17 +1327,16 @@
   }
 
   // ---------------- Page Fill Indicator ----------------
-  // CRITICAL: The page fill indicator must be ACCURATE, not a rough guess.
-  // Previous implementation measured #a4Content.offsetHeight which includes
-  // outer padding + extra wrapper elements — giving inflated percentages
-  // that didn't match the actual PDF page count.
+  // CRITICAL: The fill bar is updated by fetchTruePageCount() which calls the
+  // backend fill-percentage API. That API renders the ACTUAL PDF with WeasyPrint
+  // (same engine that produces the downloaded PDF) and measures the TRUE
+  // content height. This guarantees the fill percentage matches EXACTLY what
+  // the user sees when they download.
   //
-  // New approach: measure the ACTUAL .a4-page content height (excluding the
-  // page padding itself), and compare it to the USABLE height per page
-  // (A4 height - 2 * margin). This gives a true fill percentage.
-  // The page COUNT is fetched from the backend (which renders the actual PDF)
-  // for authoritative accuracy — the frontend estimate is only a fallback
-  // until the backend responds.
+  // This function (updatePageFill) provides an INSTANT estimate based on DOM
+  // measurement as a placeholder until the backend responds (~1 second).
+  // The backend response will then OVERWRITE this estimate with the accurate
+  // value from the actual PDF rendering.
   function updatePageFill() {
     const a4Page = $(".a4-page");
     const fillBar = $("#pageFillBar");
@@ -1320,47 +1344,28 @@
     const pageInfo = $("#pageInfoText");
     if (!a4Page || !fillBar) return;
 
-    // A4 page dimensions (at 96 DPI: 1mm = 3.7795px)
-    // A4 = 210mm x 297mm = 794px x 1123px
+    // INSTANT estimate (will be corrected by backend in ~1 second)
     const A4_HEIGHT_PX = 1123;
-    const A4_WIDTH_PX = 794;
-    const marginPx = (state.controls.margin || 8) * 3.7795; // mm → px
-    // USABLE content area per page = page height - top margin - bottom margin
+    const marginPx = (state.controls.margin || 8) * 3.7795;
     const usableHeightPerPage = A4_HEIGHT_PX - (2 * marginPx);
-
-    // Measure the ACTUAL content height INSIDE the .a4-page.
-    // We use scrollHeight of the .a4-page itself (which is the total content
-    // height including overflow, excluding the page's own padding).
-    // Then subtract the padding (top + bottom) to get the pure content height.
     const pageStyle = window.getComputedStyle(a4Page);
     const paddingTop = parseFloat(pageStyle.paddingTop) || 0;
     const paddingBottom = parseFloat(pageStyle.paddingBottom) || 0;
     const pageScrollHeight = a4Page.scrollHeight;
-    // Pure content height = scrollHeight - padding (top + bottom)
     const contentHeight = Math.max(0, pageScrollHeight - paddingTop - paddingBottom);
-
-    // Fill percentage = how much of ONE page is filled (capped at 100%)
-    // If content is taller than one page, the bar stays at 100% and we rely
-    // on the page count text to show "1 of N".
     const pct = Math.min(100, Math.max(0, Math.round((contentHeight / usableHeightPerPage) * 100)));
-
-    // Page count estimate (frontend only — will be corrected by backend)
     const estimatedPages = Math.max(1, Math.ceil(contentHeight / usableHeightPerPage));
 
-    // Update the fill bar width
+    // Show the estimate (will be overwritten by fetchTruePageCount)
     fillBar.style.width = pct + "%";
-    // Color: green (safe), amber (getting full), red (overflow)
     if (pct >= 95) {
-      fillBar.style.background = "#ef4444"; // red — overflow imminent
+      fillBar.style.background = "#ef4444";
     } else if (pct >= 80) {
-      fillBar.style.background = "#f59e0b"; // amber — getting full
+      fillBar.style.background = "#f59e0b";
     } else {
-      fillBar.style.background = "#22c55e"; // green — safe
+      fillBar.style.background = "#22c55e";
     }
-    // Update the percentage text
     if (fillText) fillText.textContent = pct + "%";
-    // Update the page info text — use the authoritative page count from backend
-    // if available (state.pageCount), otherwise use the estimate.
     const displayPages = state.pageCount || estimatedPages;
     if (pageInfo) {
       pageInfo.textContent = displayPages === 1 ? "صفحة 1" : `صفحة 1 من ${displayPages}`;
