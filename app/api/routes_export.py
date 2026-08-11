@@ -188,22 +188,23 @@ async def get_fill_percentage(req: ExportRequest):
         # Page height in CSS pixels (A4 = 1123px at 96dpi)
         page_height_css = float(page_box.height)
 
-        # Find the maximum bottom y-coordinate of CONTENT boxes (not containers).
+        # Find the maximum bottom y-coordinate of VISIBLE content boxes.
         #
-        # PROBLEM: .a4-page has `min-height: 297mm` which makes the page box
-        # always full height (1123px) regardless of actual content. If we
-        # measure the page box or its direct children (which stretch to fill
-        # the min-height), we always get 100% fill — even when the PDF has
-        # a big empty space at the bottom.
+        # We measure the VISUAL content bottom — this includes:
+        # - Boxes with text content (text boxes, paragraphs, list items)
+        # - Boxes with a visible BACKGROUND COLOR (sidebar, pill, etc.)
+        # - Boxes with visible BORDERS
         #
-        # SOLUTION: Only count boxes that contain ACTUAL TEXT content (leaf
-        # boxes with text), not container/wrapper divs that stretch to fill.
-        # WeasyPrint text boxes have `text` attribute (the actual text string)
-        # or are anonymous line boxes.
+        # We EXCLUDE:
+        # - The .a4-page box itself (it has min-height:297mm + white background
+        #   which would always show 100% fill — but it's the PAGE, not content)
+        # - The page_box (the @page margin box)
+        # - Boxes that span the FULL page width (those are page-level containers)
         #
-        # We also skip the .a4-page itself and its flex container children
-        # that have min-height:100% (they stretch but have no content of their own).
+        # This gives an accurate measurement of how far down the ACTUAL CONTENT
+        # (sidebar, main text, etc.) extends on the page.
         max_content_bottom = 0.0
+        page_width_css = float(page_box.width) if hasattr(page_box, "width") else 794.0
         for box in page_box.descendants():
             try:
                 # Skip the page box itself
@@ -216,29 +217,52 @@ async def get_fill_percentage(req: ExportRequest):
                     visibility = style.get("visibility")
                     if display == "none" or visibility == "hidden":
                         continue
+                # Skip the .a4-page container — it has min-height:297mm and a
+                # white/transparent background. Measuring it would always give
+                # 100% fill. We only want to measure CONTENT inside it.
+                tag = getattr(box, "element_tag", None)
+                classes = style.get("class") if style else None
+                if classes and "a4-page" in str(classes):
+                    continue
+                # Skip boxes that span the full page width (page-level containers)
+                # — these are wrappers, not content. Content boxes (sidebar, main
+                # column) are narrower than the full page.
+                box_width = float(getattr(box, "width", 0) or 0)
+                if box_width >= page_width_css * 0.95:
+                    continue
                 # Get position and height
                 pos_y = float(getattr(box, "position_y", 0) or 0)
                 h = float(getattr(box, "height", 0) or 0)
                 if h <= 0:
                     continue
-                # ONLY count boxes that have actual text content.
-                # We check for the 'text' attribute (TextBox) or children
-                # that are text boxes.
-                has_text = False
-                # Check if this box is a TextBox (has text attribute)
-                text_attr = getattr(box, "text", None)
-                if text_attr and str(text_attr).strip():
-                    has_text = True
-                # Check if this box has direct text children
-                if not has_text:
-                    for child in (getattr(box, "children", None) or []):
-                        child_text = getattr(child, "text", None)
-                        if child_text and str(child_text).strip():
-                            has_text = True
-                            break
-                if not has_text:
+                # Determine if this box is "visually significant":
+                # A box is significant if it has a VISIBLE (non-white, non-transparent)
+                # background color OR is a leaf text box (has its own text).
+                #
+                # We do NOT count:
+                # - Container divs that merely HAVE text children deep inside them
+                #   (those stretch via flexbox min-height but have no visible content)
+                # - The .a4-page itself (white background = the page, not content)
+                # - Boxes with white/light backgrounds (those are page backgrounds)
+                is_significant = False
+                # Check for a NON-TRANSPARENT, NON-WHITE background color
+                if style:
+                    bg = style.get("background_color")
+                    bg_str = str(bg) if bg else ""
+                    # Skip transparent backgrounds
+                    if bg and bg_str not in ("(0, 0, 0, 0)", "transparent", "rgba(0, 0, 0, 0)", "color(srgb 0.0 0.0 0.0 / 0.0)"):
+                        # Skip white backgrounds (the page itself is white)
+                        # White = color(srgb 1.0 1.0 1.0 / 1.0) or rgb(255,255,255)
+                        if "1.0 1.0 1.0" not in bg_str and "255, 255, 255" not in bg_str and "255,255,255" not in bg_str:
+                            is_significant = True
+                # Check if this box IS a text box (has its own text attribute)
+                if not is_significant:
+                    text_attr = getattr(box, "text", None)
+                    if text_attr and str(text_attr).strip():
+                        is_significant = True
+                if not is_significant:
                     continue
-                # This box has text content — measure its bottom edge
+                # Calculate bottom edge
                 bottom = pos_y + h
                 if 0 < bottom <= page_height_css + 5:
                     if bottom > max_content_bottom:

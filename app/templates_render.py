@@ -1265,10 +1265,10 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;min-height:240mm;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left), stretches to bottom — data-role="sidebar" for reliable JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1587,10 +1587,10 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — light sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;min-height:240mm;">
 
         <!-- ===== LEFT SIDEBAR (Light) — {sb_width}%, one-sided radius (top-left), dark text on light bg — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">المؤهلات العلمية</div>
@@ -1907,10 +1907,10 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     </div>
 
     <!-- ===== MAIN BODY: Flexbox — dark sidebar on LEFT, white content on RIGHT ===== -->
-    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;">
+    <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;min-height:240mm;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left) — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:left;margin-bottom:4pt;">Education</div>
