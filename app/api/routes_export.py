@@ -236,31 +236,26 @@ async def get_fill_percentage(req: ExportRequest):
                 if h <= 0:
                     continue
                 # Determine if this box is "visually significant":
-                # A box is significant if it has a VISIBLE (non-white, non-transparent)
-                # background color OR is a leaf text box (has its own text).
+                # We ONLY count boxes that contain ACTUAL TEXT content (leaf text
+                # boxes), NOT containers with backgrounds (sidebar, pill).
                 #
-                # We do NOT count:
-                # - Container divs that merely HAVE text children deep inside them
-                #   (those stretch via flexbox min-height but have no visible content)
-                # - The .a4-page itself (white background = the page, not content)
-                # - Boxes with white/light backgrounds (those are page backgrounds)
-                is_significant = False
-                # Check for a NON-TRANSPARENT, NON-WHITE background color
-                if style:
-                    bg = style.get("background_color")
-                    bg_str = str(bg) if bg else ""
-                    # Skip transparent backgrounds
-                    if bg and bg_str not in ("(0, 0, 0, 0)", "transparent", "rgba(0, 0, 0, 0)", "color(srgb 0.0 0.0 0.0 / 0.0)"):
-                        # Skip white backgrounds (the page itself is white)
-                        # White = color(srgb 1.0 1.0 1.0 / 1.0) or rgb(255,255,255)
-                        if "1.0 1.0 1.0" not in bg_str and "255, 255, 255" not in bg_str and "255,255,255" not in bg_str:
-                            is_significant = True
-                # Check if this box IS a text box (has its own text attribute)
-                if not is_significant:
-                    text_attr = getattr(box, "text", None)
-                    if text_attr and str(text_attr).strip():
-                        is_significant = True
-                if not is_significant:
+                # WHY: The sidebar has min-height:100% which makes it stretch
+                # to the bottom of the page (visually full). But the ACTUAL
+                # TEXT inside the sidebar ends much higher. The user wants to
+                # know how full the page is WITH TEXT — so they can increase
+                # font size until the text reaches the bottom.
+                #
+                # If we counted the sidebar's background (which stretches to
+                # 96% via min-height), the indicator would show 96% even when
+                # the actual text only fills 60%. The user would think "it's
+                # full" but the PDF would have a huge gap.
+                #
+                # SOLUTION: Only count LEAF TEXT boxes (boxes with their own
+                # `text` attribute that is non-empty). This gives the TRUE
+                # text fill percentage that matches what the user sees in the
+                # downloaded PDF.
+                text_attr = getattr(box, "text", None)
+                if not text_attr or not str(text_attr).strip():
                     continue
                 # Calculate bottom edge
                 bottom = pos_y + h
