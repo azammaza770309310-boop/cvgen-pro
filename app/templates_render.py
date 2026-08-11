@@ -531,8 +531,8 @@ def render_professional_classic(resume: ResumeData) -> str:
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-transform:uppercase;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
-    return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
-    <h1 style="text-align:center;margin-bottom:5px;font-size:34px;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
+    return f'''<div class="a4-page" id="resume-document" dir="auto" style="font-family:'Noto Kufi Arabic','Noto Sans',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;min-height:297mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <h1 style="text-align:center;margin-bottom:5px;font-size:26pt !important;text-transform:uppercase;" class="editable" data-field="name_en">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
     <div {st}>CAREER OBJECTIVE</div>
@@ -934,8 +934,8 @@ def render_arabic_classic(resume: ResumeData) -> str:
     st = 'style="font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:20px;padding-top:5px;margin-bottom:10px;text-align:start;"'
     ct = 'style="font-size:14px;line-height:1.6;text-align:start;"'
 
-    return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:40px;color:#000;max-width:800px;margin:0 auto;box-sizing:border-box;">
-    <h1 style="text-align:center;margin-bottom:5px;font-size:34px;" class="editable" data-field="name_ar">{esc(name)}</h1>
+    return f'''<div class="a4-page" id="resume-document" dir="rtl" style="font-family:'Tajawal','Noto Kufi Arabic',Arial,sans-serif;background:#fff;padding:8mm;color:#000;max-width:210mm;min-height:297mm;margin:0 auto;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+    <h1 style="text-align:center;margin-bottom:5px;font-size:26pt !important;" class="editable" data-field="name_ar">{esc(name)}</h1>
     <div style="text-align:center;font-size:14px;color:#555;margin-bottom:25px;unicode-bidi:plaintext;">{contact_line}</div>
 
     <div {st}>الهدف الوظيفي</div>

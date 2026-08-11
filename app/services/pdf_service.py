@@ -67,21 +67,28 @@ def _build_design_vars_css(controls=None, font_family=None) -> str:
     # CRITICAL: Also apply DIRECT CSS rules (WeasyPrint doesn't fully support vars)
     if controls:
         direct_rules = []
-        # Font size + line height on ALL text elements (English baseline)
+        # Font size + line height on ALL body text elements (English baseline)
         if hasattr(controls, "fontSize") and controls.fontSize:
             font_size = float(controls.fontSize)
             font_size_ar = round(font_size * 1.13, 1)  # Arabic +13% for visual parity
             # English + generic elements: use the base font size.
-            # CRITICAL: h1 is EXCLUDED — the asymmetric templates use
-            # inline `font-size: 26pt !important` on the name <h1>, and we
-            # must NOT override it. Same for h2/h3 section headings in asym
-            # templates (they use 14pt inline).
-            # The selector below targets body text only (p, li, span, div,
-            # .editable, .contact-item, .item, .item-title) — NOT h1/h2/h3.
+            # CRITICAL: h1, h2, h3 are EXCLUDED because:
+            # 1. Asymmetric templates use inline `font-size: 26pt !important` on
+            #    the name <h1> and 14pt on section <h2>/<h3>.
+            # 2. Official templates use CSS classes (header-name-en, header-name-ar,
+            #    header-name-center) with `font-size: var(--cv-name-size)` = 22pt.
+            # 3. professional_classic & arabic_classic use inline `font-size: 34px`.
+            # If we override h1 with the slider font-size (e.g. 11pt), the name
+            # becomes tiny in the PDF but stays large in the preview.
+            # NOTE: .editable is applied to <h1> in ALL templates, so we MUST
+            # exclude h1/h2/h3 even when they have the .editable class.
+            # We use :not(h1):not(h2):not(h3) to exclude heading elements.
             direct_rules.append(
                 f".a4-page, .cv-root, .section, .section-row, .section-body, "
                 f".body-en, .item, .item-title, "
-                f".contact-bar, .contact-item, .editable, p, li, span, div {{\n"
+                f".contact-bar, .contact-item, "
+                f".editable:not(h1):not(h2):not(h3), "
+                f"p, li, span, div {{\n"
                 f"  font-size: {font_size}pt !important;\n"
                 f"}}"
             )
