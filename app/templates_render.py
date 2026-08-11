@@ -1157,7 +1157,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
 
     # Phone icon — filled handset, WHITE
     ICON_PHONE = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
@@ -1166,7 +1166,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
 
     # Email icon — filled envelope, WHITE
     ICON_EMAIL = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
@@ -1175,7 +1175,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
 
     # Location icon — filled map pin, WHITE
     ICON_LOCATION = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
@@ -1268,7 +1268,7 @@ def render_asymmetric_dark(resume: ResumeData, style_overrides=None) -> str:
     <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;min-height:240mm;">
 
         <!-- ===== LEFT SIDEBAR (Dark) — {sb_width}%, one-sided radius (top-left), stretches to bottom — data-role="sidebar" for reliable JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#FFFFFF;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;">المؤهلات العلمية</div>
@@ -1497,21 +1497,21 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
     # --- Contact pill items — FILLED SVG icons with EXPLICIT white color ---
     # Same icons as asymmetric_dark — white on the colored pill background.
     ICON_PHONE = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
         '</svg>'
     )
     ICON_EMAIL = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
         '</svg>'
     )
     ICON_LOCATION = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'
@@ -1590,7 +1590,7 @@ def render_asymmetric_light(resume: ResumeData, style_overrides=None) -> str:
     <div style="display:flex;flex-direction:row;width:100%;gap:16pt;margin-top:24pt;min-height:240mm;">
 
         <!-- ===== LEFT SIDEBAR (Light) — {sb_width}%, one-sided radius (top-left), dark text on light bg — data-role="sidebar" for JS targeting ===== -->
-        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:0 {sb_radius}pt 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+        <div data-role="sidebar" style="width:{sb_width}%;min-height:100%;background-color:{sb_color};border-radius:{sb_radius}pt 0 0 0;padding:16pt;color:#1E293B;border-top:4pt solid #2563EB;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
 
             <!-- Education -->
             <div style="font-weight:700;font-size:14pt;text-align:right;margin-bottom:4pt;color:#1E293B;">المؤهلات العلمية</div>
@@ -1781,21 +1781,21 @@ def render_asymmetric_dark_en(resume: ResumeData, style_overrides=None) -> str:
     # --- Contact pill items — FILLED SVG icons with EXPLICIT white color ---
     # Same icons as asymmetric_dark — white on the dark pill background.
     ICON_PHONE = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>'
         '</svg>'
     )
     ICON_EMAIL = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
         '</svg>'
     )
     ICON_LOCATION = (
-        '<svg width="11" height="11" viewBox="0 0 24 24" '
+        '<svg width="14" height="14" viewBox="0 0 24 24" '
         'style="vertical-align:middle;display:inline-block;fill:#FFFFFF;" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<path fill="#FFFFFF" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>'

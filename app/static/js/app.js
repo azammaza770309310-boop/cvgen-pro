@@ -684,19 +684,25 @@
     const sbRadiusSlider = $("#sidebarRadiusSlider");
     const sbRadiusValue = $("#sidebarRadiusValue");
     if (sbRadiusSlider && sidebar) {
-      // Get current sidebar radius — extract the SECOND value (top-right)
-      // from "0 12pt 0 0" or "0px 16px 0px 0px" (browser converts pt→px).
-      // The first value is always 0 (top-left has no radius in teardrop shape).
+      // Determine which corner has the teardrop based on the template.
+      // Arabic templates (asymmetric_dark, asymmetric_light) → top-LEFT
+      // English template (asymmetric_dark_en) → top-RIGHT
+      const isEnglishTemplate = state.templateId === "asymmetric_dark_en";
+      const radiusCorner = isEnglishTemplate ? "top-right" : "top-left";
+
+      // Get current sidebar radius — extract the NON-ZERO value from the
+      // 4-value border-radius string. For top-left: "{val}pt 0 0 0".
+      // For top-right: "0 {val}pt 0 0". Browser converts pt→px.
       const sbBR = sidebar.style.borderRadius || "";
       let currentSbRadius = 12;
-      // Try to match the second value in a 4-value border-radius
-      const m4 = sbBR.match(/\d+(?:pt|px)?\s+(\d+)(?:pt|px)?/);
-      if (m4 && m4[1] && m4[1] !== "0") {
-        currentSbRadius = parseInt(m4[1], 10);
-      } else {
-        // Fallback: try single-value match (e.g. "12pt")
-        const m1 = sbBR.match(/(\d+)/);
-        if (m1 && m1[1] !== "0") currentSbRadius = parseInt(m1[1], 10);
+      // Match all numbers in the border-radius string
+      const nums = sbBR.match(/\d+/g) || [];
+      // Find the first non-zero number (that's the actual radius value)
+      for (const n of nums) {
+        if (n !== "0") {
+          currentSbRadius = parseInt(n, 10);
+          break;
+        }
       }
       // Clamp to slider range [0, 40]
       currentSbRadius = Math.max(0, Math.min(40, currentSbRadius));
@@ -706,8 +712,14 @@
       sbRadiusSlider.addEventListener("input", function() {
         const val = this.value;
         sbRadiusValue.textContent = val;
-        // One-sided radius on TOP-RIGHT corner (teardrop shape)
-        sidebar.style.borderRadius = "0 " + val + "pt 0 0";
+        // Set the border-radius on the correct corner:
+        // - Arabic templates: top-LEFT → "{val}pt 0 0 0"
+        // - English template: top-RIGHT → "0 {val}pt 0 0"
+        if (isEnglishTemplate) {
+          sidebar.style.borderRadius = "0 " + val + "pt 0 0";
+        } else {
+          sidebar.style.borderRadius = val + "pt 0 0 0";
+        }
         state.styleOverrides.sidebarRadius = val;
       });
     }
@@ -1305,7 +1317,7 @@
           }
         }
       } catch (e) { console.error("fetchTruePageCount error:", e.message); /* frontend estimate remains as fallback */ }
-    }, 800);
+    }, 500);
   }
 
   function fitA4ToContainer() {
@@ -1327,48 +1339,29 @@
   }
 
   // ---------------- Page Fill Indicator ----------------
-  // CRITICAL: The fill bar is updated by fetchTruePageCount() which calls the
-  // backend fill-percentage API. That API renders the ACTUAL PDF with WeasyPrint
-  // (same engine that produces the downloaded PDF) and measures the TRUE
-  // content height. This guarantees the fill percentage matches EXACTLY what
-  // the user sees when they download.
+  // CRITICAL: The fill bar is ONLY updated by fetchTruePageCount() which calls
+  // the backend fill-percentage API. That API renders the ACTUAL PDF with
+  // WeasyPrint (same engine that produces the downloaded PDF) and measures
+  // the TRUE content height.
   //
-  // This function (updatePageFill) provides an INSTANT estimate based on DOM
-  // measurement as a placeholder until the backend responds (~1 second).
-  // The backend response will then OVERWRITE this estimate with the accurate
-  // value from the actual PDF rendering.
+  // We do NOT show a DOM-based instant estimate because Chromium (the browser
+  // preview engine) renders fonts/spacing DIFFERENTLY from WeasyPrint. The
+  // DOM estimate would show ">100%" (overflow) while the actual PDF is only
+  // ~70% full — misleading the user into thinking the PDF will be full when
+  // it won't be.
+  //
+  // Instead, we keep the LAST KNOWN backend value until the new backend
+  // response arrives (~1 second). This gives a stable, accurate indicator
+  // that always matches the downloaded PDF.
   function updatePageFill() {
     const a4Page = $(".a4-page");
-    const fillBar = $("#pageFillBar");
-    const fillText = $("#pageFillText");
     const pageInfo = $("#pageInfoText");
-    if (!a4Page || !fillBar) return;
-
-    // INSTANT estimate (will be corrected by backend in ~1 second)
-    const A4_HEIGHT_PX = 1123;
-    const marginPx = (state.controls.margin || 8) * 3.7795;
-    const usableHeightPerPage = A4_HEIGHT_PX - (2 * marginPx);
-    const pageStyle = window.getComputedStyle(a4Page);
-    const paddingTop = parseFloat(pageStyle.paddingTop) || 0;
-    const paddingBottom = parseFloat(pageStyle.paddingBottom) || 0;
-    const pageScrollHeight = a4Page.scrollHeight;
-    const contentHeight = Math.max(0, pageScrollHeight - paddingTop - paddingBottom);
-    const pct = Math.min(100, Math.max(0, Math.round((contentHeight / usableHeightPerPage) * 100)));
-    const estimatedPages = Math.max(1, Math.ceil(contentHeight / usableHeightPerPage));
-
-    // Show the estimate (will be overwritten by fetchTruePageCount)
-    fillBar.style.width = pct + "%";
-    if (pct >= 95) {
-      fillBar.style.background = "#ef4444";
-    } else if (pct >= 80) {
-      fillBar.style.background = "#f59e0b";
-    } else {
-      fillBar.style.background = "#22c55e";
-    }
-    if (fillText) fillText.textContent = pct + "%";
-    const displayPages = state.pageCount || estimatedPages;
-    if (pageInfo) {
-      pageInfo.textContent = displayPages === 1 ? "صفحة 1" : `صفحة 1 من ${displayPages}`;
+    if (!a4Page) return;
+    // Do NOT update the fill bar or percentage text here — those are ONLY
+    // set by fetchTruePageCount() (the backend authoritative response).
+    // We only update the page count text as a quick placeholder.
+    if (pageInfo && state.pageCount) {
+      pageInfo.textContent = state.pageCount === 1 ? "صفحة 1" : `صفحة 1 من ${state.pageCount}`;
     }
   }
 
@@ -1470,20 +1463,25 @@
           }
         }
         // Capture sidebar border-radius.
-        // CRITICAL: The sidebar uses a 4-value border-radius like
-        // "0 12pt 0 0" (top-right only) or "0px 16px 0px 0px" (browser
-        // converts pt→px). We must extract the SECOND value (top-right),
-        // NOT the first (which is always 0 for the teardrop shape).
-        // The old regex /(\d+)/ matched the first "0" and saved
-        // sidebarRadius="0", causing the PDF to render with NO radius.
+        // CRITICAL: The sidebar uses a 4-value border-radius. The teardrop
+        // corner depends on the template:
+        // - Arabic templates (asymmetric_dark, asymmetric_light): top-LEFT
+        //   → "{val}pt 0 0 0" — the FIRST value is the radius
+        // - English template (asymmetric_dark_en): top-RIGHT
+        //   → "0 {val}pt 0 0" — the SECOND value is the radius
+        // We extract the FIRST NON-ZERO number from the border-radius string.
+        // The old regex only looked at the second value, which broke for
+        // Arabic templates (first value = actual radius, not 0).
         const sbR = sidebar.style.borderRadius;
         if (sbR) {
-          // Match pattern: firstValue unit? space secondValue unit?
-          // e.g. "0px 16px 0px 0px" → captures "16"
-          // e.g. "0 12pt 0 0" → captures "12"
-          const m = sbR.match(/\d+(?:pt|px)?\s+(\d+)(?:pt|px)?/);
-          if (m && m[1] && m[1] !== "0") {
-            state.styleOverrides.sidebarRadius = m[1];
+          // Match ALL numbers in the border-radius string
+          const nums = sbR.match(/\d+/g) || [];
+          // Find the first non-zero number (that's the actual radius value)
+          for (const n of nums) {
+            if (n !== "0") {
+              state.styleOverrides.sidebarRadius = n;
+              break;
+            }
           }
         }
       }
