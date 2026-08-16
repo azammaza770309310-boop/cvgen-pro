@@ -36,8 +36,8 @@
   /* Fixed font sizes — Arabic fonts render smaller than Latin at the same
    * point size. To achieve visual parity, Arabic sizes are ~15% larger.
    * These are NOT affected by any global font-size control. */
-  --cv-name-size: 22pt;          /* English name — increased +3 more (total +6) */
-  --cv-name-size-ar: 18.5pt;     /* Arabic name — +15% for visual parity */
+  --cv-name-size: 18pt;          /* English name — reduced from 22pt per user request */
+  --cv-name-size-ar: 16pt;       /* Arabic name — reduced from 18.5pt, +15% for visual parity */
   --cv-contact-size: 9pt;        /* English contact */
   --cv-contact-size-ar: 10.5pt;  /* Arabic contact — +15% */
   --cv-heading-size: 11.5pt;     /* English headings */

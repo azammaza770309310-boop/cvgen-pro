@@ -357,25 +357,55 @@
       el.style.setProperty("--cv-column-gap", state.controls.columnDistance + "pt");
       el.style.setProperty("--cv-page-padding", state.controls.margin + "mm");
     });
-    // Apply font size + line height DIRECTLY to body text elements for immediate effect.
-    // CRITICAL: h1, h2, h3 are EXCLUDED — the asymmetric templates use inline
-    // `font-size: 26pt !important` on the name <h1> and 14pt on section <h2>/<h3>.
-    // If we override them here with the slider font-size (e.g. 11pt), the name
-    // becomes tiny in the preview but stays large in the PDF (where h1 is excluded),
-    // causing a PREVIEW vs PDF MISMATCH. Excluding h1/h2/h3 keeps them consistent.
-    // The selector below targets body text only (p, li, .editable on non-heading
-    // elements, .contact-item, .item, .item-title, span, div) — NOT h1/h2/h3.
-    // NOTE: .editable is applied to h1 in asym templates, so we use :not(h1):not(h2):not(h3)
-    // to exclude heading elements that happen to have the .editable class.
+
+    // CRITICAL: Apply font-family (Cairo) to ALL elements with !important.
+    // The templates.css defines font-family on .body-en, .body-ar, .header-name-en,
+    // .header-name-ar, etc. — these CSS rules override the inherited font-family
+    // from #a4Content. So setting font-family on #a4Content alone is NOT enough.
+    // We must apply it directly to each element with !important to override CSS.
+    const selectedFont = state.font || "Cairo";
     const content = $("#a4Content");
     if (content) {
-      content.style.fontFamily = state.font + ", sans-serif";
-      content.querySelectorAll(".a4-page, .section-row, .section-body, .body-en, .body-ar, .section-headings, .section-heading-en, .section-heading-ar, p, li, .item, .item-title, .contact-bar, .contact-item, .editable:not(h1):not(h2):not(h3)").forEach(el => {
+      content.style.setProperty("font-family", selectedFont + ", Arial, sans-serif", "important");
+      // Apply font-family to ALL descendant elements (headings, body, lists, etc.)
+      content.querySelectorAll("*").forEach(el => {
+        el.style.setProperty("font-family", selectedFont + ", Arial, sans-serif", "important");
+      });
+
+      // CRITICAL: Font size application — must distinguish English vs Arabic.
+      // The bilingual template has .body-en (English column) and .body-ar (Arabic
+      // column). Arabic text uses +13% larger font for visual parity.
+      //
+      // PROBLEM: The old code applied font-size to ALL p, li elements (including
+      // those inside .body-ar) with the ENGLISH size. This made Arabic text appear
+      // SMALLER than English in the preview — the opposite of what it should be.
+      // The PDF (which uses CSS variables correctly) showed Arabic LARGER, causing
+      // a preview vs PDF mismatch.
+      //
+      // FIX: Two-pass approach:
+      // 1. First pass: apply English font-size to ALL body text elements
+      //    (this sets the baseline).
+      // 2. Second pass: apply Arabic font-size (+13%) to elements INSIDE .body-ar
+      //    (this overrides the English size for Arabic content).
+      // Exclude h1/h2/h3 (they have their own fixed sizes from CSS variables).
+
+      // Pass 1: English font-size on ALL body text (excluding headings)
+      content.querySelectorAll(
+        ".a4-page, .section-row, .section-body, .body-en, .body-ar, " +
+        ".section-headings, .section-heading-en, .section-heading-ar, " +
+        "p, li, .item, .item-title, .contact-bar, .contact-item, " +
+        ".editable:not(h1):not(h2):not(h3)"
+      ).forEach(el => {
         el.style.setProperty("font-size", fontSize + "pt", "important");
         el.style.setProperty("line-height", state.controls.lineHeight, "important");
       });
-      // Also set on body-ar elements specifically (they have !important in CSS)
-      content.querySelectorAll(".body-ar, .body-ar .item, .body-ar li, .body-ar .item-title").forEach(el => {
+
+      // Pass 2: Arabic font-size (+13%) on elements inside .body-ar
+      // This OVERWRITES the English size set in Pass 1 for Arabic content.
+      content.querySelectorAll(
+        ".body-ar p, .body-ar li, .body-ar .item, .body-ar .item-title, " +
+        ".body-ar .editable:not(h1):not(h2):not(h3)"
+      ).forEach(el => {
         el.style.setProperty("font-size", fontSizeAr + "pt", "important");
       });
     }
